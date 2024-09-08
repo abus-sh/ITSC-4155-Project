@@ -1,4 +1,4 @@
-FROM node:20.14
+FROM node:20.14-bookworm-slim
 
 RUN ["npm", "install", "-g", "typescript"]
 RUN ["npm", "install", "-g", "@angular/cli"]
