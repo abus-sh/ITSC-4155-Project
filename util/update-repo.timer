@@ -1,0 +1,10 @@
+[Unit]
+Description=Updates a repo every minute, redeploying with Docker Compose as needed.
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

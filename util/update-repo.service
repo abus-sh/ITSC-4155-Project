@@ -1,0 +1,10 @@
+[Unit]
+Description=Updates a repo every minute, redeploying with Docker Compose as needed.
+After=network.target
+Wants=update-repo.timer
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/ITSC-4155-Project
+ExecStart=/usr/bin/bash ./util/update-repo.sh
