@@ -3,7 +3,12 @@ services:
     build: frontend
     ports:
       - 4200:4200
+      - 5000:5000
+    volumes:
+      - type: bind
+        source: ./secrets
+        target: /secrets
   backend:
     build: backend
-    ports:
-      - 5000:5000
+    expose:
+      - 5000
