@@ -4,11 +4,43 @@ services:
     ports:
       - 4200:4200
       - 5000:5000
-    volumes:
-      - type: bind
-        source: ./secrets
-        target: /secrets
+    secrets:
+      - site.crt
+      - site.key
   backend:
     build: backend
+    environment:
+      DB_CONN_FILE: /run/secrets/database_conn.txt
     expose:
       - 5000
+    secrets:
+      - database_conn.txt
+  # Temporary service for testing, will remove later after migrating to RDS
+  # Under no circumstances should this be merged with dev or main
+  database:
+    image: mariadb:11.5
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MYSQL_DATABASE: itsc4155
+      MYSQL_USER: service
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+    expose:
+      - 3306
+    secrets:
+      - db_password
+      - db_root_password
+
+secrets:
+  # The cert is not technically a secret, but is managed as one for consistency
+  site.crt:
+    file: ./secrets/site.crt
+  site.key:
+    file: ./secrets/site.key
+  database_conn.txt:
+    file: ./secrets/database_conn.txt
+  # Temporary secrets for the database
+  db_password:
+    file: ./secrets/db_password.txt
+  db_root_password:
+    file: ./secrets/db_root_password.txt
