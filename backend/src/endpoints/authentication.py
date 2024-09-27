@@ -31,11 +31,6 @@ def user_loader(username):
     return auth_user
 
 
-@auth.route('/')
-def authentication():
-    return "<p>Authentication</p>"
-
-
 @auth.route('/login', methods=['POST'])
 def login():
     username, password = _get_authentication_params(request)
@@ -81,19 +76,20 @@ def sign_up():
 
     # Validate the username, determine it to be unprocessable if it isn't valid
     if not _is_valid_username(username):
-        abort(HTTPStatus.UNPROCESSABLE_ENTITY)
+        abort(HTTPStatus.BAD_REQUEST)
         return
 
     # If the password is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
     if not _is_valid_password(password):
-        abort(HTTPStatus.UNPROCESSABLE_ENTITY)
+        abort(HTTPStatus.BAD_REQUEST)
         return
 
     # Hash the password
     pw_hash = password_hasher.hash(password)
 
     # Create the user
+    # TODO: determine if sign up failure was because of duplicate username or some other reason
     if not add_user(username, pw_hash):
         abort(HTTPStatus.INTERNAL_SERVER_ERROR)
         return
