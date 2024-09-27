@@ -7,6 +7,7 @@ api_v1 = Blueprint('ap1_v1', __name__)
 TOKEN = get_token_for_testing()
 BASE_URL = "https://uncc.instructure.com"
 
+
 @api_v1.route('/courses/all', methods=['GET'])
 def get_all_tasks():
     try:
@@ -22,6 +23,7 @@ def get_all_tasks():
                 'calendar': getattr(course, 'calendar', None),
             }
             courses.append(course_dict)
+            
     except Exception as e:
         return 'Unable to make request to Canvas API', 400
     except AttributeError as e:
@@ -35,24 +37,16 @@ def get_course_assignments(courseid):
         current_user = Canvas(BASE_URL, TOKEN).get_current_user()
         course_assignments = current_user.get_assignments(courseid)
         assignments = []
+        fields = [
+            'id', 'name', 'due_at', 'points_possible', 'omit_from_final_grade', 
+            'allowed_attempts', 'course_id', 'submission_types', 'has_submitted_submissions', 
+            'is_quiz_assignment', 'html_url', 'quiz_id', 'submissions_download_url', 
+            'require_lockdown_browser'
+        ]
         for assignment in course_assignments:
-            assignment_dict = {
-                'id': getattr(assignment, 'id', None),
-                'name': getattr(assignment, 'name', None),
-                'due_at': getattr(assignment, 'due_at', None),
-                'points_possible': getattr(assignment, 'points_possible', None),
-                'omit_from_final_grade': getattr(assignment, 'omit_from_final_grade', None),
-                'allowed_attempts': getattr(assignment, 'allowed_attempts', None),
-                'course_id': getattr(assignment, 'course_id', None),
-                'submission_types': getattr(assignment, 'submission_types', None),
-                'has_submitted_submissions': getattr(assignment, 'has_submitted_submissions', None),
-                'is_quiz': getattr(assignment, 'is_quiz_assignment', None),
-                'canvas_url': getattr(assignment, 'html_url', None),
-                'quiz_id': getattr(assignment, 'quiz_id', None),
-                'submissions_download_url': getattr(assignment, 'submissions_download_url', None),
-                'require_lockdown_browser': getattr(assignment, 'require_lockdown_browser', None),
-            }
+            assignment_dict = {field: getattr(assignment, field, None) for field in fields}
             assignments.append(assignment_dict)
+
     except Exception as e:
         print(e)
         return 'Unable to make request to Canvas API', 400
@@ -67,9 +61,17 @@ def get_assignment(courseid, assignmentid):
         canvas = Canvas(BASE_URL, TOKEN)
         course = canvas.get_course(courseid)
         assignment = course.get_assignment(assignmentid)
-        # TO DO
+        fields = [
+            'id', 'name', 'description', 'due_at', 'lock_at', 'course_id', 'html_url', 
+            'submissions_download_url', 'allowed_extensions', 'turnitin_enabled', 
+            'grade_group_students_individually', 'group_category_id', 'points_possible', 
+            'submission_types', 'published', 'quiz_id', 'omit_from_final_grade', 
+            'allowed_attempts', 'can_submit', 'is_quiz_assignment', 'workflow_state'
+        ]
+        assignment_dict = {field: getattr(assignment, field, None) for field in fields}
+
     except Exception as e:
         return 'Unable to make request to Canvas API', 400
     except AttributeError as e:
         return 'Unable to get field for courses', 404
-    return '', 200
+    return jsonify(assignment_dict), 200
