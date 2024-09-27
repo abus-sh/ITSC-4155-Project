@@ -4,11 +4,23 @@ services:
     ports:
       - 4200:4200
       - 5000:5000
-    volumes:
-      - type: bind
-        source: ./secrets
-        target: /secrets
+    secrets:
+      - site.crt
+      - site.key
   backend:
     build: backend
+    environment:
+      DB_CONN_FILE: /run/secrets/database_conn.txt
     expose:
       - 5000
+    secrets:
+      - database_conn.txt
+
+secrets:
+  # The cert is not technically a secret, but is managed as one for consistency
+  site.crt:
+    file: ./secrets/site.crt
+  site.key:
+    file: ./secrets/site.key
+  database_conn.txt:
+    file: ./secrets/connection_string.txt

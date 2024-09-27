@@ -3,7 +3,7 @@ from endpoints.homepage import homepage
 from utils.models import db
 from api.v1.task import api_v1
 from flask import Flask
-
+import os
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ app.register_blueprint(api_v1, url_prefix='/api/v1')    # API V1 Endpoint
 
 # Read the connection string from a file or environment variable
 # Example of string: 'mysql+pymysql://username:password@localhost:3306/db_name'
-with open('../../secrets/connection_string.txt', 'r') as file:
+with open(os.environ.get('DB_CONN_FILE', '../../secrets/connection_string.txt'), 'r') as file:
     connection_string = file.readline().strip()
 
 app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
