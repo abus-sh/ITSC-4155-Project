@@ -78,7 +78,12 @@ def sign_up():
     if username == None or password == None:
         abort(HTTPStatus.BAD_REQUEST)
         return
-    
+
+    # Validate the username, determine it to be unprocessable if it isn't valid
+    if not _is_valid_username(username):
+        abort(HTTPStatus.UNPROCESSABLE_ENTITY)
+        return
+
     # If the password is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
     if not _is_valid_password(password):
@@ -123,13 +128,24 @@ def _get_authentication_params(request: Request) -> tuple[str, str] | tuple[None
     # Make sure the username and password are strings
     if type(username) != str or type(password) != str:
         return (None, None)
-    
-    # Make sure the username and password are non-empty
-    if username == '' or password == '':
-        return (None, None)
 
     return (username, password)
 
+
+def _is_valid_username(username: str) -> bool:
+    """
+    Determines if a given username complies with the username requirements for the site.
+
+    :param username: The username to validate.
+    :return bool: True if the username complies with the requirements, False otherwise.
+    """
+
+    # If the username is empty or too long, return false
+    username_len = len(username)
+    if username_len == 0 or username_len > 90:
+        return False
+    
+    return True
 
 def _is_valid_password(password: str) -> bool:
     """
