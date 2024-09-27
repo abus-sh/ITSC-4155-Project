@@ -7,21 +7,23 @@
 #########################################################################
 from utils.models import *
 
-def add_user(name: str, primary_email: str, secondary_email: str=None) -> None:
+def add_user(username: str, password: str) -> bool:
     """
     Add a new user to the database.
 
-    :param name: The user's name.
-    :param primary_email: The user's primary email, must be unique.
-    :param secondary_email: The user's seconday email.
+    :param username: The user's username, must be unique.
+    :param password: The user's hashed password.
+    :return bool: Returns True if the user was added, False otherwise.
     """
     try:
-        new_user = User(name=name, primary_email=primary_email, secondary_email=secondary_email)
+        new_user = User(username=username, password=password)
         db.session.add(new_user)
         db.session.commit()
+        return True
     except Exception as e:
         db.session.rollback()
         print(f"Error adding user: {e}")
+        return False
 
 
 def get_all_users() -> list[User]:
@@ -47,15 +49,16 @@ def get_user_by_id(user_id: int, dict=False) -> User | dict:
     return user
 
 
-def get_user_by_email(primary_email: str, dict=False) -> User | dict:
+def get_user_by_username(username: str, dict=False) -> User | dict:
     """
     Retrieve a user by their primary email.
 
-    :param primary_email: The primary email of the user to retrieve.
+    :param username: The username of the user to retrieve.
     :param dict: If True, return the user as a dictionary. Defaults to False.
-    :return user or dict: A User instance or a dictionary representation of the user if dict is True.
+    :return User or dict or None: A User instance or a dictionary representation of the user if dict
+    is True. If no user with the given username exists, None is returned.
     """
-    user = User.query.filter_by(primary_email=primary_email).first()
+    user = User.query.filter_by(username=username).first()
     if dict and user:
         return user.to_dict()
     return user

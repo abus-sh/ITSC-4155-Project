@@ -1,4 +1,4 @@
-from endpoints.authentication import auth
+from endpoints.authentication import auth, login_manager
 from endpoints.homepage import homepage
 from utils.models import db
 from api.v1.task import api_v1
@@ -18,15 +18,25 @@ app.register_blueprint(api_v1, url_prefix='/api/v1')    # API V1 Endpoint
 with open(os.environ.get('DB_CONN_FILE', '../../secrets/connection_string.txt'), 'r') as file:
     connection_string = file.readline().strip()
 
+# Read the application secret for signing sessions
+# This should be a securely generated random value
+with open(os.environ.get('SESSION_SECRET_FILE', '../../secrets/session_secret.txt'), 'r') as file:
+    session_secret = file.readline().strip()
+
 app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = session_secret
 
 # Initialize Database with App
 db.init_app(app)
+
+# Initialize the login manager
+login_manager.init_app(app)
 
 # Create all missing tables based on the table models in `backend/src/utils/models.py`
 with app.app_context():
     db.create_all()
 
 # Run Flask with debug for testing purposes
-app.run(debug=True)
+if __name__ == '__main__':
+    app.run()

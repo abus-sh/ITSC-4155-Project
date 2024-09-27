@@ -19,9 +19,8 @@ class ModelMixin:
 #                                                                     #
 #######################################################################
 
-# This is an example of a MySQL Table
+# The user table
 class User(ModelMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=False, nullable=False)
-    primary_email = db.Column(db.String(254), unique=True, nullable=False)
-    secondary_email = db.Column(db.String(254), unique=False, nullable=True)
+    username = db.Column(db.String(100), unique=False, nullable=False)
+    password = db.Column(db.String(100), unique=False, nullable=False)
