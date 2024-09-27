@@ -1,0 +1,154 @@
+openapi: 3.1.0
+info:
+  title: CanvasHub API
+  description: |-
+    The CanvasHub API allows you to view all Canvas events and add them to Todoist automatically.
+    This was created as part of a project for ITSC 4155.
+
+    Some useful links:
+    - [The CanvasHub repository](https://github.com/abus-sh/ITSC-4155-Project)
+  version: 1.0.0
+servers:
+  - url: https://itsc4155.abus.sh:5000/api/v1
+tags:
+  - name: task
+    description: Endpoints about tasks, which include assignments, meetings, and more.
+security:
+  - api_key: []
+
+paths:
+  /task/all:
+    get:
+      tags:
+        - task
+      summary: Return all tasks for a user
+      operationId: getTasks
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+  /task/{taskId}:
+    get:
+      tags:
+        - task
+      summary: Find task by ID
+      operationId: getTaskById
+      parameters:
+        - name: taskId
+          in: path
+          description: ID of task to return
+          required: true
+          schema:
+            $ref: '#/components/schemas/Task/properties/id'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Task not found
+  /task/refresh:
+    post:
+      tags:
+        - task
+      summary: Refreshes the user's tasks
+      description: Forces the application to fetch tasks from Canvas and update tasks in Todoist. This may be handled asyncronously (i.e., the server responds immediately, but waits to update the tasks until there is downtime).
+      responses:
+        '200':
+          description: Successful operation
+        '429':
+          description: Too many requests
+
+
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - tags
+        - completed
+        - counts_towards_grade
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: The primary key in the database for the task.
+          examples: [123456]
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: The title of the task.
+          examples: ["Project proposal"]
+        description:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: An optional description of the task where extra data can be stored.
+          examples: ["Time estimate: 4 hours"]
+        tags:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 31
+          uniqueItems: true
+          description: An optional list of tags for the task in Todoist.
+          examples: [["ITSC4155", "group"]]
+        completed:
+          type: boolean
+          description: Signifies if the task is completed in Canvas.
+        counts_towards_grade:
+          type: boolean
+          description: Signifies if the task counts towards the user's grade.
+        class:
+          type: number
+          format: int32
+          description: A foreign key referencing a class in the database.
+          examples: [654321]
+        task_type:
+          type: string
+          enum:
+            - assignment
+            - page
+            - meeting
+          description: Signifies what type of item this task is. Can be automatically determined if the task is based on an item in Canvas.
+        start_date:
+          type: string
+          format: date-time
+          description: The time at which the task can be started.
+        end_date:
+          type: string
+          format: date-time
+          description: The time at which the task will no longer be available.
+        due_date:
+          type: string
+          format: date-time
+          description: The time at which the task is due.
+        canvas_id:
+          type: string
+          description: The ID of the task in Canvas, as returned by the Canvas API.
+          examples: ["assignment_987"]
+        todoist_id:
+          type: string
+          description: The ID of the task in Todoist, as returned by the Todoist API.
+          examples: ["220474322"]
+
+  requestBodies:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: X-API-KEY
+      in: header
+      description: The API key must contain a Canvas API key and a Todoist API key in the form "canvas;todoist", where "canvas" is replaced by the Canvas API token and "todoist" is replaced by the Todoist API token.
