@@ -3,9 +3,12 @@ from endpoints.homepage import homepage
 from utils.models import db
 from api.v1.task import api_v1
 from flask import Flask
+from sqlalchemy import create_engine, text
 import os
+import sys
 
 app = Flask(__name__)
+engine = None
 
 app.register_blueprint(homepage, url_prefix='/')        # Homepage Endpoint
 app.register_blueprint(auth, url_prefix='/auth')        # Authentication Endpoint

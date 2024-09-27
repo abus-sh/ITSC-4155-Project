@@ -15,6 +15,25 @@ services:
       - 5000
     secrets:
       - database_conn.txt
+  # RDS databases are expensive, just run this as part of Docker
+  database:
+    image: mariadb:11.5
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+      MARIADB_DATABASE: itsc4155
+      MARIADB_USER: service
+      MARIADB_PASSWORD_FILE: /run/secrets/db_password
+    expose:
+      - 3306
+    secrets:
+      - db_password
+      - db_root_password
+    volumes:
+       - itsc4155db:/var/lib/mysql:rw
+
+volumes:
+  itsc4155db:
 
 secrets:
   # The cert is not technically a secret, but is managed as one for consistency
@@ -24,3 +43,7 @@ secrets:
     file: ./secrets/site.key
   database_conn.txt:
     file: ./secrets/connection_string.txt
+  db_password:
+    file: ./secrets/db_password.txt
+  db_root_password:
+    file: ./secrets/db_root_password.txt
