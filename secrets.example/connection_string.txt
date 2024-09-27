@@ -1,0 +1,2 @@
+# This should be a URI that the backend can use to connect to the backend
+# Ex. 'mysql+pymysql://user:password@database:3306'
