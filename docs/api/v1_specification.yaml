@@ -96,7 +96,7 @@ paths:
         - auth
       summary: Signs a user up.
       security: []
-      operation: signUpPassword
+      operationId: signUpPassword
       requestBody:
         description: The authentication information for the new user.
         required: true
