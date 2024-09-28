@@ -124,10 +124,10 @@ paths:
                   $ref: '#/components/schemas/Username'
                 password:
                   $ref: '#/components/schemas/Password'
-                canvasKey:
+                canvas_key:
                   type: string
                   examples: ["0000~xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"]
-                todoistKey:
+                todoist_key:
                   type: string
                   examples: ["deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"]
       responses:
