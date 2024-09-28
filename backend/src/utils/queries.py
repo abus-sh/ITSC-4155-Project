@@ -7,16 +7,19 @@
 #########################################################################
 from utils.models import *
 
-def add_user(username: str, password: str) -> bool:
+def add_user(username: str, password: str, canvas_key: bytes, todoist_key: bytes) -> bool:
     """
     Add a new user to the database.
 
     :param username: The user's username, must be unique.
     :param password: The user's hashed password.
+    :param canvas_key: The user's encrypted Canvas API key.
+    :param todoist_key: The user's encrypted Todoist API key.
     :return bool: Returns True if the user was added, False otherwise.
     """
     try:
-        new_user = User(username=username, password=password)
+        new_user = User(username=username, password=password, canvas_key=canvas_key,
+                        todoist_key=todoist_key)
         db.session.add(new_user)
         db.session.commit()
         return True

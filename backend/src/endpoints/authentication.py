@@ -4,6 +4,7 @@ from http import HTTPStatus
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from utils.queries import get_user_by_username, add_user, User
+import utils.crypto as crypto
 
 auth = Blueprint('authentication', __name__)
 
@@ -70,9 +71,15 @@ def login():
 @auth.route('/signup', methods=['POST'])
 def sign_up():
     username, password = _get_authentication_params(request)
+    canvas_key, todoist_key = _get_api_keys(request)
 
     # Ensure the provided username and password are valid
     if username == None or password == None:
+        abort(HTTPStatus.BAD_REQUEST)
+        return
+
+    # Ensure that the provided API keys are valid
+    if canvas_key == None or todoist_key == None:
         abort(HTTPStatus.BAD_REQUEST)
         return
 
@@ -90,9 +97,13 @@ def sign_up():
     # Hash the password
     pw_hash = password_hasher.hash(password)
 
+    # Encrypt the API tokens
+    canvas_key = crypto.encrypt_str(canvas_key, password)
+    todoist_key = crypto.encrypt_str(todoist_key, password)
+
     # Create the user
     # TODO: determine if sign up failure was because of duplicate username or some other reason
-    if not add_user(username, pw_hash):
+    if not add_user(username, pw_hash, bytes(canvas_key), bytes(todoist_key)):
         abort(HTTPStatus.INTERNAL_SERVER_ERROR)
         return
 
@@ -129,6 +140,32 @@ def _get_authentication_params(request: Request) -> tuple[str, str] | tuple[None
         return (None, None)
 
     return (username, password)
+
+
+def _get_api_keys(request: Request) -> tuple[str, str] | tuple[None, None]:
+    """
+    Extracts the Canvas API key and Todoist API key from a request, if both exist and are valid.
+
+    :param request: The Flask request to validate.
+    :return tuple[str, str]: Returns the Canvas and Todoist API key if both exist and are valid.
+    :return tuple[None, None]: Returns (None, None) if the API keys don't exist or are invalid.
+    """
+    canvas_key = request.json.get('canvas_key')
+    todoist_key = request.json.get('todoist_key')
+
+    # Make sure the API keys were supplied
+    if canvas_key == None or todoist_key == None:
+        return (None, None)
+    
+    # Make sure they are strings
+    if type(canvas_key) != str or type(todoist_key) != str:
+        return (None, None)
+    
+    # Make sure they are non-empty
+    if len(canvas_key) == 0 or len(todoist_key) == 0:
+        return (None, None)
+
+    return (canvas_key, todoist_key)
 
 
 def _is_valid_username(username: str) -> bool:

@@ -24,3 +24,5 @@ class User(ModelMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=False, nullable=False)
     password = db.Column(db.String(100), unique=False, nullable=False)
+    canvas_key = db.Column(db.String(120), unique=False, nullable=False)
+    todoist_key = db.Column(db.String(90), unique=False, nullable=False)
