@@ -10,6 +10,7 @@ auth = Blueprint('authentication', __name__)
 login_manager = LoginManager()
 password_hasher = PasswordHasher()
 
+
 class AuthUser(UserMixin):
     """
     A respresentation of an authenticated user with an active session.
@@ -65,6 +66,7 @@ def login():
     response['username'] = auth_user.id
     return jsonify(response)
 
+
 @auth.route('/signup', methods=['POST'])
 def sign_up():
     username, password = _get_authentication_params(request)
@@ -98,6 +100,7 @@ def sign_up():
     response = dict()
     response['username'] = username
     return jsonify(response)
+
 
 @auth.route('/protected')
 @login_required
@@ -142,6 +145,7 @@ def _is_valid_username(username: str) -> bool:
         return False
     
     return True
+
 
 def _is_valid_password(password: str) -> bool:
     """
