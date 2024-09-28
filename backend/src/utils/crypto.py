@@ -129,6 +129,30 @@ def decrypt_str(ciphertext: Ciphertext|bytes, password: str) -> str:
     return data.decode()
 
 
+def reencrypt_str(ciphertext: Ciphertext|bytes, old_password: str, new_password: str) -> Ciphertext:
+    """
+    Decrypt some data, then re-encrypted it with a new password.
+
+    :param ciphertext: The Ciphertext or bytes to re-encrypt.
+    :param old_password: The password that will currently decrypt the data.
+    :param new_password: The password that the data will be re-encrypted with.
+    :raises InvalidCipherBytesException: If ciphertext is bytes and clearly does not represent a
+    Ciphertext.
+    :raises ValueError: If the given password is incorrect or the ciphertext has been modified.
+    """
+    data = decrypt_str(ciphertext, old_password)
+    return encrypt_str(data, new_password)
+
+
+def generate_key() -> bytes:
+    """
+    Generates a random encryption key for 256-bit AES-OCB encryption.
+
+    :return bytes: The generated key.
+    """
+    return get_random_bytes(32)
+
+
 def _derive_key(password: str, salt: str|None=None) -> tuple[bytes, bytes]:
     """
     Derive a key from a password to encrypt some data.
