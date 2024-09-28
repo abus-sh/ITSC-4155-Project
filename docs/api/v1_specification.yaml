@@ -82,12 +82,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthInformation'
+              type: object
+              required:
+                - username
+                - password
+                - canvasKey
+                - todoistKey
+              properties:
+                username:
+                  $ref: '#/components/schemas/Username'
+                password:
+                  $ref: '#/components/schemas/Password'
       responses:
         '200':
           description: The username and password were correct.
         '400':
-          description: The username and/or password were missing or they were invalid.
+          description: The username and/or password were missing or invalid.
         '401':
           description: The username and/or password were incorrect.
   /auth/signup:
@@ -103,12 +113,28 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthInformation'
+              type: object
+              required:
+                - username
+                - password
+                - canvasKey
+                - todoistKey
+              properties:
+                username:
+                  $ref: '#/components/schemas/Username'
+                password:
+                  $ref: '#/components/schemas/Password'
+                canvasKey:
+                  type: string
+                  examples: ["0000~xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"]
+                todoistKey:
+                  type: string
+                  examples: ["deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"]
       responses:
         '200':
           description: The user was signed up.
         '400':
-          description: The username and/or password were missing or they were invalid.
+          description: The username, password, and/or API keys were missing or invalid.
         '500':
           description: The user was not signed up for an unknown reason.
 
@@ -198,13 +224,6 @@ components:
       minLength: 15
       maxLength: 128
       examples: ["correct horse battery staple"]
-    AuthInformation:
-      type: object
-      properties:
-        username:
-          $ref: '#/components/schemas/Username'
-        password:
-          $ref: '#/components/schemas/Password'
 
   requestBodies:
   securitySchemes:
