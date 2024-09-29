@@ -7,6 +7,8 @@ import os
 
 
 app = Flask(__name__)
+USING_SQLITE = False
+
 
 app.register_blueprint(homepage, url_prefix='/')        # Homepage Endpoint
 app.register_blueprint(auth, url_prefix='/auth')        # Authentication Endpoint
@@ -24,9 +26,16 @@ with open(os.environ.get('DB_CONN_FILE', '../../secrets/connection_string.txt'),
 with open(os.environ.get('SESSION_SECRET_FILE', '../../secrets/session_secret.txt'), 'r') as file:
     session_secret = file.readline().strip()
 
-app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
+
+# If we decide to not use MySQL then turn USING_SQLITE to True.
+# SQLite will create the .db file if it doesn't exist, otherwise it will connect to it (/database/ folder).
+if USING_SQLITE:
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(app.root_path, "../..", "database", "canvas_hub.db")}'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = session_secret
+app.config['SECRET_KEY'] = session_secret
+
 
 # Initiate database and login manager
 db.init_app(app)
