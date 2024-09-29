@@ -3,12 +3,10 @@ from endpoints.homepage import homepage
 from utils.models import db
 from api.v1.task import api_v1
 from flask import Flask
-from sqlalchemy import create_engine, text
 import os
-import sys
+
 
 app = Flask(__name__)
-engine = None
 
 app.register_blueprint(homepage, url_prefix='/')        # Homepage Endpoint
 app.register_blueprint(auth, url_prefix='/auth')        # Authentication Endpoint
@@ -30,10 +28,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = session_secret
 
-# Initialize Database with App
+# Initiate database and login manager
 db.init_app(app)
-
-# Initialize the login manager
 login_manager.init_app(app)
 
 # Create all missing tables based on the table models in `backend/src/utils/models.py`
@@ -42,4 +38,4 @@ with app.app_context():
 
 # Run Flask with debug for testing purposes
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
