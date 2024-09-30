@@ -8,7 +8,7 @@ import os
 
 
 app = Flask(__name__)
-USING_SQLITE = True
+USING_SQLITE = False
 
 
 app.register_blueprint(homepage, url_prefix='/')        # Homepage Endpoint
