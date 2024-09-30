@@ -1,16 +1,14 @@
-from flask import Blueprint, request, abort, Request, jsonify
+from flask import Blueprint, request, abort, Request, jsonify, session
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from flask_wtf import CSRFProtect
-from flask_wtf.csrf import generate_csrf 
+from flask_wtf.csrf import generate_csrf
 from http import HTTPStatus
-from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User
+from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, password_hasher
 
 auth = Blueprint('authentication', __name__)
 
 login_manager = LoginManager()
-password_hasher = PasswordHasher()
 csrf = CSRFProtect()
 
 
@@ -29,12 +27,14 @@ def user_loader(login_id):
 
 @auth.route('/login', methods=['POST'])
 def login():
-    username, password = _get_authentication_params(request)
-
-    # Ensure the provided username and password are valid
-    if username == None or password == None:
+    parameters = _get_authentication_params(request, include_tokens=False)
+    
+    # Ensure the parameters were succesfully extracted from the body of the request
+    if parameters is None:
         abort(HTTPStatus.BAD_REQUEST)
         return
+    
+    username, password = parameters
 
     db_user: User|None = get_user_by_username(username)
     
@@ -51,41 +51,40 @@ def login():
         abort(HTTPStatus.UNAUTHORIZED)
         return
 
-    # Create a session for the user using the User's login_id 
+    # Update the session for the user using the User's login_id 
     login_user(db_user)
 
     # Respond that the user was authenticated
-    response = dict()
-    response['username'] = db_user.username
-    return jsonify(response)
+    print(session)
+    return jsonify({'success': True, 'message': f"Logged in as {db_user.username}"})
 
 @auth.route('/signup', methods=['POST'])
 def sign_up():
-    username, password = _get_authentication_params(request)
 
-    # Ensure the provided username and password are valid
-    if username == None or password == None:
+    parameters = _get_authentication_params(request, include_tokens=True)
+    
+    # Ensure the parameters were succesfully extracted from the body of the request
+    if parameters is None:
         abort(HTTPStatus.BAD_REQUEST)
         return
     
+    username, password, canvasToken, todoistToken = parameters
+    
+
     # If the password is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
     if not _is_valid_password(password):
         abort(HTTPStatus.UNPROCESSABLE_ENTITY)
         return
 
-    # Hash the password
-    pw_hash = password_hasher.hash(password)
 
-    # Create the user
-    if not add_user(username, pw_hash):
+    # Create the user, tokens are encrypted and password is hashed
+    if not add_user(username, password, canvasToken, todoistToken):
         abort(HTTPStatus.INTERNAL_SERVER_ERROR)
         return
-
+    
     # Respond that the user was created
-    response = dict()
-    response['username'] = username
-    return jsonify(response)
+    return jsonify({'success': True, 'message': f"Account created for {username}"})
 
 @auth.route('/logout', methods=['POST'])
 @login_required
@@ -102,25 +101,15 @@ def logout():
 
 # Get the CSRF Token for the client
 @auth.route('/csrf-token', methods=['GET'])
-@login_required
 def get_csrf_token():
     token = generate_csrf()
-    response = jsonify({'csrf_token': token})
-    response.set_cookie('XSRF-TOKEN', token)
-    return response
+    return jsonify({'csrf_token': token})
 
 @auth.route('/status', methods=['GET'])
 def auth_status():
-    print(current_user.is_authenticated)
     if current_user.is_authenticated:
         return jsonify({'authenticated': True, 'user': {'id': current_user.id, 'username': current_user.username}}), 200
     return jsonify({'authenticated': False}), 200
-
-
-@auth.route('/protected')
-@login_required
-def protected():
-    return "Hi"
 
 
 #################################################################
@@ -129,32 +118,36 @@ def protected():
 #                                                               #
 #################################################################
 
-def _get_authentication_params(request: Request) -> tuple[str, str] | tuple[None, None]:
+def _get_authentication_params(request: Request, include_tokens: bool=False) -> tuple[str, str] | tuple[str, str, str, str] |None:
     """
     Extracts the username and password from a request, if both exist and are valid.
 
     :param request: The Flask request to validate.
-    :return tuple[str, str]: Returns the username and password if both exist and are valid.
-    :return tuple[None, None]: Returns (None, None) if the username and password don't exist or are
-    invalid.
+    :param include_tokens: If to extract the tokens from the request, will return a tuple[str, str, str, str].
+    :return tuple[str, str]: Returns the username and password if both exist and are valid. `include_tokens` is False.
+    :return tuple[str, str, str, str]: Returns the username, password, and the tokens if they all exist and are valid.
+    :return None: Returns None if the username, password or the tokens don't exist or are invalid.
     """
+    # There is no json data in the request
+    if not request.json:
+        return None
+
+    # If the request json can't be parsed, return None
     username = request.json.get('username')
     password = request.json.get('password')
 
-    # Make sure a username and password were supplied
-    if username == None or password == None:
-        return (None, None)
+    if include_tokens:
+        canvas_token = request.json.get('canvasToken')
+        todoist_token = request.json.get('todoistToken')
+        params = (username, password, canvas_token, todoist_token)
+    else:
+        params = (username, password)
 
-    # Make sure the username and password are strings
-    if type(username) != str or type(password) != str:
-        return (None, None)
-    
-    # Make sure the username and password are non-empty
-    if username == '' or password == '':
-        return (None, None)
+    # Check that all fields of params are string and not None
+    if any(param is None or not isinstance(param, str) for param in params):
+        return None
 
-    return (username, password)
-
+    return params
 
 def _is_valid_password(password: str) -> bool:
     """

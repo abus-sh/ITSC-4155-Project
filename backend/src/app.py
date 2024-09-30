@@ -36,6 +36,10 @@ else:
     app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = session_secret
+app.config['WTF_CSRF_FIELD_NAME'] = 'csrf_token'
+app.config['WTF_CSRF_SECRET_KEY'] = session_secret
+app.config['SESSION_COOKIE_SAMESITE'] = 'None' # Frontend (Angular) and backend (Flask) are on different domains or ports,
+app.config['SESSION_COOKIE_SECURE'] = True  # This must be set if using HTTPS
 
 
 # Initiate database, login manager, and CSRF
@@ -43,8 +47,9 @@ db.init_app(app)
 login_manager.init_app(app)
 csrf.init_app(app)
 
-# CORS configuration
-CORS(app, supports_credentials=True, origins=['http://localhost:4200'])  # Adjust as needed
+# Cross Origin Resource sharing configuration. 
+# Only allow request from this address (Angular frontend)
+CORS(app, supports_credentials=True, origins=['http://localhost:4200'])
 
 
 # Create all missing tables based on the table models in `backend/src/utils/models.py`
