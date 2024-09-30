@@ -1,0 +1,19 @@
+<h2>Register</h2>
+<form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <label for="username">Username</label>
+    <input id="username" formControlName="username" type="text" required>
+
+    <label for="password">Password</label>
+    <input id="password" formControlName="password" type="password" required>
+
+    <label for="confirmPassword">Confirm Password</label>
+    <input id="confirmPassword" formControlName="confirmPassword" type="password" required>
+
+    <label for="canvasToken">Canvas API Token</label>
+    <input id="canvasToken" formControlName="canvasToken" type="text" required>
+
+    <label for="todoistToken">Todoist API Token</label>
+    <input id="todoistToken" formControlName="todoistToken" type="text" required>
+
+    <button type="submit">Register</button>
+</form>
