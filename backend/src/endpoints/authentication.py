@@ -1,5 +1,5 @@
 from flask import Blueprint, request, abort, Request, jsonify
-from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import generate_csrf 
 from http import HTTPStatus
@@ -21,6 +21,11 @@ def user_loader(login_id):
     return db_user
 
 
+#################################################################
+#                                                               #
+#                     LOGIN, SIGNUP, LOGOUT                     #
+#                                                               #
+#################################################################
 
 @auth.route('/login', methods=['POST'])
 def login():
@@ -88,12 +93,12 @@ def logout():
     logout_user()
     return jsonify({'success': True, 'message': 'Logged out successfully'}), 200
 
+
 #################################################################
 #                                                               #
 #                 AUTHENTICATION and CSRF TOKEN                 #
 #                                                               #
 #################################################################
-
 
 # Get the CSRF Token for the client
 @auth.route('/csrf-token', methods=['GET'])
@@ -112,15 +117,17 @@ def auth_status():
     return jsonify({'authenticated': False}), 200
 
 
-
-
-
-
 @auth.route('/protected')
 @login_required
 def protected():
     return "Hi"
 
+
+#################################################################
+#                                                               #
+#                 Authentication Utilities                      #
+#                                                               #
+#################################################################
 
 def _get_authentication_params(request: Request) -> tuple[str, str] | tuple[None, None]:
     """
