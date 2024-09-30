@@ -1,13 +1,14 @@
-from endpoints.authentication import auth, login_manager
+from endpoints.authentication import auth, login_manager, csrf
 from endpoints.homepage import homepage
 from utils.models import db
 from api.v1.task import api_v1
 from flask import Flask
+from flask_cors import CORS
 import os
 
 
 app = Flask(__name__)
-USING_SQLITE = False
+USING_SQLITE = True
 
 
 app.register_blueprint(homepage, url_prefix='/')        # Homepage Endpoint
@@ -27,8 +28,8 @@ with open(os.environ.get('SESSION_SECRET_FILE', '../../secrets/session_secret.tx
     session_secret = file.readline().strip()
 
 
-# If we decide to not use MySQL then turn USING_SQLITE to True.
-# SQLite will create the .db file if it doesn't exist, otherwise it will connect to it (/database/ folder).
+# If we decide to not use MySQL then turn `USING_SQLITE`` to True.
+# SQLite will create the .db file if it doesn't exist; if it does, it will connect to it (in the /database/ folder).
 if USING_SQLITE:
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(app.root_path, "../..", "database", "canvas_hub.db")}'
 else:
@@ -37,9 +38,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = session_secret
 
 
-# Initiate database and login manager
+# Initiate database, login manager, and CSRF
 db.init_app(app)
 login_manager.init_app(app)
+csrf.init_app(app)
+
+# CORS configuration
+CORS(app, supports_credentials=True, origins=['http://localhost:4200'])  # Adjust as needed
+
 
 # Create all missing tables based on the table models in `backend/src/utils/models.py`
 with app.app_context():

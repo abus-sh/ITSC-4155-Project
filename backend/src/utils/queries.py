@@ -1,4 +1,3 @@
-
 #########################################################################
 #                                                                       #
 #    This is just an EXAMPLE of how we may structure it. This file      #
@@ -16,6 +15,10 @@ def add_user(username: str, password: str) -> bool:
     :return bool: Returns True if the user was added, False otherwise.
     """
     try:
+        # If the username already exists
+        if get_user_by_username(username):
+            return False
+        
         new_user = User(username=username, password=password)
         db.session.add(new_user)
         db.session.commit()
@@ -51,7 +54,21 @@ def get_user_by_id(user_id: int, dict=False) -> User | dict:
 
 def get_user_by_username(username: str, dict=False) -> User | dict:
     """
-    Retrieve a user by their primary email.
+    Retrieve a user by their username.
+
+    :param username: The username of the user to retrieve.
+    :param dict: If True, return the user as a dictionary. Defaults to False.
+    :return User or dict or None: A User instance or a dictionary representation of the user if dict
+    is True. If no user with the given username exists, None is returned.
+    """
+    user = User.query.filter_by(username=username).first()
+    if dict and user:
+        return user.to_dict()
+    return user
+
+def get_user_by_login_id(username: str, dict=False) -> User | dict:
+    """
+    Retrieve a user by their username.
 
     :param username: The username of the user to retrieve.
     :param dict: If True, return the user as a dictionary. Defaults to False.
