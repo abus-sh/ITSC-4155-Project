@@ -27,6 +27,12 @@ def user_loader(login_id):
 
 @auth.route('/login', methods=['POST'])
 def login():
+
+    # User is already logged in
+    if current_user.is_authenticated:
+        abort(HTTPStatus.UNAUTHORIZED)
+        return
+    
     parameters = _get_authentication_params(request, include_tokens=False)
     
     # Ensure the parameters were succesfully extracted from the body of the request
@@ -55,7 +61,6 @@ def login():
     login_user(db_user)
 
     # Respond that the user was authenticated
-    print(session)
     return jsonify({'success': True, 'message': f"Logged in as {db_user.username}"})
 
 @auth.route('/signup', methods=['POST'])

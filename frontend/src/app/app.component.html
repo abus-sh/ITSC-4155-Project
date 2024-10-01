@@ -1,25 +1,26 @@
 <header>
     <nav>
-      <div class="nav-left">
-      </div>
-  
-      <div class="nav-right">
-        <!-- Unauthenticated users -->
-        <ng-container *ngIf="!(authStatus$ | async)?.authenticated">
-          <a routerLink="/login">Login</a>
-          <a routerLink="/register">Register</a>
-        </ng-container>
-  
-        <!-- WAuthenticated users -->
-        <ng-container *ngIf="(authStatus$ | async)?.authenticated">
-          <span>Welcome, {{ (authStatus$ | async)?.user?.username }}</span>
-          <a (click)="logout()">Logout</a>
-        </ng-container>
-      </div>
+        <div class="nav-left">
+        </div>
+
+        <div class="nav-right">
+            <!-- Unauthenticated users -->
+            <ng-container *ngIf="!(authStatus$ | async)?.authenticated">
+                <a routerLink="/login">Login</a>
+                <a routerLink="/register">Register</a>
+                <a routerLink="/dashboard">Dashboard</a>
+            </ng-container>
+
+            <!-- WAuthenticated users -->
+            <ng-container *ngIf="(authStatus$ | async)?.authenticated">
+                <span>Welcome, {{ (authStatus$ | async)?.user?.username }}</span>
+                <a routerLink="/dashboard">Dashboard</a>
+                <a (click)="logout()">Logout</a>
+            </ng-container>
+        </div>
     </nav>
-  </header>
-  
-  <main>
+</header>
+
+<main>
     <router-outlet></router-outlet>
-  </main>
-  
+</main>

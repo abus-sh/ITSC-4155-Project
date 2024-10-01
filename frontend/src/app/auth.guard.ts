@@ -1,31 +1,30 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { AuthService } from './auth.service';
+import { map, catchError } from 'rxjs/operators';
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
+    constructor(private loginService: AuthService, private router: Router) {}
 
-    constructor(private authService: AuthService, private router: Router) { }
-
-    canActivate(
-        next: ActivatedRouteSnapshot,
-        state: RouterStateSnapshot
-    ): Observable<boolean> | Promise<boolean> | boolean {
-        let isAuthenticated = false;
-
-        // Subscribe to the authentication status
-        this.authService.authStatus$.subscribe(status => {
-            isAuthenticated = status.authenticated;
-        });
-
-        // Redirect based on authentication status
-        if (!isAuthenticated) {
-            this.router.navigate(['/login']); // Redirect to the login page if not authenticated
-            return false; // Prevent access to the route
-        }
-        return true; // Allow access to the route if authenticated
+    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+        return this.loginService.isLoggedIn().pipe(
+            map(isLoggedIn => {
+                if (isLoggedIn) {
+                    return true; // Allow access
+                } else {
+                    this.router.navigate(['/login']); // Redirect to login
+                    return false; // Deny access
+                }
+            }),
+            catchError(err => {
+                console.error('Error checking login status:', err); // Log error for debugging
+                this.router.navigate(['/login']); // Redirect to login on error
+                return of(false); // Deny access
+            })
+        );
     }
 }
