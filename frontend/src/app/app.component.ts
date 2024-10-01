@@ -28,7 +28,8 @@ export class AppComponent implements OnInit {
             next: (response) => {
                 // get CSRF token
                 const csrfToken = response.csrf_token;
-                // Set the CSRF token in the cookie
+                // Set the CSRF token in the cookie, so that the interceptor 
+                // can put it in the header for every request that requires it (CsrfInterceptor)
                 document.cookie = `XSRF-TOKEN=${csrfToken}; path=/; SameSite=Strict;`;
             },
             error: (err) => {
@@ -36,7 +37,7 @@ export class AppComponent implements OnInit {
             }
         });
     }
-
+    
     logout() {
         this.authService.logout().subscribe();
     }

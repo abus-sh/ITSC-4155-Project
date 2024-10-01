@@ -7,14 +7,14 @@ import { Observable } from 'rxjs';
 export class CsrfInterceptor implements HttpInterceptor {
     constructor() { }
 
-    // Intercept method to modify HTTP requests, add the X-CSRFToken in header
+    // Intercept method to modify HTTP requests to add the X-CSRFToken in header
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         const csrfToken = this.getCsrfTokenFromCookie();
 
         if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method) && csrfToken) {
             request = request.clone({
                 headers: request.headers.set('X-CSRFToken', csrfToken),
-                withCredentials: true
+                withCredentials: true // Keep the other credentials
             });
         }
         return next.handle(request);

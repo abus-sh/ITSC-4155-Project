@@ -11,7 +11,7 @@
                 <a routerLink="/dashboard">Dashboard</a>
             </ng-container>
 
-            <!-- WAuthenticated users -->
+            <!-- Authenticated users -->
             <ng-container *ngIf="(authStatus$ | async)?.authenticated">
                 <span>Welcome, {{ (authStatus$ | async)?.user?.username }}</span>
                 <a routerLink="/dashboard">Dashboard</a>
