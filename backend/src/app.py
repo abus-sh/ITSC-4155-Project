@@ -1,14 +1,15 @@
-from endpoints.authentication import auth, login_manager
+from endpoints.authentication import auth, login_manager, csrf
 from endpoints.homepage import homepage
 from utils.models import db
 from api.v1.task import api_v1
 from flask import Flask
-from sqlalchemy import create_engine, text
+from flask_cors import CORS
 import os
-import sys
+
 
 app = Flask(__name__)
-engine = None
+USING_SQLITE = False
+
 
 app.register_blueprint(homepage, url_prefix='/')        # Homepage Endpoint
 app.register_blueprint(auth, url_prefix='/auth')        # Authentication Endpoint
@@ -26,15 +27,30 @@ with open(os.environ.get('DB_CONN_FILE', '../../secrets/connection_string.txt'),
 with open(os.environ.get('SESSION_SECRET_FILE', '../../secrets/session_secret.txt'), 'r') as file:
     session_secret = file.readline().strip()
 
-app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
+
+# If we decide to not use MySQL then turn `USING_SQLITE`` to True.
+# SQLite will create the .db file if it doesn't exist; if it does, it will connect to it (in the /database/ folder).
+if USING_SQLITE:
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(app.root_path, "../..", "database", "canvas_hub.db")}'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = session_secret
+app.config['SECRET_KEY'] = session_secret
+app.config['WTF_CSRF_FIELD_NAME'] = 'csrf_token'
+app.config['WTF_CSRF_SECRET_KEY'] = session_secret
+app.config['SESSION_COOKIE_SAMESITE'] = 'None' # Frontend (Angular) and backend (Flask) are on different domains or ports,
+app.config['SESSION_COOKIE_SECURE'] = True  # This must be set if using HTTPS
 
-# Initialize Database with App
+
+# Initiate database, login manager, and CSRF
 db.init_app(app)
-
-# Initialize the login manager
 login_manager.init_app(app)
+csrf.init_app(app)
+
+# Cross Origin Resource sharing configuration. 
+# Only allow request from this address (Angular frontend)
+CORS(app, supports_credentials=True, origins=['http://localhost:4200'])
+
 
 # Create all missing tables based on the table models in `backend/src/utils/models.py`
 with app.app_context():
@@ -42,4 +58,4 @@ with app.app_context():
 
 # Run Flask with debug for testing purposes
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

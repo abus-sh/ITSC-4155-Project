@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from canvasapi import Canvas
 from utils.core import get_token_for_testing
 
@@ -91,8 +91,38 @@ def get_course_assignment(courseid, assignmentid):
         return 'Unable to get field for courses', 404
     return jsonify(assignment_dict), 200
 
+
+# Get missing submissions for active courses (past the due date)
+@api_v1.route('/user/missing_submissions', methods=['GET', 'POST'])
+def get_missing_submissions():
+    try:
+        canvas = Canvas(BASE_URL, TOKEN)
+        # get courses ids from request json body
+        request_data = request.get_json(silent=True)
+        courses_list = request_data.get('course_ids', [])
+        # If the course_ids were not provided, fetch them from the active enrollment canvas api
+        if len(courses_list) <= 0:
+            current_courses = canvas.get_courses(enrollment_state='active')
+            for course in current_courses:
+                one_course = getattr(course, 'id', None)
+                if one_course is not None:
+                    courses_list.append(one_course)
+
+        missing_submissions = canvas.get_current_user().get_missing_submissions(course_ids=courses_list)
+        miss_assignments_list = []
+        for assignment in missing_submissions:
+            fields = [
+                'id', 'name', 'description', 'due_at','course_id', 'html_url', 
+            ]
+            miss_assignment = {field: getattr(assignment, field, None) for field in fields}
+            miss_assignments_list.append(miss_assignment)
+    except Exception as e:
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError as e:
+        return 'Unable to get field for courses', 404
+    return jsonify(miss_assignments_list), 200
+
 # TO DO:
-# GET /api/v1/users/:user_id/missing_submissions (List Missing Submissions)
 # GET /api/v1/users/:id/graded_submissions (Get a users most recently graded submissions)
 # GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions (List assignment submissions)
 # GET /api/v1/courses/:course_id/students/submissions (List submissions for multiple assignments)
