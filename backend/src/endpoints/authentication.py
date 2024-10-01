@@ -18,6 +18,10 @@ def user_loader(login_id):
     db_user: User | None = get_user_by_login_id(login_id)
     return db_user
 
+    # Try to get the re-encrypted API keys
+    # If they don't exist, invalidate the session
+    if db_user.username not in api_key_cache:
+        return None
 
 #################################################################
 #                                                               #
@@ -63,6 +67,7 @@ def login():
     # Respond that the user was authenticated
     return jsonify({'success': True, 'message': f"Logged in as {db_user.username}"})
 
+
 @auth.route('/signup', methods=['POST'])
 def sign_up():
 
@@ -79,7 +84,7 @@ def sign_up():
     # If the password is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
     if not _is_valid_password(password):
-        abort(HTTPStatus.UNPROCESSABLE_ENTITY)
+        abort(HTTPStatus.BAD_REQUEST)
         return
 
 

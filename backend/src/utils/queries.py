@@ -13,6 +13,8 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
 
     :param username: The user's username, must be unique.
     :param password: The user's hashed password.
+    :param canvas_key: The user's encrypted Canvas API key.
+    :param todoist_key: The user's encrypted Todoist API key.
     :return bool: Returns True if the user was added, False otherwise.
     """
     try:
