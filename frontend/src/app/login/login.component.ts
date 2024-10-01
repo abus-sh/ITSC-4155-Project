@@ -28,7 +28,7 @@ export class LoginComponent {
         this.authService.login(username, password).subscribe(
             res => {
                 if (res.success) {
-                    this.router.navigate(['/']); // Redirect after successful login
+                    this.router.navigate(['/dashboard']); // Redirect after successful login
                 } else {
                     this.errorMessage = res.message;
                 }

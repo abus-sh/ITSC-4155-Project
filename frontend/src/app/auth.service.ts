@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
+
 
 interface AuthStatus {
     authenticated: boolean;
@@ -20,7 +22,7 @@ export class AuthService {
     
     private backend = "http://localhost:5000";
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private router: Router) {
         this.isLoggedIn().subscribe();
     }
 
@@ -37,23 +39,12 @@ export class AuthService {
 
     logout(): Observable<any> {
         return this.http.post(`${this.backend}/auth/logout`, {}, { withCredentials: true }).pipe(
-            tap(() => this.authStatusSubject.next({ authenticated: false }))
+            tap(() => {
+                this.authStatusSubject.next({ authenticated: false });
+                this.router.navigate(['/login']);
+            })
         );
     }
-
-    // checkAuthStatus(): void {
-    //     console.log("Check being done!");
-    //     this.http.get<AuthStatus>(`${this.backend}/auth/status`, { withCredentials: true }).subscribe(
-    //         status => {
-    //             this.authStatusSubject.next(status);
-    //             console.log("Auth Status Updated:", status); // Check status
-    //         },
-    //         error => {
-    //             this.authStatusSubject.next({ authenticated: false });
-    //             console.error("Failed to check auth status:", error); // Log errors
-    //         }
-    //     );
-    // }
 
     isLoggedIn(): Observable<boolean> {
         console.log("Sending request..");
