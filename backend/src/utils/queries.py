@@ -89,7 +89,7 @@ def get_user_by_username(username: str, dict=False) -> User | dict:
         return user.to_dict()
     return user
 
-def get_user_by_login_id(login_id: str, dict=False) -> User | dict:
+def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
     """
     Retrieve a user by their login_id.
 
