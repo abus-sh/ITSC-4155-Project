@@ -5,23 +5,36 @@ from flask_wtf.csrf import generate_csrf
 from http import HTTPStatus
 from argon2.exceptions import VerifyMismatchError
 from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, password_hasher
+from utils.crypto import reencrypt_str, decrypt_str
+from lru import LRU
 
 auth = Blueprint('authentication', __name__)
 
 login_manager = LoginManager()
 csrf = CSRFProtect()
 
+# This value effectively limits the maximum number of concurrent sessions
+api_key_cache =  LRU(50)
 
 # Retrieve the User based on the login_id stored in the session
 @login_manager.user_loader
 def user_loader(login_id):
     db_user: User | None = get_user_by_login_id(login_id)
-    return db_user
 
+    if db_user == None:
+        return None
+    
     # Try to get the re-encrypted API keys
     # If they don't exist, invalidate the session
-    if db_user.username not in api_key_cache:
+    if session['_id'] not in api_key_cache:
         return None
+
+    # Load cached values for the API tokens
+    canvas_key, todoist_key = api_key_cache[session['_id']]
+    db_user.canvas_token_session = canvas_key
+    db_user.todoist_token_password = todoist_key
+
+    return db_user
 
 #################################################################
 #                                                               #
@@ -64,6 +77,17 @@ def login():
     # Update the session for the user using the User's login_id 
     login_user(db_user)
 
+    # Get the session identifier from the session
+    # This is provided by Flask-Login as a unique identifer
+    session_id = session['_id']
+
+    # Decrypt tokens with password and re-encrypt with session_id
+    canvas_token = reencrypt_str(db_user.canvas_token_password, password, session_id)
+    todoist_token = reencrypt_str(db_user.todoist_token_password, password, session_id)
+
+    # Cache API re-encrypted tokens for future requests
+    api_key_cache[session_id] = (canvas_token, todoist_token)
+
     # Respond that the user was authenticated
     return jsonify({'success': True, 'message': f"Logged in as {db_user.username}"})
 
@@ -80,6 +104,12 @@ def sign_up():
     
     username, password, canvasToken, todoistToken = parameters
     
+
+    # If the username is invalid, determine it to be unprocessable
+    # This is so that it is distinct from a bad request
+    if not _is_valid_username(username):
+        abort(HTTPStatus.BAD_REQUEST)
+        return
 
     # If the password is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
@@ -147,8 +177,8 @@ def _get_authentication_params(request: Request, include_tokens: bool=False) -> 
     password = request.json.get('password')
 
     if include_tokens:
-        canvas_token = request.json.get('canvasToken')
-        todoist_token = request.json.get('todoistToken')
+        canvas_token = request.json.get('canvas_token')
+        todoist_token = request.json.get('todoist_token')
         params = (username, password, canvas_token, todoist_token)
     else:
         params = (username, password)
@@ -158,6 +188,25 @@ def _get_authentication_params(request: Request, include_tokens: bool=False) -> 
         return None
 
     return params
+
+def _is_valid_username(username: str) -> bool:
+    """
+    Determines if a given username complies with the username requirements for the site.
+
+    :param username: The username to validate.
+    :return bool: True if the username complies with the requirements, False otherwise.
+    """
+
+    # If the username is empty or too long, return False
+    username_len = len(username)
+    if username_len == 0 or username_len > 90:
+        return False
+    
+    # If the username includes a newline, return False
+    if username.count('\n') != 0:
+        return False
+
+    return True
 
 def _is_valid_password(password: str) -> bool:
     """
@@ -180,3 +229,23 @@ def _is_valid_password(password: str) -> bool:
     # NIST SP800-63B explicitly prohibits requiring special characters and other complexity rules
 
     return True
+
+def _decrypt_api_keys() -> tuple[str, str]:
+    """
+    Decrypts the API keys for the current user. Returns them as (canvas_key, todoist_key).
+
+    :rasies ValueError: If session does not have an _id or current_user has no encrypted API keys.
+    """
+    # If the session doesn't have an ID, can't decrypt keys
+    if '_id' not in session:
+        raise ValueError
+    session_id = session['_id']
+
+    # If current user doesn't have API keys, can't decrypt keys
+    if current_user.canvas_token_password == None or current_user.todoist_token_password == None:
+        raise ValueError
+
+    canvas_token = decrypt_str(current_user.canvas_token_password, session_id)
+    todoist_token = decrypt_str(current_user.todoist_token_password, session_id)
+
+    return (canvas_token, todoist_token)

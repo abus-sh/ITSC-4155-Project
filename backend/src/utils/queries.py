@@ -5,7 +5,10 @@
 #                                                                       #
 #########################################################################
 from utils.models import *
+from utils.crypto import encrypt_str
 from canvasapi import Canvas
+from todoist_api_python.api import TodoistAPI
+from requests.exceptions import HTTPError
 
 def add_user(username: str, password: str, canvas_token: str, todoist_token: str) -> bool:
     """
@@ -13,29 +16,37 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
 
     :param username: The user's username, must be unique.
     :param password: The user's hashed password.
-    :param canvas_key: The user's encrypted Canvas API key.
-    :param todoist_key: The user's encrypted Todoist API key.
+    :param canvas_key: The user's Canvas API key.
+    :param todoist_key: The user's Todoist API key.
     :return bool: Returns True if the user was added, False otherwise.
     """
     try:
         # Check that the Canvas token is valid
-        canvas_user = Canvas("https://uncc.instructure.com", canvas_token).get_current_user()
+        canvas_user = Canvas('https://uncc.instructure.com', canvas_token).get_current_user()
         canvas_id = getattr(canvas_user, 'id', None)
         canvas_name = getattr(canvas_user, 'name', None)
         if canvas_id is None or canvas_name is None:
             return False
         
         # Check that the Todoist token is valid
-        # TODO: check todoist token
+        try:
+            # This will almost certainly fail, but the way it fails will show if the token is valid
+            # If it happens to succeed, then that means the token is valid
+            TodoistAPI(todoist_token).get_task(task_id='0')
+        except HTTPError as ex:
+            # 401 indicates Forbidden, API key is bad
+            # Non-401 error indicates that the API key is good
+            if ex.response.status_code == 401:
+                return False
+
         
         # This Canvas user is already associated with an existing user (prevents multiple account with different tokens)
         if User.query.filter_by(canvas_id=canvas_id).first():
             return False
         
         # Encrypt canvas and todoist token with password
-        # TODO: encrypt tokens
-        canvas_token_password = canvas_token
-        todoist_token_password = todoist_token
+        canvas_token_password = encrypt_str(canvas_token, password).to_bytes()
+        todoist_token_password = encrypt_str(todoist_token, password).to_bytes()
 
         # Hash the password
         pw_hash = password_hasher.hash(password)
@@ -89,7 +100,7 @@ def get_user_by_username(username: str, dict=False) -> User | dict:
         return user.to_dict()
     return user
 
-def get_user_by_login_id(login_id: str, dict=False) -> User | dict:
+def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
     """
     Retrieve a user by their login_id.
 
