@@ -5,6 +5,7 @@
 #                                                                       #
 #########################################################################
 from utils.models import *
+from utils.crypto import encrypt_str
 from canvasapi import Canvas
 
 def add_user(username: str, password: str, canvas_token: str, todoist_token: str) -> bool:
@@ -33,9 +34,8 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
             return False
         
         # Encrypt canvas and todoist token with password
-        # TODO: encrypt tokens
-        canvas_token_password = canvas_token
-        todoist_token_password = todoist_token
+        canvas_token_password = encrypt_str(canvas_token, password).to_bytes()
+        todoist_token_password = encrypt_str(todoist_token, password).to_bytes()
 
         # Hash the password
         pw_hash = password_hasher.hash(password)
@@ -89,7 +89,7 @@ def get_user_by_username(username: str, dict=False) -> User | dict:
         return user.to_dict()
     return user
 
-def get_user_by_login_id(login_id: str, dict=False) -> User | dict:
+def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
     """
     Retrieve a user by their login_id.
 

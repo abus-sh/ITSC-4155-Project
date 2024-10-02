@@ -144,12 +144,17 @@ def reencrypt_str(ciphertext: Ciphertext|bytes, old_password: str, new_password:
     return encrypt_str(data, new_password)
 
 
-def generate_key() -> bytes:
+def generate_key(seed: str|None=None) -> bytes:
     """
     Generates a random encryption key for 256-bit AES-OCB encryption.
 
+    :param seed: A string to base the key off of. If no seed is provided, a random key is generated
+    instead.
     :return bytes: The generated key.
     """
+    if seed:
+        return _derive_key(seed)
+    
     return get_random_bytes(32)
 
 
