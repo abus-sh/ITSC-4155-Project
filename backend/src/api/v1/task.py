@@ -1,18 +1,23 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from canvasapi import Canvas
-from utils.core import get_token_for_testing
+import os
+from endpoints.authentication import decrypt_canvas_key
+from http import HTTPStatus
+from flask_login import login_required
 
 api_v1 = Blueprint('ap1_v1', __name__)
 
-TOKEN = get_token_for_testing()
-BASE_URL = "https://uncc.instructure.com"
+BASE_URL = os.environ.get('CANVAS_BASE_URL', 'https://uncc.instructure.com')
 
 
 # Get list of all courses for current student
 @api_v1.route('/courses/all', methods=['GET'])
+@login_required
 def get_all_courses():
+    canvas_key = decrypt_canvas_key()
+
     try:
-        canvas = Canvas(BASE_URL, TOKEN)
+        canvas = Canvas(BASE_URL, canvas_key)
         current_courses = canvas.get_courses(enrollment_state='active', include=["total_scores"])
         courses_list = []
         fields = [
@@ -30,9 +35,12 @@ def get_all_courses():
 
 # Get info about a single course
 @api_v1.route('/courses/<courseid>', methods=['GET'])
+@login_required
 def get_course(courseid):
+    canvas_key = decrypt_canvas_key()
+
     try:
-        canvas = Canvas(BASE_URL, TOKEN)
+        canvas = Canvas(BASE_URL, canvas_key)
         course = canvas.get_course(courseid, include=["total_scores"])
         fields = [
             'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments'
@@ -48,9 +56,12 @@ def get_course(courseid):
 
 # Get all assignments for a course
 @api_v1.route('/courses/<courseid>/assignments', methods=['GET'])
+@login_required
 def get_course_assignments(courseid):
+    canvas_key = decrypt_canvas_key()
+
     try:
-        current_user = Canvas(BASE_URL, TOKEN).get_current_user()
+        current_user = Canvas(BASE_URL, canvas_key).get_current_user()
         course_assignments = current_user.get_assignments(courseid)
         assignments = []
         fields = [
@@ -72,9 +83,12 @@ def get_course_assignments(courseid):
 
 # Get a single assignment for a course
 @api_v1.route('/courses/<courseid>/assignments/<assignmentid>', methods=['GET'])
+@login_required
 def get_course_assignment(courseid, assignmentid):
+    canvas_key = decrypt_canvas_key()
+
     try:
-        canvas = Canvas(BASE_URL, TOKEN)
+        canvas = Canvas(BASE_URL, canvas_key)
         assignment = canvas.get_course(courseid).get_assignment(assignmentid)
         fields = [
             'id', 'name', 'description', 'due_at', 'lock_at', 'course_id', 'html_url', 
@@ -94,9 +108,12 @@ def get_course_assignment(courseid, assignmentid):
 
 # Get missing submissions for active courses (past the due date)
 @api_v1.route('/user/missing_submissions', methods=['GET', 'POST'])
+@login_required
 def get_missing_submissions():
+    canvas_key = decrypt_canvas_key()
+
     try:
-        canvas = Canvas(BASE_URL, TOKEN)
+        canvas = Canvas(BASE_URL, canvas_key)
         # get courses ids from request json body
         request_data = request.get_json(silent=True)
         courses_list = request_data.get('course_ids', [])
