@@ -34,7 +34,7 @@ export class AuthService {
     // Login into the backend with username and password, return the user session
     // Does an extra login authentication with the session
     login(username: string, password: string): Observable<any> {
-        return this.http.post(`${this.backend}/auth/login`, { username, password }, { withCredentials: true }).pipe(
+        return this.http.post(`${this.backend}/api/auth/login`, { username, password }, { withCredentials: true }).pipe(
             tap(() => this.isLoggedIn())
         );
     }

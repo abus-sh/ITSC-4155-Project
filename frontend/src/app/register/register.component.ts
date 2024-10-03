@@ -38,7 +38,7 @@ export class RegisterComponent {
             }
 
             // Make HTTP POST request to the registration endpoint
-            this.http.post('http://localhost:5000/auth/signup', { username, password, canvasToken, todoistToken }, { withCredentials: true })
+            this.http.post('http://localhost:5000/api/auth/signup', { username, password, canvasToken, todoistToken }, { withCredentials: true })
                 .subscribe(
                     response => {
                         console.log('Registration successful', response);
