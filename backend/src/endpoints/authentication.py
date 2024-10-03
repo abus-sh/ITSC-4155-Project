@@ -32,7 +32,7 @@ def user_loader(login_id):
     # Load cached values for the API tokens
     canvas_key, todoist_key = api_key_cache[session['_id']]
     db_user.canvas_token_session = canvas_key
-    db_user.todoist_token_password = todoist_key
+    db_user.todoist_token_session = todoist_key
 
     return db_user
 
@@ -50,7 +50,7 @@ def login():
         abort(HTTPStatus.UNAUTHORIZED)
         return
     
-    parameters = _get_authentication_params(request, include_tokens=False)
+    parameters = get_authentication_params(request, include_tokens=False)
     
     # Ensure the parameters were succesfully extracted from the body of the request
     if parameters is None:
@@ -95,7 +95,7 @@ def login():
 @auth.route('/signup', methods=['POST'])
 def sign_up():
 
-    parameters = _get_authentication_params(request, include_tokens=True)
+    parameters = get_authentication_params(request, include_tokens=True)
     
     # Ensure the parameters were succesfully extracted from the body of the request
     if parameters is None:
@@ -158,7 +158,7 @@ def auth_status():
 #                                                               #
 #################################################################
 
-def _get_authentication_params(request: Request, include_tokens: bool=False) -> tuple[str, str] | tuple[str, str, str, str] |None:
+def get_authentication_params(request: Request, include_tokens: bool=False) -> tuple[str, str] | tuple[str, str, str, str] |None:
     """
     Extracts the username and password from a request, if both exist and are valid.
 
@@ -230,7 +230,7 @@ def _is_valid_password(password: str) -> bool:
 
     return True
 
-def _decrypt_api_keys() -> tuple[str, str]:
+def decrypt_api_keys() -> tuple[str, str]:
     """
     Decrypts the API keys for the current user. Returns them as (canvas_key, todoist_key).
 
@@ -241,11 +241,11 @@ def _decrypt_api_keys() -> tuple[str, str]:
         raise ValueError
     session_id = session['_id']
 
-    # If current user doesn't have API keys, can't decrypt keys
-    if current_user.canvas_token_password == None or current_user.todoist_token_password == None:
+    # If current user doesn't have API keys encrypted w/ session key, can't decrypt keys
+    if current_user.canvas_token_session == None or current_user.todoist_token_session == None:
         raise ValueError
 
-    canvas_token = decrypt_str(current_user.canvas_token_password, session_id)
-    todoist_token = decrypt_str(current_user.todoist_token_password, session_id)
+    canvas_token = decrypt_str(current_user.canvas_token_session, session_id)
+    todoist_token = decrypt_str(current_user.todoist_token_session, session_id)
 
     return (canvas_token, todoist_token)
