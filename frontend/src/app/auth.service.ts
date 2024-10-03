@@ -28,7 +28,7 @@ export class AuthService {
 
     // Request CSRF token from backend
     getCsrfToken(): Observable<any> {
-        return this.http.get(`${this.backend}/auth/csrf-token`, { withCredentials: true });
+        return this.http.get(`${this.backend}/api/auth/csrf-token`, { withCredentials: true });
     }
 
     // Login into the backend with username and password, return the user session
