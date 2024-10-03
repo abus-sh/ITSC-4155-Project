@@ -52,7 +52,7 @@ export class AuthService {
     // Check the if the user session is logged in
     isLoggedIn(): Observable<boolean> {
         console.log("Sending request..");
-        return this.http.get<AuthStatus>(`${this.backend}/auth/status`, { withCredentials: true }).pipe(
+        return this.http.get<AuthStatus>(`${this.backend}/api/auth/status`, { withCredentials: true }).pipe(
             map(response => {
                 console.log("Request received!")
                 this.authStatusSubject.next(response);

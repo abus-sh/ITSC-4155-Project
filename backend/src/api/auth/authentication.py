@@ -182,8 +182,8 @@ def _get_authentication_params(request: Request, include_tokens: bool=False) -> 
     password = request.json.get('password')
 
     if include_tokens:
-        canvas_token = request.json.get('canvas_token')
-        todoist_token = request.json.get('todoist_token')
+        canvas_token = request.json.get('canvasToken')
+        todoist_token = request.json.get('todoistToken')
         params = (username, password, canvas_token, todoist_token)
     else:
         params = (username, password)
