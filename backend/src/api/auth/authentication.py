@@ -100,6 +100,7 @@ def sign_up():
     
     # Ensure the parameters were succesfully extracted from the body of the request
     if parameters is None:
+        print('Invalid parameters')
         abort(HTTPStatus.BAD_REQUEST)
         return
     
@@ -109,18 +110,21 @@ def sign_up():
     # If the username is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
     if not _is_valid_username(username):
+        print('Invalid username')
         abort(HTTPStatus.BAD_REQUEST)
         return
 
     # If the password is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
     if not _is_valid_password(password):
+        print('Invalid password')
         abort(HTTPStatus.BAD_REQUEST)
         return
 
 
     # Create the user, tokens are encrypted and password is hashed
     if not add_user(username, password, canvasToken, todoistToken):
+        print('Invalid add user')
         abort(HTTPStatus.INTERNAL_SERVER_ERROR)
         return
     
