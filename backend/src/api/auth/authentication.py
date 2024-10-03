@@ -14,7 +14,7 @@ login_manager = LoginManager()
 csrf = CSRFProtect()
 
 # This value effectively limits the maximum number of concurrent sessions
-api_key_cache =  LRU(50)
+api_key_cache = LRU(50)
 
 # Retrieve the User based on the login_id stored in the session
 @login_manager.user_loader

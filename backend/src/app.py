@@ -2,9 +2,8 @@ from flask import Flask
 from flask_cors import CORS
 import os
 
+from api.auth.authentication import auth, login_manager, csrf
 from api.v1.task import api_v1
-from endpoints.authentication import auth, login_manager, csrf
-from endpoints.homepage import homepage
 from utils.models import db
 
 
@@ -12,7 +11,6 @@ app = Flask(__name__)
 USING_SQLITE = False
 
 
-app.register_blueprint(homepage, url_prefix='/')        # Homepage Endpoint
 app.register_blueprint(auth, url_prefix='/api/auth')    # Authentication Endpoint
 app.register_blueprint(api_v1, url_prefix='/api/v1')    # API V1 Endpoint
 

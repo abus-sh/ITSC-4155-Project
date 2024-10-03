@@ -1,7 +1,7 @@
 from canvasapi import Canvas
 from flask import Blueprint, jsonify, request
 
-from endpoints.authentication import decrypt_canvas_key
+from api.auth.authentication import decrypt_canvas_key
 from utils.settings import get_canvas_url
 
 
