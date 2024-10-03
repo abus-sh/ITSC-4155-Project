@@ -1,12 +1,13 @@
+from argon2.exceptions import VerifyMismatchError
 from flask import Blueprint, request, abort, Request, jsonify, session
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import generate_csrf
 from http import HTTPStatus
-from argon2.exceptions import VerifyMismatchError
+from lru import LRU
+
 from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, password_hasher
 from utils.crypto import reencrypt_str, decrypt_str
-from lru import LRU
 
 auth = Blueprint('authentication', __name__)
 
@@ -50,7 +51,7 @@ def login():
         abort(HTTPStatus.UNAUTHORIZED)
         return
     
-    parameters = get_authentication_params(request, include_tokens=False)
+    parameters = _get_authentication_params(request, include_tokens=False)
     
     # Ensure the parameters were succesfully extracted from the body of the request
     if parameters is None:
@@ -95,7 +96,7 @@ def login():
 @auth.route('/signup', methods=['POST'])
 def sign_up():
 
-    parameters = get_authentication_params(request, include_tokens=True)
+    parameters = _get_authentication_params(request, include_tokens=True)
     
     # Ensure the parameters were succesfully extracted from the body of the request
     if parameters is None:
@@ -158,7 +159,7 @@ def auth_status():
 #                                                               #
 #################################################################
 
-def get_authentication_params(request: Request, include_tokens: bool=False) -> tuple[str, str] | tuple[str, str, str, str] |None:
+def _get_authentication_params(request: Request, include_tokens: bool=False) -> tuple[str, str] | tuple[str, str, str, str] |None:
     """
     Extracts the username and password from a request, if both exist and are valid.
 
@@ -229,64 +230,3 @@ def _is_valid_password(password: str) -> bool:
     # NIST SP800-63B explicitly prohibits requiring special characters and other complexity rules
 
     return True
-
-def decrypt_api_keys() -> tuple[str, str]:
-    """
-    Decrypts the API keys for the current user. Returns them as (canvas_key, todoist_key).
-
-    :return tuple[str, str]: The Canvas API key and the Todoist API key.
-    :raises ValueError: If session does not have an _id or current_user has no encrypted API keys.
-    """
-    # If the session doesn't have an ID, can't decrypt keys
-    if '_id' not in session:
-        raise ValueError
-    session_id = session['_id']
-
-    # If current user doesn't have API keys encrypted w/ session key, can't decrypt keys
-    if current_user.canvas_token_session == None or current_user.todoist_token_session == None:
-        raise ValueError
-
-    canvas_token = decrypt_str(current_user.canvas_token_session, session_id)
-    todoist_token = decrypt_str(current_user.todoist_token_session, session_id)
-
-    return (canvas_token, todoist_token)
-
-
-def decrypt_canvas_key() -> str:
-    """
-    Decrypts the Canvas API keys for the current user.
-
-    :returns str: The Canvas API key.
-    :raises ValueError: If session does not have an _id or current_user has no encrypted Canvas API
-    key.
-    """
-    # If the session doesn't have an ID, can't decrypt key
-    if '_id' not in session:
-        raise ValueError
-    session_id = session['_id']
-
-    # If current user doesn't have a Canvas API key encrypted w/ session key, can't decrypt key
-    if current_user.canvas_token_session == None:
-        raise ValueError
-    
-    return decrypt_str(current_user.canvas_token_session, session_id)
-
-
-def decrypt_todoist_key() -> str:
-    """
-    Decrypts the Todoist API keys for the current user.
-
-    :returns str: The Todoist API key.
-    :raises ValueError: If session does not have an _id or current_user has no encrypted Todoist API
-    key.
-    """
-    # If the session doesn't have an ID, can't decrypt key
-    if '_id' not in session:
-        raise ValueError
-    session_id = session['_id']
-
-    # If current user doesn't have a Canvas API key encrypted w/ session key, can't decrypt key
-    if current_user.todoist_token_session == None:
-        raise ValueError
-    
-    return decrypt_str(current_user.todoist_token_session, session_id)
