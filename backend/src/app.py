@@ -1,19 +1,17 @@
-from endpoints.authentication import auth, login_manager, csrf
-from endpoints.homepage import homepage
-from utils.models import db
-from api.v1.task import api_v1
 from flask import Flask
 from flask_cors import CORS
 import os
+
+from api.auth.authentication import auth, login_manager, csrf
+from api.v1.task import api_v1
+from utils.models import db
 
 
 app = Flask(__name__)
 USING_SQLITE = False
 
 
-app.register_blueprint(homepage, url_prefix='/')        # Homepage Endpoint
-app.register_blueprint(auth, url_prefix='/auth')        # Authentication Endpoint
-
+app.register_blueprint(auth, url_prefix='/api/auth')    # Authentication Endpoint
 app.register_blueprint(api_v1, url_prefix='/api/v1')    # API V1 Endpoint
 
 
@@ -45,7 +43,10 @@ app.config['SESSION_COOKIE_SECURE'] = True  # This must be set if using HTTPS
 # Initiate database, login manager, and CSRF
 db.init_app(app)
 login_manager.init_app(app)
-csrf.init_app(app)
+
+# Only enable CSRF protection if not in debug mode
+if not app.debug:
+    csrf.init_app(app)
 
 # Cross Origin Resource sharing configuration. 
 # Only allow request from this address (Angular frontend)

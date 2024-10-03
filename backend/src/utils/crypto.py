@@ -1,3 +1,9 @@
+"""
+This file provides utilities for encrypting and decrypting arbitrary data. This does not contain any
+functions specific to this application.
+"""
+
+
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import scrypt
 from Crypto.Random import get_random_bytes
@@ -8,6 +14,7 @@ if sys.version_info[0] == 3 and sys.version_info[1] >= 11:
     from typing import Self
 else:
     from typing_extensions import Self
+
 
 class Ciphertext:
     """

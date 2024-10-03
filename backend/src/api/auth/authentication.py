@@ -1,12 +1,13 @@
+from argon2.exceptions import VerifyMismatchError
 from flask import Blueprint, request, abort, Request, jsonify, session
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import generate_csrf
 from http import HTTPStatus
-from argon2.exceptions import VerifyMismatchError
+from lru import LRU
+
 from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, password_hasher
 from utils.crypto import reencrypt_str, decrypt_str
-from lru import LRU
 
 auth = Blueprint('authentication', __name__)
 
@@ -14,7 +15,7 @@ login_manager = LoginManager()
 csrf = CSRFProtect()
 
 # This value effectively limits the maximum number of concurrent sessions
-api_key_cache =  LRU(50)
+api_key_cache = LRU(50)
 
 # Retrieve the User based on the login_id stored in the session
 @login_manager.user_loader
@@ -229,23 +230,3 @@ def _is_valid_password(password: str) -> bool:
     # NIST SP800-63B explicitly prohibits requiring special characters and other complexity rules
 
     return True
-
-def _decrypt_api_keys() -> tuple[str, str]:
-    """
-    Decrypts the API keys for the current user. Returns them as (canvas_key, todoist_key).
-
-    :rasies ValueError: If session does not have an _id or current_user has no encrypted API keys.
-    """
-    # If the session doesn't have an ID, can't decrypt keys
-    if '_id' not in session:
-        raise ValueError
-    session_id = session['_id']
-
-    # If current user doesn't have API keys, can't decrypt keys
-    if current_user.canvas_token_session == None or current_user.canvas_token_session == None:
-        raise ValueError
-
-    canvas_token = decrypt_str(current_user.canvas_token_session, session_id)
-    todoist_token = decrypt_str(current_user.canvas_token_session, session_id)
-
-    return (canvas_token, todoist_token)
