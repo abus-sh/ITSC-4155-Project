@@ -45,7 +45,10 @@ app.config['SESSION_COOKIE_SECURE'] = True  # This must be set if using HTTPS
 # Initiate database, login manager, and CSRF
 db.init_app(app)
 login_manager.init_app(app)
-csrf.init_app(app)
+
+# Only enable CSRF protection if not in debug mode
+if not app.debug:
+    csrf.init_app(app)
 
 # Cross Origin Resource sharing configuration. 
 # Only allow request from this address (Angular frontend)
