@@ -32,7 +32,7 @@ def user_loader(login_id):
     # Load cached values for the API tokens
     canvas_key, todoist_key = api_key_cache[session['_id']]
     db_user.canvas_token_session = canvas_key
-    db_user.todoist_token_password = todoist_key
+    db_user.todoist_token_session = todoist_key
 
     return db_user
 
@@ -242,10 +242,10 @@ def _decrypt_api_keys() -> tuple[str, str]:
     session_id = session['_id']
 
     # If current user doesn't have API keys, can't decrypt keys
-    if current_user.canvas_token_password == None or current_user.todoist_token_password == None:
+    if current_user.canvas_token_session == None or current_user.canvas_token_session == None:
         raise ValueError
 
-    canvas_token = decrypt_str(current_user.canvas_token_password, session_id)
-    todoist_token = decrypt_str(current_user.todoist_token_password, session_id)
+    canvas_token = decrypt_str(current_user.canvas_token_session, session_id)
+    todoist_token = decrypt_str(current_user.canvas_token_session, session_id)
 
     return (canvas_token, todoist_token)
