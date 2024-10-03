@@ -41,7 +41,7 @@ export class AuthService {
 
     // Logout of the session, reset the sessio cookie and set authenticated to false
     logout(): Observable<any> {
-        return this.http.post(`${this.backend}/auth/logout`, {}, { withCredentials: true }).pipe(
+        return this.http.post(`${this.backend}/api/auth/logout`, {}, { withCredentials: true }).pipe(
             tap(() => {
                 this.authStatusSubject.next({ authenticated: false });
                 this.router.navigate(['/login']);
