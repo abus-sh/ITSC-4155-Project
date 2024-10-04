@@ -10,15 +10,17 @@ courses = Blueprint('courses', __name__)
 BASE_URL = get_canvas_url()
 
 
-# GET CURRENT SEMESTER AND YEAR
-CURRENT_YEAR = str(datetime.now().year)
-month = datetime.now().month
-if 1 <= month <= 4:
-    CURRENT_SEMESTER = '10'
-elif 5 <= month <= 7:
-    CURRENT_SEMESTER = '60'
-else:
-    CURRENT_SEMESTER = '80'
+def get_term() -> tuple[str, str]:
+    """Returns current year and semester"""
+    current_year = str(datetime.now().year)
+    month = datetime.now().month
+    if 1 <= month <= 4:
+        current_semester = '10'
+    elif 5 <= month <= 7:
+        current_semester = '60'
+    else:
+        current_semester = '80'
+    return (current_semester, current_year)
 
 
 # ENDPOINT: /api/v1/courses/
@@ -27,6 +29,7 @@ else:
 @courses.route('/all', methods=['GET'])
 def get_all_courses():
     canvas_key = decrypt_canvas_key()
+    current_semester, current_year = get_term()
 
     try:
         canvas = Canvas(BASE_URL, canvas_key)
@@ -40,7 +43,7 @@ def get_all_courses():
             if name:
                 term = name.split('-')[0]
                 semester, year = term[-2:], term[:-2]
-                if year != CURRENT_YEAR or semester != CURRENT_SEMESTER:
+                if year != current_year or semester != current_semester:
                     continue
             one_course = {field: getattr(course, field, None) for field in fields}
             courses_list.append(one_course)
