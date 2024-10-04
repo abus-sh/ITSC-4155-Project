@@ -1,4 +1,5 @@
 from canvasapi import Canvas
+from datetime import datetime
 from flask import Blueprint, jsonify
 
 from utils.session import decrypt_canvas_key
@@ -9,6 +10,19 @@ courses = Blueprint('courses', __name__)
 BASE_URL = get_canvas_url()
 
 
+# GET CURRENT SEMESTER AND YEAR
+CURRENT_YEAR = str(datetime.now().year)
+month = datetime.now().month
+if 1 <= month <= 4:
+    CURRENT_SEMESTER = '10'
+elif 5 <= month <= 7:
+    CURRENT_SEMESTER = '60'
+else:
+    CURRENT_SEMESTER = '80'
+
+
+# ENDPOINT: /api/v1/courses/
+
 # Get list of all courses for current student
 @courses.route('/all', methods=['GET'])
 def get_all_courses():
@@ -16,12 +30,18 @@ def get_all_courses():
 
     try:
         canvas = Canvas(BASE_URL, canvas_key)
-        current_courses = canvas.get_courses(enrollment_state='active', include=["total_scores"])
+        current_courses = canvas.get_courses(enrollment_state='active', include=["total_scores", "term"])
         courses_list = []
         fields = [
-            'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments'
+            'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments', 'term'
             ]
         for course in current_courses:
+            name = getattr(course, 'name', None)
+            if name:
+                term = name.split('-')[0]
+                semester, year = term[-2:], term[:-2]
+                if year != CURRENT_YEAR or semester != CURRENT_SEMESTER:
+                    continue
             one_course = {field: getattr(course, field, None) for field in fields}
             courses_list.append(one_course)
             
@@ -58,8 +78,8 @@ def get_course_assignments(courseid):
     canvas_key = decrypt_canvas_key()
 
     try:
-        current_user = Canvas(BASE_URL, canvas_key).get_current_user()
-        course_assignments = current_user.get_assignments(courseid)
+        course = Canvas(BASE_URL, canvas_key).get_course(courseid)
+        course_assignments = course.get_assignments()
         assignments = []
         fields = [
             'id', 'name', 'due_at', 'points_possible', 'omit_from_final_grade', 
