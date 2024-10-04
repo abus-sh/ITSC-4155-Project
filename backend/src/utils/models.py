@@ -83,7 +83,7 @@ class User(UserMixin, ModelMixin, db.Model):
 
 # A representation of the different types of tasks
 class TaskType(enum.Enum):
-    assignment = 1
+    assignment = 0
 
 
 # The task table
@@ -100,8 +100,8 @@ class Task(ModelMixin, db.Model):
         :type task_type: TaskType
         :param canvas_id: The ID of the task in Canvas.
         :type canvas_id: str
-        :param todoist_id: The ID of the task in Todoist.
-        :type todoist_id: str
+        :param todoist_id: The ID of the task in Todoist, if one exists.
+        :type todoist_id: str | None
     """
     # Table primary key
     id = db.Column(db.Integer, primary_key=True)
