@@ -85,8 +85,19 @@ def get_all_courses(canvas_key: str|None=None) -> list:
 
 # Get info about a single course
 @courses.route('/<courseid>', methods=['GET'])
-def get_course(courseid):
-    canvas_key = decrypt_canvas_key()
+def get_course(courseid, canvas_key: str|None=None):
+    """
+    Returns a course based on its Canvas ID if such a course exists.
+
+    :param courseid: The Canvas ID of the course to search for.
+    :param canvas_key: If called directly, the function will use this API key to make any API calls.
+    :return dict or None: Returns the course from Canvas or None if no such course exists.
+    """
+    if canvas_key == None:
+        canvas_key = decrypt_canvas_key()
+        raw_data = False
+    else:
+        raw_data = True
 
     try:
         canvas = Canvas(BASE_URL, canvas_key)
@@ -96,10 +107,16 @@ def get_course(courseid):
             ]
         course_info = {field: getattr(course, field, None) for field in fields}
             
-    except Exception as e:
-        return 'Unable to make request to Canvas API', 400
     except AttributeError as e:
+        if raw_data:
+            return None
         return 'Unable to get field for courses', 404
+    except Exception as e:
+        if raw_data:
+            return None
+        return 'Unable to make request to Canvas API', 400
+    if raw_data:
+        return course_info
     return jsonify(course_info), 200
 
 
@@ -109,6 +126,7 @@ def get_course_assignments(courseid, canvas_key: str|None=None):
     """
     Returns a list of all assignments for a course.
 
+    :param courseid: The Canvas ID of the course to search for.
     :param canvas_key: If called directly, the function will use this API key to make any API calls.
     :return list: If manulaly called, this function will return a list of all assignments for the
     course. Otherwise, it will return a tuple of the form (Flask Response, status code).
@@ -149,8 +167,22 @@ def get_course_assignments(courseid, canvas_key: str|None=None):
 
 # Get a single assignment for a course
 @courses.route('/<courseid>/assignments/<assignmentid>', methods=['GET'])
-def get_course_assignment(courseid, assignmentid):
-    canvas_key = decrypt_canvas_key()
+def get_course_assignment(courseid, assignmentid, canvas_key: str|None=None):
+    """
+    Returns an assignment from a course based on its Canvas ID.
+
+    :param courseid: The Canvas ID of the course to search for.
+    :param assignmentid: The Canvas ID of the assignment to search for.
+    :param canvas_key: If called directly, the function will use this API key to make any API calls.
+    :return dict or None: If manulaly called, this function will return the assignment with the
+    given ID. If no assignment exists, None will be returned instead.
+    """
+
+    if canvas_key == None:
+        canvas_key = decrypt_canvas_key()
+        raw_data = False
+    else:
+        raw_data = True
 
     try:
         canvas = Canvas(BASE_URL, canvas_key)
@@ -164,10 +196,16 @@ def get_course_assignment(courseid, assignmentid):
         ]
         assignment_dict = {field: getattr(assignment, field, None) for field in fields}
 
-    except Exception as e:
-        return 'Unable to make request to Canvas API', 400
     except AttributeError as e:
+        if raw_data:
+            return None
         return 'Unable to get field for courses', 404
+    except Exception as e:
+        if raw_data:
+            return None
+        return 'Unable to make request to Canvas API', 400
+    if raw_data:
+        return assignment_dict
     return jsonify(assignment_dict), 200
 
 # TO DO:
