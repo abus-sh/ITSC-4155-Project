@@ -1,3 +1,4 @@
+import enum
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from argon2 import PasswordHasher
@@ -78,3 +79,39 @@ class User(UserMixin, ModelMixin, db.Model):
     # When the `login_manager.user_loader` is run for the login, this is the parameter it will use 
     def get_id(self):
         return str(self.login_id)
+
+
+# A representation of the different types of tasks
+class TaskType(enum.Enum):
+    assignment = 0
+
+
+# The task table
+# A representation of a Canvas assignment and the connected Todoist task
+# This primarily exists to link tasks in Canvas and Todoist
+class Task(ModelMixin, db.Model):
+    """
+    A new Task instance.
+        :param id: The auto-generated table ID.
+        :type id: int
+        :param owner: The ID of the User that owns the task.
+        :type owner: int
+        :param task_type: The type of the task.
+        :type task_type: TaskType
+        :param canvas_id: The ID of the task in Canvas.
+        :type canvas_id: str
+        :param todoist_id: The ID of the task in Todoist, if one exists.
+        :type todoist_id: str | None
+    """
+    # Table primary key
+    id = db.Column(db.Integer, primary_key=True)
+
+    # Foreign key to owner
+    owner = db.Column(db.Integer, db.ForeignKey(User.id), unique=False, nullable=False)
+
+    # Type of the task
+    task_type = db.Column(db.Enum(TaskType), unique=False, nullable=False)
+
+    # IDs for Canvas and Todoist
+    canvas_id = db.Column(db.String(15), unique=False, nullable=False)
+    todoist_id = db.Column(db.String(15), unique=False, nullable=True)

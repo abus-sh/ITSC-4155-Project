@@ -31,8 +31,20 @@ def get_term() -> tuple[str, str]:
 
 # Get list of all courses for current student
 @courses.route('/all', methods=['GET'])
-def get_all_courses():
-    canvas_key = decrypt_canvas_key()
+def get_all_courses(canvas_key: str|None=None) -> list:
+    """
+    Returns a list of all courses associated with the Canvas API key.
+
+    :param canvas_key: If called directly, the function will use this API key to make any API calls.
+    :return list: If manually called, this function will return a list of all courses. Otherwise, it
+    will return a tuple of the form (Flask Response, status code).
+    """
+
+    if canvas_key == None:
+        canvas_key = decrypt_canvas_key()
+        raw_data = False
+    else:
+        raw_data = True
     current_semester, current_year = get_term()
 
     try:
@@ -56,11 +68,18 @@ def get_all_courses():
                     continue
             one_course = {field: getattr(course, field, None) for field in fields}
             courses_list.append(one_course)
-            
-    except Exception as e:
-        return 'Unable to make request to Canvas API', 400
+
     except AttributeError as e:
+        if raw_data:
+            return []
         return 'Unable to get field for courses', 404
+    except Exception as e:
+        if raw_data:
+            return []
+        return 'Unable to make request to Canvas API', 400
+    
+    if raw_data:
+        return courses_list
     return jsonify(courses_list), 200
 
 
@@ -86,8 +105,20 @@ def get_course(courseid):
 
 # Get all assignments for a course
 @courses.route('/<courseid>/assignments', methods=['GET'])
-def get_course_assignments(courseid):
-    canvas_key = decrypt_canvas_key()
+def get_course_assignments(courseid, canvas_key: str|None=None):
+    """
+    Returns a list of all assignments for a course.
+
+    :param canvas_key: If called directly, the function will use this API key to make any API calls.
+    :return list: If manulaly called, this function will return a list of all assignments for the
+    course. Otherwise, it will return a tuple of the form (Flask Response, status code).
+    """
+
+    if canvas_key == None:
+        canvas_key = decrypt_canvas_key()
+        raw_data = False
+    else:
+        raw_data = True
 
     try:
         course = Canvas(BASE_URL, canvas_key).get_course(courseid)
@@ -103,10 +134,16 @@ def get_course_assignments(courseid):
             assignment_dict = {field: getattr(assignment, field, None) for field in fields}
             assignments.append(assignment_dict)
 
-    except Exception as e:
-        return 'Unable to make request to Canvas API', 400
     except AttributeError as e:
-        return 'Unable to get field for courses', 404
+            if raw_data:
+                return []
+            return 'Unable to get field for courses', 404
+    except Exception as e:
+        if raw_data:
+            return []
+        return 'Unable to make request to Canvas API', 400
+    if raw_data:
+        return assignments
     return jsonify(assignments), 200
 
 
