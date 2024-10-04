@@ -4,6 +4,7 @@ This file provides utilities for adding tasks to Todoist.
 
 
 from ctypes import c_bool
+from datetime import datetime
 from multiprocessing import Manager, Pool
 from multiprocessing.managers import ValueProxy
 from queue import Queue
@@ -12,12 +13,68 @@ from time import sleep
 from todoist_api_python.api import TodoistAPI
 
 
+from api.v1.courses import get_all_courses, get_course_assignments
 from utils.models import User
 from utils.queries import add_or_return_task, set_todoist_task
 
 
+def add_missing_tasks(user_id: int, canvas_key: str, todoist_key: str):
+    """
+    Add all missing tasks for a given user.
+
+    :param user_id: The primary key for the current user.
+    :param canvas_key: The Canvas API key for the current user.
+    :param todoist_key: The Todoist API key for the current user.
+    """
+    courses = get_all_courses(canvas_key)
+
+    # Don't spam the Todoist API, set rates limits. Only add 25 tasks per logon.
+    rate_limit = 25
+    counter = 0
+
+    for course in courses:
+        assignments = get_course_assignments(course['id'], canvas_key)
+
+        # Sort for oldest first to ensure that upcoming assignments are added
+        assignments.sort(key=_get_assignment_date_or_default)
+
+        for assignment in assignments:
+            try:
+                due_date = assignment['due_at']
+                due_date = datetime.strptime(due_date, '%Y-%m-%dT%H:%M:%SZ')
+            except:
+                due_date = datetime.now()
+
+            # Don't add Todoist tasks for assignments that are in the past.
+            now = datetime.now()
+            if due_date > now:
+                due_date = due_date.strftime('%Y-%m-%d')
+                print("Adding task...")
+                api_queried = add_task_sync(todoist_key, assignment['id'], assignment['name'],
+                                            'automated', due_date, user_id)
+                if api_queried:
+                    counter += 1
+                    if counter >= rate_limit:
+                        return
+
+
+def _get_assignment_date_or_default(assignment: dict, default:str='~') -> str:
+    """
+    Get the due date of an assignment. If the due date is None, return a default value instead.
+
+    :param assignment: The assignment to extract the date from.
+    :param default: The string to return if the assignment's due date is None.
+    :return str: The due date of the assignment or the default value.
+    """
+    due_date = assignment['due_at']
+    if due_date:
+        return due_date
+    else:
+        return default
+
+
 def add_task_sync(todoist_api_key: str, canvas_task_id: str, task_name: str, class_name: str,
-                  due_date: str, owner: User|int):
+                  due_date: str, owner: User|int) -> bool:
     """ 
     Synchronously add a task to Todoist.
 
@@ -27,6 +84,7 @@ def add_task_sync(todoist_api_key: str, canvas_task_id: str, task_name: str, cla
     :param class_name: The name of the class that the assignment is for.
     :param due_date: The date that the assignment is due in YYYY-MM-DD format.
     :param owner: Either the User who will own the task or their ID.
+    :return bool: Returns True if the Todoist API was queried, False otherwise.
     """
     if type(owner) == User:
         owner = owner.id
@@ -51,6 +109,8 @@ def add_task_sync(todoist_api_key: str, canvas_task_id: str, task_name: str, cla
             labels=[class_name]
         )
         set_todoist_task(task, todoist_task.id)
+        return True
+    return False
 
 
 # TODO: this breaks in very strange ways. Ex. sometimes functions will stop executing if specific
