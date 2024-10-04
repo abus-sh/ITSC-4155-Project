@@ -32,7 +32,6 @@ def user_loader(login_id):
         # ATTENTION: If the session id is not saved in the api_key_cache, the user will need to login again
         # so that the session id and the tokens encryped with the session id can be stored in the cache.
         # Otherwise the user won't be able to use any endpoint as they would be logged in but without tokens in the cache.
-        logout_user()
         return None
 
     # Load cached values for the API tokens
@@ -97,9 +96,8 @@ def login():
     # Cache API re-encrypted tokens for future requests
     api_key_cache[session_id] = (session_canvas_token, session_todoist_token)
 
-    # DEBUG: add a task
-    todoist.add_task_sync(plain_todoist_token, 'sample_id', 'Hello world!', 'ITSC 4155',
-                          '2024-10-04', current_user.id)
+    # Add tasks to Todoist as needed
+    todoist.add_missing_tasks(db_user.id, plain_canvas_token, plain_todoist_token)
 
     # Respond that the user was authenticated
     return jsonify({'success': True, 'message': f"Logged in as {db_user.username}"})
