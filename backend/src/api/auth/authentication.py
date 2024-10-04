@@ -28,6 +28,10 @@ def user_loader(login_id):
     # Try to get the re-encrypted API keys
     # If they don't exist, invalidate the session
     if session['_id'] not in api_key_cache:
+        # ATTENTION: If the session id is not saved in the api_key_cache, the user will need to login again
+        # so that the session id and the tokens encryped with the session id can be stored in the cache.
+        # Otherwise the user won't be able to use any endpoint as they would be logged in but without tokens in the cache.
+        logout_user()
         return None
 
     # Load cached values for the API tokens
@@ -83,11 +87,11 @@ def login():
     session_id = session['_id']
 
     # Decrypt tokens with password and re-encrypt with session_id
-    canvas_token = reencrypt_str(db_user.canvas_token_password, password, session_id)
-    todoist_token = reencrypt_str(db_user.todoist_token_password, password, session_id)
+    canvas_token_session = reencrypt_str(db_user.canvas_token_password, password, session_id)
+    todoist_token_session = reencrypt_str(db_user.todoist_token_password, password, session_id)
 
     # Cache API re-encrypted tokens for future requests
-    api_key_cache[session_id] = (canvas_token, todoist_token)
+    api_key_cache[session_id] = (canvas_token_session, todoist_token_session)
 
     # Respond that the user was authenticated
     return jsonify({'success': True, 'message': f"Logged in as {db_user.username}"})

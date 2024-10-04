@@ -37,12 +37,17 @@ def get_all_courses():
 
     try:
         canvas = Canvas(BASE_URL, canvas_key)
-        current_courses = canvas.get_courses(enrollment_state='active', include=["total_scores", "term"])
+        current_courses = canvas.get_courses(enrollment_state='active', include=["total_scores", "term", "concluded"])
         courses_list = []
         fields = [
-            'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments', 'term'
+            'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments', 'term', 'concluded'
             ]
         for course in current_courses:
+            # Some courses, like the `Training Supplement`, are never considered to be concluded,
+            # so we still need to filter by semester, but using concluded will make it much faster
+            # to skip all other courses
+            if getattr(course, 'concluded', True):
+                continue
             name = getattr(course, 'name', None)
             if name:
                 term = name.split('-')[0]
