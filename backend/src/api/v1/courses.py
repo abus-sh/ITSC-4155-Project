@@ -11,15 +11,19 @@ BASE_URL = get_canvas_url()
 
 
 def get_term() -> tuple[str, str]:
-    """Returns current year and semester"""
+    """Returns current year and semester."""
     current_year = str(datetime.now().year)
-    month = datetime.now().month
-    if 1 <= month <= 4:
-        current_semester = '10'
-    elif 5 <= month <= 7:
-        current_semester = '60'
+    now = datetime.now()
+    month = now.month
+    day = now.day
+    # Summer classes start in middle of May, and Fall classes start in middle of August, 
+    # so we need the day to be precise
+    if (1 <= month <= 4) or (month == 5 and day <= 15):
+        current_semester = '10'  # Spring
+    elif (month == 5 and day > 20) or (month == 6) or (month == 7) or (month == 8 and day <= 10):
+        current_semester = '60'  # Summer
     else:
-        current_semester = '80'
+        current_semester = '80'  # Fall
     return (current_semester, current_year)
 
 
