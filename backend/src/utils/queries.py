@@ -114,3 +114,71 @@ def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
         return user.to_dict()
     return user
 
+
+def add_or_return_task(owner: User|int, canvas_id: str, todoist_id: str|None=None) -> Task:
+    """
+    Add a new task to the database or return the task if it already exists.
+
+    :param owner: The User or the ID of the User who owns the task.
+    :param canvas_id: The ID of the task in Canvas. This can be found with the Canvas API.
+    :param todoist_id: The ID of the task in Todoist, if a task exists. If no ID is provided, no
+    Todoist task is linked to the Canvas task at this time.
+    :return Task: The Task that was added.
+    :raises Exception: If the Task could not be added to the database.
+    """
+    # TODO: make :rasies Exception: more specific.
+    if type(owner) == User:
+        owner = owner.id
+
+    # Prevent exact duplicates from being registered.
+    current_task = Task.query.filter_by(owner=owner, canvas_id=canvas_id).first()
+    if current_task:
+        return current_task
+
+    try:
+        new_task = Task(owner=owner, task_type=TaskType.assignment, canvas_id=canvas_id,
+                        todoist_id=todoist_id)
+        db.session.add(new_task)
+        db.session.commit()
+        return new_task
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error adding task: {e}")
+        raise e
+
+
+def set_todoist_task(task: Task, todoist_id: str) -> Task:
+    """
+    Update a task to reference a Todoist task.
+
+    :param Task: A Task in the database.
+    :param todoist_id: The ID of a task in Todoist.
+    :return Task: The updated task with the Todoist ID.
+    """
+    try:
+        task.todoist_id = todoist_id
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating task: {e}")
+        raise e
+
+
+def get_task_by_canvas_id(owner: User|int, canvas_id: str, dict=False) -> Task | dict | None:
+    """
+    Retrieve a task by its Canvas ID, which is assigned by Canvas.
+
+    :param owner: The User or the ID of the User who owns the task.
+    :param canvas_id: The internal Canvas ID of a task.
+    :param dict: If True, return the user as a dictionary. Defaults to False.
+    :return Task or dict or None: A Task instance or a dictionary representation of the task if dict
+    is True. If no task with the given Canvas ID exists, None is returned.
+    """
+    if type(owner) == User:
+        owner = owner.id
+
+    task = Task.query.filter_by(owner=owner, canvas_id=canvas_id).first()
+    if dict and task:
+        return task.to_dict()
+    return task
+
