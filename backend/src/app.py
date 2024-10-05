@@ -1,3 +1,6 @@
+from gevent import monkey
+monkey.patch_all()
+
 from flask import Flask
 from flask_cors import CORS
 import os
@@ -8,7 +11,7 @@ from utils.models import db
 
 
 app = Flask(__name__)
-USING_SQLITE = False
+USING_SQLITE = True
 
 
 app.register_blueprint(auth, url_prefix='/api/auth')    # Authentication Endpoint
