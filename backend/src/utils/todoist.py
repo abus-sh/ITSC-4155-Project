@@ -4,7 +4,7 @@ This file provides utilities for adding tasks to Todoist.
 
 
 from ctypes import c_bool
-from datetime import datetime
+from datetime import datetime, timedelta
 from multiprocessing import Manager, Pool
 from multiprocessing.managers import ValueProxy
 from queue import Queue
@@ -37,13 +37,15 @@ def add_missing_tasks(user_id: int, canvas_key: str, todoist_key: str):
     gevent.joinall(greenlets)
     all_courses_assignments = [greenlet.value for greenlet in greenlets]
 
+    # Account for timezone, UNCC is in (GMT-4)
+    timezone_gmt = timedelta(hours=4)
     for course_assignments in all_courses_assignments:
         course_assignments.sort(key=_get_assignment_date_or_default)
         
         for assignment in course_assignments:
             try:
                 due_date = assignment['due_at']
-                due_date = datetime.strptime(due_date, '%Y-%m-%dT%H:%M:%SZ')
+                due_date = datetime.strptime(due_date, '%Y-%m-%dT%H:%M:%SZ') - timezone_gmt
             except:
                 due_date = datetime.now()
 
