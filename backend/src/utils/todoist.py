@@ -11,6 +11,7 @@ from queue import Queue
 from threading import Lock
 from time import sleep
 from todoist_api_python.api import TodoistAPI
+import gevent
 
 
 from api.v1.courses import get_all_courses, get_course_assignments
@@ -32,13 +33,14 @@ def add_missing_tasks(user_id: int, canvas_key: str, todoist_key: str):
     rate_limit = 25
     counter = 0
 
-    for course in courses:
-        assignments = get_course_assignments(course['id'], canvas_key)
+    greenlets = [gevent.spawn(get_course_assignments, course['id'], canvas_key) for course in courses]
+    gevent.joinall(greenlets)
+    all_courses_assignments = [greenlet.value for greenlet in greenlets]
 
-        # Sort for oldest first to ensure that upcoming assignments are added
-        assignments.sort(key=_get_assignment_date_or_default)
-
-        for assignment in assignments:
+    for course_assignments in all_courses_assignments:
+        course_assignments.sort(key=_get_assignment_date_or_default)
+        
+        for assignment in course_assignments:
             try:
                 due_date = assignment['due_at']
                 due_date = datetime.strptime(due_date, '%Y-%m-%dT%H:%M:%SZ')
