@@ -103,7 +103,7 @@ def add_task_sync(todoist_api_key: str, canvas_task_id: str, task_name: str, cla
     todoist_api = TodoistAPI(todoist_api_key)
 
     # Add the task if it doesn't exist or get it if it does
-    task = add_or_return_task(owner, canvas_task_id, due_date)
+    task = add_or_return_task(owner, canvas_task_id, due_date=due_date)
 
     # If it doesn't have a Todoist ID associated with it, create a Todoist task
     if not task.todoist_id:
