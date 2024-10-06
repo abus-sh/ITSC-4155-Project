@@ -15,6 +15,7 @@
             <ng-container *ngIf="(authStatus$ | async)?.authenticated">
                 <span>Welcome, {{ (authStatus$ | async)?.user?.username }}</span>
                 <a routerLink="/dashboard">Dashboard</a>
+                <a routerLink="/profile">Profile</a>
                 <a (click)="logout()">Logout</a>
             </ng-container>
         </div>
