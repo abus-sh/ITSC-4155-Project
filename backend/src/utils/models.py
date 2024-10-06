@@ -115,3 +115,4 @@ class Task(ModelMixin, db.Model):
     # IDs for Canvas and Todoist
     canvas_id = db.Column(db.String(15), unique=False, nullable=False)
     todoist_id = db.Column(db.String(15), unique=False, nullable=True)
+    due_date = db.Column(db.String(12), unique=False, nullable=True)
