@@ -1,5 +1,6 @@
 from canvasapi import Canvas
 from flask import Blueprint, jsonify, request
+from flask_login import current_user
 
 from utils.session import decrypt_canvas_key
 from utils.settings import get_canvas_url
@@ -7,6 +8,27 @@ from utils.settings import get_canvas_url
 
 user = Blueprint('user', __name__)
 BASE_URL = get_canvas_url()
+
+@user.route('/profile', methods=['GET'])
+def get_user_info():
+    try:
+        canvas_key = decrypt_canvas_key()
+        profile = Canvas(BASE_URL, canvas_key).get_current_user()
+        user_profile = {
+            'username': current_user.username,
+            'canvas': {
+                'canvas_id': current_user.canvas_id,
+                'canvas_name': current_user.canvas_name,
+                'canvas_bio': getattr(profile, 'bio', None),
+                'canvas_pic': getattr(profile, 'avatar_url', None)
+                }
+            }
+
+    except Exception as e:
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError as e:
+        return 'Unable to get field for request', 404
+    return jsonify(user_profile), 200
 
 
 # Get missing submissions for active courses (past the due date)
