@@ -16,7 +16,7 @@ import gevent
 
 from api.v1.courses import get_all_courses, get_course_assignments
 from utils.models import User
-from utils.queries import add_or_return_task, set_todoist_task
+from utils.queries import add_or_return_task, set_todoist_task, update_task_duedate
 
 
 def add_missing_tasks(user_id: int, canvas_key: str, todoist_key: str):
@@ -103,7 +103,7 @@ def add_task_sync(todoist_api_key: str, canvas_task_id: str, task_name: str, cla
     todoist_api = TodoistAPI(todoist_api_key)
 
     # Add the task if it doesn't exist or get it if it does
-    task = add_or_return_task(owner, canvas_task_id)
+    task = add_or_return_task(owner, canvas_task_id, due_date)
 
     # If it doesn't have a Todoist ID associated with it, create a Todoist task
     if not task.todoist_id:
@@ -114,7 +114,13 @@ def add_task_sync(todoist_api_key: str, canvas_task_id: str, task_name: str, cla
         )
         set_todoist_task(task, todoist_task.id)
         return True
-    return False
+    # Task already associated with a Todoist id, but due date was changed. 
+    # Update the due_date in database and todoist.
+    elif task.todoist_id and task.due_date != due_date:
+        if todoist_api.update_task(task.todoist_id, due_string=due_date):
+            update_task_duedate(task, due_date)
+            return True
+    return False 
 
 
 # TODO: this breaks in very strange ways. Ex. sometimes functions will stop executing if specific

@@ -115,7 +115,7 @@ def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
     return user
 
 
-def add_or_return_task(owner: User|int, canvas_id: str, todoist_id: str|None=None) -> Task:
+def add_or_return_task(owner: User|int, canvas_id: str, todoist_id: str|None=None, due_date: str=None) -> Task:
     """
     Add a new task to the database or return the task if it already exists.
 
@@ -137,7 +137,7 @@ def add_or_return_task(owner: User|int, canvas_id: str, todoist_id: str|None=Non
 
     try:
         new_task = Task(owner=owner, task_type=TaskType.assignment, canvas_id=canvas_id,
-                        todoist_id=todoist_id)
+                        todoist_id=todoist_id, due_date=due_date)
         db.session.add(new_task)
         db.session.commit()
         return new_task
@@ -147,16 +147,30 @@ def add_or_return_task(owner: User|int, canvas_id: str, todoist_id: str|None=Non
         raise e
 
 
-def set_todoist_task(task: Task, todoist_id: str) -> Task:
+def set_todoist_task(task: Task, todoist_id: str) -> None:
     """
     Update a task to reference a Todoist task.
 
     :param Task: A Task in the database.
     :param todoist_id: The ID of a task in Todoist.
-    :return Task: The updated task with the Todoist ID.
     """
     try:
         task.todoist_id = todoist_id
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating task: {e}")
+        raise e
+    
+def update_task_duedate(task: Task, due_date: str) -> None:
+    """
+    Update a task to have a new due_date in the database
+
+    :param Task: A Task in the database.
+    :param due_date: The updated due_date of the task.
+    """
+    try:
+        task.due_date = due_date
         db.session.commit()
     except Exception as e:
         db.session.rollback()
