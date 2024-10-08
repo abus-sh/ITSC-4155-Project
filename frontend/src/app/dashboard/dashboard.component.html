@@ -1,1 +1,71 @@
-<p>dashboard works!</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="dashboard.component.scss">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="top">
+            <div class="logo">
+                <i class='bx bx-home-smile'></i>
+                <span>CanvasHub</span>
+            </div>
+            <i class="bx bx-menu" id="btn"></i>
+        </div>
+        <div class="userprof">
+            <img src="#" alt="user-profile" class="user-img">
+            <div>
+                <p class="bold">Username</p>
+            </div>
+        </div>
+        <ul>
+            <li>
+                <a href="#">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span class="nav-item">Dashboard</span>
+                </a>
+                <span class="tooltip">Dashboard</span>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span class="nav-item">Courses</span>
+                </a>
+                <span class="tooltip">Courses</span>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span class="nav-item">Calendar</span>
+                </a>
+                <span class="tooltip">Calendar</span>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span class="nav-item">Groups</span>
+                </a>
+                <span class="tooltip">Groups</span>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span class="nav-item">Logout</span>
+                </a>
+                <span class="tooltip">Logout</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1>Welcome to Dashboard</h1>
+        </div>
+    </div>
+
+</body>
+</html>

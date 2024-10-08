@@ -12,8 +12,18 @@ import { Router } from '@angular/router';
     styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent {
-
     constructor(private authService: AuthService, private router: Router) {
+        
+    }
+    ngOnInit()
+    {
+        let btn = document.querySelector('#btn') as HTMLElement;
+        let sidebar = document.querySelector('.sidebar') as HTMLElement;
+        let mainContent = document.querySelector('.main-content') as HTMLElement;
 
+        btn.onclick = function(){
+            sidebar?.classList.toggle('active');
+            mainContent?.classList.toggle('active');
+        };
     }
 }
