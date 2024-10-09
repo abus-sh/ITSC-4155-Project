@@ -1,27 +1,79 @@
-<header>
-    <nav>
-        <div class="nav-left">
+<head>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<!-- If the user is authenticated, load side bar -->
+<ng-container *ngIf="(authStatus$ | async)?.authenticated">
+    <div class="sidebar">
+        <div class="top">
+            <div class="logo">
+                <i class='bx bx-home-smile'></i>
+                <span>CanvasHub</span>
+            </div>
+            <i class="bx bx-menu" id="btn"></i>
         </div>
-
-        <div class="nav-right">
-            <!-- Unauthenticated users -->
-            <ng-container *ngIf="!(authStatus$ | async)?.authenticated">
-                <a routerLink="/login">Login</a>
-                <a routerLink="/register">Register</a>
-                <a routerLink="/dashboard">Dashboard</a>
-            </ng-container>
-
-            <!-- Authenticated users -->
-            <ng-container *ngIf="(authStatus$ | async)?.authenticated">
-                <span>Welcome, {{ (authStatus$ | async)?.user?.username }}</span>
-                <a routerLink="/dashboard">Dashboard</a>
-                <a routerLink="/profile">Profile</a>
-                <a (click)="logout()">Logout</a>
-            </ng-container>
+        <div class="userprof">
+            <img [src]="(authStatus$ | async)?.picture" alt="user-profile" class="user-img">
+            <div>
+                <p class="bold">{{ (authStatus$ | async)?.user?.username }}</p>
+            </div>
         </div>
-    </nav>
-</header>
+        <ul>
+            <li>
+                <a href="#">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span class="nav-item">Dashboard</span>
+                </a>
+                <span class="tooltip">Dashboard</span>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span class="nav-item">Courses</span>
+                </a>
+                <span class="tooltip">Courses</span>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span class="nav-item">Calendar</span>
+                </a>
+                <span class="tooltip">Calendar</span>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span class="nav-item">Groups</span>
+                </a>
+                <span class="tooltip">Groups</span>
+            </li>
+            <li>
+                <a (click)="logout()">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span (click)="logout()" class="nav-item">Logout</span>
+                </a>
+                <span class="tooltip">Logout</span>
+            </li>
+        </ul>
+    </div>
+</ng-container>
 
+<!-- If the user is NOT authenticated, show nav bar with login and register button -->
+<ng-container *ngIf="!(authStatus$ | async)?.authenticated">
+    <div class="navbar-container">
+        <div class="navbar">
+          <div class='pad'></div>
+            <a href="/login" class="nav-link">Login</a>
+          <div class='pad'></div>
+            <a href="/register" class="nav-link">Register</a>
+          <div class='pad'></div>
+        </div>
+    </div>
+</ng-container>
+
+<!-- This is where each route will load their pages -->
 <main>
-    <router-outlet></router-outlet>
+    <div [ngClass]="{ 'main-content': (authStatus$ | async)?.authenticated }">
+        <router-outlet></router-outlet>
+    </div>
 </main>

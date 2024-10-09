@@ -36,6 +36,25 @@ export class AppComponent implements OnInit {
                 console.error('Failed to fetch CSRF token', err);
             }
         });
+        
+
+        this.authStatus$.subscribe((authStatus) => {
+            // Check if the user is authenticated
+            if (authStatus.authenticated) {
+                // Now that authentication is confirmed, proceed with DOM manipulation
+                let btn = document.querySelector('#btn') as HTMLElement;
+                let sidebar = document.querySelector('.sidebar') as HTMLElement;
+                let mainContent = document.querySelector('.main-content') as HTMLElement;
+    
+                if (btn) {
+                    btn.onclick = function () {
+                        sidebar?.classList.toggle('active');
+                        mainContent?.classList.toggle('active');
+                    };
+                }
+            }
+        });
+
     }
     
     logout() {

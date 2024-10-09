@@ -27,18 +27,21 @@ export class AuthService {
     private backend = "http://localhost:5000"; // Backend for testing
 
     constructor(private http: HttpClient, private router: Router) {
+        console.log('Auth Service - Launched')
         this.isLoggedIn().subscribe()
         this.getUserInfo();
     }
 
     // Request CSRF token from backend
     getCsrfToken(): Observable<any> {
+        console.log('Getting CSRF Token')
         return this.http.get(`${this.backend}/api/auth/csrf-token`, { withCredentials: true });
     }
 
     // Login into the backend with username and password, return the user session
     // Does an extra login authentication with the session
     login(username: string, password: string): Observable<any> {
+        console.log('Logging in..')
         return this.http.post(`${this.backend}/api/auth/login`, { username, password }, { withCredentials: true }).pipe(
             tap(() => this.isLoggedIn())
         );
@@ -46,6 +49,7 @@ export class AuthService {
 
     // Logout of the session, reset the sessio cookie and set authenticated to false
     logout(): Observable<any> {
+        console.log('Logging out..')
         return this.http.post(`${this.backend}/api/auth/logout`, {}, { withCredentials: true }).pipe(
             tap(() => {
                 this.authStatusSubject.next({ authenticated: false, picture: this.noPicture });
@@ -56,6 +60,7 @@ export class AuthService {
 
     // Check the if the user session is logged in
     isLoggedIn(): Observable<boolean> {
+        console.log('Checking Authentication Status')
         return this.http.get<AuthStatus>(`${this.backend}/api/auth/status`, { withCredentials: true }).pipe(
             map(response => {
                 this.authStatusSubject.next({
@@ -69,6 +74,7 @@ export class AuthService {
     }
 
     getUserInfo(): void {
+        console.log('Get user profile image')
         this.http.get<{ canvas: { canvas_pic: string } }>(`${this.backend}/api/v1/user/profile`, { withCredentials: true }).pipe(
             tap((userProfile) => {
                 const canvasPic = userProfile.canvas.canvas_pic;
