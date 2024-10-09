@@ -83,16 +83,16 @@ main {
     transform: translateX(-50%);
 }
 
-.sidebar.active .userprof .user-img{
-    transform: translateX(100%);
-    transition: all 0.5s ease;
+.sidebar .userprof {
+    margin-top: 10px;
 }
 
-.sidebar.active .userprof .bold{
-    transform: translateX(17%);
-    transition: all 0.5s ease;
+.sidebar.active .userprof {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
-
 
 .sidebar .top .logo {
     color: #fff;
