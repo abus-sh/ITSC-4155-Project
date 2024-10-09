@@ -142,6 +142,7 @@ main {
     align-items: center;
     text-decoration: none;
     border-radius: 0.8rem;
+    cursor: pointer;
 }
 
 .sidebar ul li a:hover {
@@ -194,7 +195,7 @@ main {
     left: 80px;
     transition: all 0.5s ease;
     width: calc(100% - 80px);
-    padding: 1rem;
+    padding: 2rem;
 }
 
 .main-content.active {
