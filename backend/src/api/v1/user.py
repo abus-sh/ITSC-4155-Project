@@ -9,6 +9,8 @@ from utils.settings import get_canvas_url
 user = Blueprint('user', __name__)
 BASE_URL = get_canvas_url()
 
+# ENDPOINT: /api/v1/user/
+
 @user.route('/profile', methods=['GET'])
 def get_user_info():
     try:

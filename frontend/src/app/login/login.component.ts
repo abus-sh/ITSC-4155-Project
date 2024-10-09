@@ -19,7 +19,7 @@ export class LoginComponent {
     constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
         this.loginForm = this.fb.group({
             username: ['', Validators.required],
-            password: ['', Validators.required]  
+            password: ['', Validators.required]
         });
     }
 
@@ -28,7 +28,7 @@ export class LoginComponent {
         this.authService.login(username, password).subscribe(
             res => {
                 if (res.success) {
-                    this.router.navigate(['/dashboard']); // Redirect after successful login
+                    window.location.replace('/dashboard');
                 } else {
                     this.errorMessage = res.message;
                 }
