@@ -17,7 +17,7 @@ class ModelMixin:
         return {c.key: getattr(self, c.key) for c in inspect(self).mapper.column_attrs}
 
 
-def gen_unique_login_id(length=8, max_attempts=3):
+def gen_unique_login_id(length=8, max_attempts=10):
     """Generate a unique login_id for a new User using UPPERCASE letters and 0-9 digits."""
     attempts = 0
     characters = string.ascii_uppercase + string.digits
