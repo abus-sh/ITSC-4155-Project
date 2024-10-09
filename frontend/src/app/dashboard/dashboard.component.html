@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="dashboard.component.scss">
+
 </head>
 <body>
     <div class="sidebar">
@@ -17,9 +17,9 @@
             <i class="bx bx-menu" id="btn"></i>
         </div>
         <div class="userprof">
-            <img src="#" alt="user-profile" class="user-img">
+            <img [src]="(authStatus$ | async)?.picture"  alt="user-profile" class="user-img">
             <div>
-                <p class="bold">Username</p>
+                <p class="bold">{{ (authStatus$ | async)?.user?.username }}</p>
             </div>
         </div>
         <ul>
