@@ -83,6 +83,16 @@ main {
     transform: translateX(-50%);
 }
 
+.sidebar.active .userprof .user-img{
+    transform: translateX(100%);
+    transition: all 0.5s ease;
+}
+
+.sidebar.active .userprof .bold{
+    transform: translateX(17%);
+    transition: all 0.5s ease;
+}
+
 
 .sidebar .top .logo {
     color: #fff;
