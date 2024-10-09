@@ -13,9 +13,9 @@
             <i class="bx bx-menu" id="btn"></i>
         </div>
         <div class="userprof">
-            <img [src]="(authStatus$ | async)?.picture" alt="user-profile" class="user-img">
+            <a href="/profile"><img [src]="(authStatus$ | async)?.picture" alt="user-profile" class="user-img"></a>
             <div>
-                <p class="bold">{{ (authStatus$ | async)?.user?.username }}</p>
+                <a href="/profile"><p class="bold">{{ (authStatus$ | async)?.user?.username }}</p></a>
             </div>
         </div>
         <ul>
