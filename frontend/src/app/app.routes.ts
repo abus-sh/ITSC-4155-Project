@@ -17,6 +17,6 @@ export const routes: Routes = [
         canActivate: [AuthGuard], 
         resolve: {profileData: ProfileResolver}},
 
-        
-    { path: '**', redirectTo: 'home' }
+    // Redirect to dashboard, if user is not logged in, dashboard will redirect to login
+    { path: '**', redirectTo: 'dashboard' }
 ];
