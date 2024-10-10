@@ -1,6 +1,9 @@
 .profile-section {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: flex-start;
     background-color: #f9f9f9;
-    padding: 20px;
+    padding: 30px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     margin-top: 20px;
@@ -52,7 +55,7 @@
 
 .settings-section {
     background-color: #f9f9f9;
-    padding: 20px;
+    padding: 30px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     margin-top: 20px;
@@ -109,4 +112,9 @@
         border: 1px solid rgb(49, 233, 49); 
         background-color: rgba(49, 233, 49, 0.1); 
     }
+}
+
+h4 {
+    font-weight: normal;
+    font-size: 1.2rem;
 }

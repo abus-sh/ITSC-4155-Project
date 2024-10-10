@@ -21,6 +21,7 @@ def get_user_info():
             'canvas': {
                 'canvas_id': current_user.canvas_id,
                 'canvas_name': current_user.canvas_name,
+                'canvas_title': getattr(profile, 'title', None),
                 'canvas_bio': getattr(profile, 'bio', None),
                 'canvas_pic': getattr(profile, 'avatar_url', None)
                 }

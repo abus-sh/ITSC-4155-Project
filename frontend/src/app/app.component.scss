@@ -181,7 +181,9 @@ main {
     left: 125px;
     top: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: 0 0.5rem 0.8 rgba(0, 0, 0, 0.2);
+    background-color: #ff473d;
+    color: white;
+    box-shadow: 0 0.5rem 0.8rem rgba(0, 0, 0, 0.2);
     border-radius: 0.6rem;
     padding: 0.4rem 1.2rem;
     line-height: 1.8rem;
@@ -191,6 +193,11 @@ main {
 
 .sidebar ul li:hover .tooltip {
     opacity: 1;
+}
+
+.sidebar ul li .tooltip:hover {
+    opacity: 0;
+    cursor: default;
 }
 
 .sidebar.active ul li .tooltip {

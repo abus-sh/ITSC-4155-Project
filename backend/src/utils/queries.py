@@ -67,8 +67,8 @@ def update_password(user: User, new_password: str, old_password: str):
         # Re-encrypt token with new password
         plain_canvas_token = decrypt_str(user.canvas_token_password, old_password)
         plain_todoist_token = decrypt_str(user.todoist_token_password, old_password)
-        user.canvas_token_password = encrypt_str(plain_canvas_token, new_password)
-        user.todoist_token_password = encrypt_str(plain_todoist_token, new_password)
+        user.canvas_token_password = encrypt_str(plain_canvas_token, new_password).to_bytes()
+        user.todoist_token_password = encrypt_str(plain_todoist_token, new_password).to_bytes()
         
         # Hash new password
         user.password = password_hasher.hash(new_password)
