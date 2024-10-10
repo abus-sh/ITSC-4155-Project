@@ -1,6 +1,7 @@
 from canvasapi import Canvas
 from flask import Blueprint, jsonify, request
 from flask_login import current_user
+from datetime import datetime, timedelta
 
 from utils.session import decrypt_canvas_key
 from utils.settings import get_canvas_url, get_date_range, localize_date, time_it
@@ -74,13 +75,15 @@ def get_assignments_due_soon():
                 for extra_field in extra_fields:
                     one_assignment[extra_field] = more_details.get(extra_field, None)
                 
-                # If due date is not present, use lock date; if neither is present, skip assignment
-                due_date = more_details.get('due_at', None) or more_details.get('lock_at', None)
-                if not due_date:
-                    continue
-                # Adjust due date for time zone (-4 hours)
-                due_date = localize_date(due_date)
-                one_assignment['due_at'] = due_date
+                # Get the due date; if it doesn't have one, use the lock at date
+                due_date = more_details.get('due_at') or more_details.get('lock_at')
+
+                # Skip assignment if no due date or if it's older than yesterday
+                if due_date:
+                    parsed_due_date = datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%SZ")
+                    if parsed_due_date >= (datetime.now() - timedelta(days=1)):
+                        # Adjust due date for time zone (-4 hours or -5 for daylight savings)
+                        one_assignment['due_at'] = localize_date(parsed_due_date)
             
             assignments_due_soon.append(one_assignment)
 
