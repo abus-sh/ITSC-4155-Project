@@ -49,11 +49,17 @@ def get_all_courses(canvas_key: str|None=None) -> list:
 
     try:
         canvas = Canvas(BASE_URL, canvas_key)
-        current_courses = canvas.get_courses(enrollment_state='active', include=["total_scores", "term", "concluded"])
+        current_courses = canvas.get_courses(enrollment_state='active',
+                                             include=["total_scores", "term", "concluded",
+                                                      "course_image"])
         courses_list = []
         fields = [
-            'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments', 'term', 'concluded'
-            ]
+            'id', 'name', 'due_at', 'points_possible', 'omit_from_final_grade', 
+            'allowed_attempts', 'course_id', 'submission_types', 'has_submitted_submissions', 
+            'is_quiz_assignment', 'html_url', 'quiz_id', 'submissions_download_url', 
+            'require_lockdown_browser', 'course_code', 'calendar', 'enrollments', 'term',
+            'concluded', 'image_download_url'
+        ]
         for course in current_courses:
             # Some courses, like the `Training Supplement`, are never considered to be concluded,
             # so we still need to filter by semester, but using concluded will make it much faster
@@ -90,10 +96,15 @@ def get_course(courseid):
 
     try:
         canvas = Canvas(BASE_URL, canvas_key)
-        course = canvas.get_course(courseid, include=["total_scores"])
+        course = canvas.get_course(courseid, include=["total_scores", "term", "concluded",
+                                                      "course_image"])
         fields = [
-            'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments'
-            ]
+            'id', 'name', 'due_at', 'points_possible', 'omit_from_final_grade', 
+            'allowed_attempts', 'course_id', 'submission_types', 'has_submitted_submissions', 
+            'is_quiz_assignment', 'html_url', 'quiz_id', 'submissions_download_url', 
+            'require_lockdown_browser', 'course_code', 'calendar', 'enrollments', 'term',
+            'concluded', 'image_download_url'
+        ]
         course_info = {field: getattr(course, field, None) for field in fields}
             
     except Exception as e:

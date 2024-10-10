@@ -19,9 +19,7 @@ interface Course {
     styleUrls: ['./courses.component.scss']
 })
 export class CoursesComponent implements OnInit {
-    private coursesUrl = getBackendURL() + '/api/v1/courses/all';
-    defaultImage = ''
-    courses: Course[] = [];
+  private coursesUrl = getBackendURL() + '/api/v1/courses/all';
 
     constructor(private http: HttpClient) {
         this.fetchCourses();

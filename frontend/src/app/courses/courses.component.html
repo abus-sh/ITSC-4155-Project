@@ -1,12 +1,11 @@
 <div class="wrapper">
     <div class="announcement">Announcement Grid</div>
     <div class="content-area">
-        <div class="main-grid">
-            <div class="course-tiles">
-                <div *ngFor="let course of courses" class="course-tile">
-                    <img [src]="course.course_image || defaultImage" [alt]="course.name">
-                    <h3>{{ course.name }}</h3>
-                </div>
+      <div class="main-grid">
+        <div class="course-tiles">
+            <div *ngFor="let course of courses" class="course-tile">
+              <img [src]="course.image_download_url || 'default-image.jpg'" [alt]="course.name">
+              <h3>{{ course.name }}</h3>
             </div>
         </div>
         <div class="notification">Notification Grid</div>
