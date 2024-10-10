@@ -1,8 +1,11 @@
 from contextlib import contextmanager
 from dateutil.relativedelta import relativedelta
-from datetime import datetime, timedelta
+from datetime import datetime
 import os, time
+import pytz
 
+UTC_TZ = pytz.UTC
+CHARLOTTE_TZ = pytz.timezone('America/New_York')
 
 @contextmanager
 def time_it(info: str, end_text: str=' seconds'):
@@ -37,20 +40,24 @@ def get_date_range(start_date: datetime=None, months=0, days=0, hours=0) -> tupl
     # Return the formatted start and end date as a tuple
     return (start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
 
-def adjust_due_date(due_date_str, hours_offset) -> str:
+def localize_date(due_date_str) -> str:
     """
-    Adjusts a due date by a specified number of hours.
+    Adjusts a due date to America/New_York Timezone, considering daylight saving time (DST).
 
     Args:
-        due_date_str (str): The due date in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ).
-        hours_offset (int): The number of hours to adjust the due date by. 
-                            Positive to move forward in time, negative to move backward.
+        due_date_str (str): The due date in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ). Has to be UTC.
 
     Returns:
-        str: The adjusted due date as a string in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ).
+        str: The adjusted due date as a string in ISO 8601 format (YYYY-MM-DD HH:MM:SSZ). 
     """
-    return (datetime.strptime(due_date_str, "%Y-%m-%dT%H:%M:%SZ") + timedelta(hours=hours_offset)).strftime("%Y-%m-%d %H:%M:%SZ")
-
+    # Date should already be in UTC
+    due_date_naive = datetime.strptime(due_date_str, "%Y-%m-%dT%H:%M:%SZ")
+    # Set the naive datetime to be aware (UTC time zone)
+    due_date_aware = UTC_TZ.localize(due_date_naive)
+    # Convert to Charlotte (Eastern Time)
+    due_date_local = due_date_aware.astimezone(CHARLOTTE_TZ)
+    
+    return due_date_local.strftime("%Y-%m-%d %H:%M:%S")
 
 def get_canvas_url() -> str:
     """

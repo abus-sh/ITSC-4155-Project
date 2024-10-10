@@ -23,11 +23,11 @@ export class CoursesComponent implements OnInit {
     defaultImage = ''
     courses: Course[] = [];
 
-    constructor(private http: HttpClient) {}
-
-    ngOnInit(): void {
+    constructor(private http: HttpClient) {
         this.fetchCourses();
     }
+
+    ngOnInit(): void {}
 
     fetchCourses(): void {
         this.http.get<Course[]>(this.coursesUrl, { withCredentials: true }).subscribe(
