@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request
 from flask_login import current_user
 
 from utils.session import decrypt_canvas_key
-from utils.settings import get_canvas_url, get_date_range, adjust_due_date, time_it
+from utils.settings import get_canvas_url, get_date_range, localize_date, time_it
 from api.v1.courses import get_all_courses
 
 
@@ -79,7 +79,7 @@ def get_assignments_due_soon():
                 if not due_date:
                     continue
                 # Adjust due date for time zone (-4 hours)
-                due_date = adjust_due_date(due_date, hours_offset=-4)
+                due_date = localize_date(due_date)
                 one_assignment['due_at'] = due_date
             
             assignments_due_soon.append(one_assignment)
