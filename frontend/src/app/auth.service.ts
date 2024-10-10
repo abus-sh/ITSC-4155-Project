@@ -30,6 +30,7 @@ export class AuthService {
         console.log('Auth Service - Launched')
         this.isLoggedIn().subscribe()
         this.getUserInfo();
+        this.syncTodoist();
     }
 
     // Request CSRF token from backend
@@ -73,6 +74,20 @@ export class AuthService {
         );
     }
 
+    // Sync assignments/tasks with Todoist
+    syncTodoist() {
+        console.log('Syncing tasks with Todoist');
+        this.http.post(`${this.backend}/api/v1/tasks/update`, null).subscribe({
+            next: (response) => {
+                console.log(' * Tasks synced with Todoist', response);
+            },
+            error: (err) => {
+                console.error(' * TODOIST: FAILED TO SYNC', err);
+            }
+        });
+    }
+
+    // Get user profile image to display in sidebar
     getUserInfo(): void {
         console.log('Get user profile image')
         this.http.get<{ canvas: { canvas_pic: string } }>(`${this.backend}/api/v1/user/profile`, { withCredentials: true }).pipe(

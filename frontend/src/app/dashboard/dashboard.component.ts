@@ -3,7 +3,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
 
 @Component({
     selector: 'app-dashboard',
@@ -13,15 +12,13 @@ import { Observable } from 'rxjs';
     styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent {
-    authStatus$: Observable<any>;
 
 
     constructor(private authService: AuthService, private router: Router) {
-        this.authStatus$ = this.authService.authStatus$;
     }
 
     ngOnInit()
     {
-
+ 
     }
 }

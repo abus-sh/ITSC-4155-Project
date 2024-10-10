@@ -4,7 +4,6 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from './auth.service';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
-//import { HttpClientModule } from '@angular/common/http';
 
 
 @Component({
@@ -36,8 +35,8 @@ export class AppComponent implements OnInit {
                 console.error('Failed to fetch CSRF token', err);
             }
         });
-        
 
+        // Make sidebar work if user is authenticated
         this.authStatus$.subscribe((authStatus) => {
             // Check if the user is authenticated
             if (authStatus.authenticated) {
@@ -45,7 +44,7 @@ export class AppComponent implements OnInit {
                 let btn = document.querySelector('#btn') as HTMLElement;
                 let sidebar = document.querySelector('.sidebar') as HTMLElement;
                 let mainContent = document.querySelector('.main-content') as HTMLElement;
-    
+
                 if (btn) {
                     btn.onclick = function () {
                         sidebar?.classList.toggle('active');
@@ -56,7 +55,7 @@ export class AppComponent implements OnInit {
         });
 
     }
-    
+
     logout() {
         this.authService.logout().subscribe();
     }

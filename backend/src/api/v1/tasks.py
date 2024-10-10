@@ -11,10 +11,13 @@ BASE_URL = get_canvas_url()
 # ENDPOINT: /api/v1/tasks
 
 # Fetches assignments from Canvas and adds them to Todoist
-@tasks.get('/update')
+@tasks.post('/update')
 def update_tasks():
-    
-    canvas_token, todoist_token = session.decrypt_api_keys()
-    todoist.add_missing_tasks(current_user.id, canvas_token, todoist_token)
-
-    return jsonify({'success': True})
+    try:
+        canvas_token, todoist_token = session.decrypt_api_keys()
+        todoist.add_missing_tasks(current_user.id, canvas_token, todoist_token)
+        
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        print('Error synching assignments to Todoist from Canvas: ', e)
+        return jsonify({'success': False}), 400
