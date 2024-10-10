@@ -7,8 +7,7 @@ from http import HTTPStatus
 from lru import LRU
 
 from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, password_hasher
-from utils.crypto import decrypt_str, encrypt_str
-import utils.todoist as todoist
+from utils.crypto import reencrypt_str
 
 auth = Blueprint('authentication', __name__)
 
@@ -87,16 +86,11 @@ def login():
     session_id = session['_id']
 
     # Decrypt tokens with password and re-encrypt with session_id
-    plain_canvas_token = decrypt_str(db_user.canvas_token_password, password)
-    plain_todoist_token = decrypt_str(db_user.todoist_token_password, password)
-    session_canvas_token = encrypt_str(plain_canvas_token, session_id)
-    session_todoist_token = encrypt_str(plain_todoist_token, session_id)
+    session_canvas_token = reencrypt_str(db_user.canvas_token_password, password, session_id)
+    session_todoist_token = reencrypt_str(db_user.todoist_token_password, password, session_id)
 
     # Cache API re-encrypted tokens for future requests
     api_key_cache[session_id] = (session_canvas_token, session_todoist_token)
-
-    # Add tasks to Todoist as needed
-    todoist.add_missing_tasks(db_user.id, plain_canvas_token, plain_todoist_token)
 
     # Respond that the user was authenticated
     return jsonify({'success': True, 'message': f"Logged in as {db_user.username}"})
