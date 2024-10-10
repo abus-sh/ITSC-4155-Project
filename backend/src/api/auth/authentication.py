@@ -90,10 +90,8 @@ def login():
             session_id = session['_id']
 
             # Decrypt tokens with password and re-encrypt with session_id
-            plain_canvas_token = decrypt_str(db_user.canvas_token_password, password)
-            plain_todoist_token = decrypt_str(db_user.todoist_token_password, password)
-            session_canvas_token = encrypt_str(plain_canvas_token, session_id)
-            session_todoist_token = encrypt_str(plain_todoist_token, session_id)
+            session_canvas_token = reencrypt_str(db_user.canvas_token_password, password, session_id)
+            session_todoist_token = reencrypt_str(db_user.todoist_token_password, password, session_id)
 
             # Cache API re-encrypted tokens for future requests
             api_key_cache[session_id] = (session_canvas_token, session_todoist_token)
