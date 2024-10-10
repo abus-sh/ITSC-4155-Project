@@ -9,7 +9,7 @@ interface Course {
     id: number;
     name: string;
     image_download_url: string;
-    computed_final_score: string;
+    computed_current_score: string;
 }
 
 @Component({
@@ -30,9 +30,22 @@ export class CoursesComponent implements OnInit {
     ngOnInit(): void {}
 
     fetchCourses(): void {
-        this.http.get<Course[]>(this.coursesUrl, { withCredentials: true }).subscribe(
-            (data: Course[]) => {
-                this.courses = data;
+        this.http.get<any[]>(this.coursesUrl, { withCredentials: true }).subscribe(
+            (data: any[]) => { 
+
+                const transformedCourses: Course[] = data.map(course => {
+                    const finalScore = (course.enrollments && course.enrollments.length) > 0 
+                        ? course.enrollments[0].computed_current_score : null;
+    
+                    return {
+                        id: course.id,
+                        name: course.name,
+                        image_download_url: course.image_download_url,
+                        computed_current_score: finalScore
+                    };
+                });
+    
+                this.courses = transformedCourses;
             },
             (error) => {
                 console.error('Error fetching courses:', error);

@@ -1,6 +1,6 @@
 .assignments-container {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;  /* Allow wrapping to the next row when space is insufficient */
     gap: 15px;
     padding: 20px;
 }
@@ -11,6 +11,9 @@
     padding: 15px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease-in-out;
+    min-width: 250px;
+    width: 350px;
+    box-sizing: border-box;
 }
 
 .assignment-card:hover {
@@ -42,6 +45,7 @@
 }
 
 .assignment-link {
+    bottom: 0;
     display: inline-block;
     padding: 8px 15px;
     background-color: #007bff;

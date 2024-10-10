@@ -180,8 +180,6 @@ def _course_to_dict(course: Course, fields: list[str]|None=None) -> dict[str, st
             'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments', 'term', 'concluded',
             'image_download_url'
         ]
-    print(fields)
-    print(type(fields))
 
     return {field: getattr(course, field, None) for field in fields}
 

@@ -46,4 +46,12 @@ export class DashboardComponent {
             }
         );
     }
+
+    // Check if the assignment is due today
+    isDueToday(dueDate: string): boolean {
+        const today = new Date();
+        const due = new Date(dueDate);
+
+        return today.toDateString() === due.toDateString();
+    }
 }
