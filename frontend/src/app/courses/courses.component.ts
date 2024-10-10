@@ -17,9 +17,11 @@ interface Course {
 })
 export class CoursesComponent implements OnInit {
   private coursesUrl = getBackendURL() + '/api/v1/courses/all';
+
   courses: Course[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+  }
 
   ngOnInit(): void {
     this.fetchCourses();
