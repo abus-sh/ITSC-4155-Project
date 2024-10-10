@@ -98,10 +98,6 @@ def login():
             # Cache API re-encrypted tokens for future requests
             api_key_cache[session_id] = (session_canvas_token, session_todoist_token)
 
-        with time_it('Adding missing tasks:'):
-            # Add tasks to Todoist as needed
-            todoist.add_missing_tasks(db_user.id, plain_canvas_token, plain_todoist_token)
-
     # Respond that the user was authenticated
     return jsonify({'success': True, 'message': f"Logged in as {db_user.username}"})
 
