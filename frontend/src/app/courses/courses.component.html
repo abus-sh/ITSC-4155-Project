@@ -6,6 +6,9 @@
             <div *ngFor="let course of courses" class="course-tile">
                 <img [src]="course.image_download_url || 'default-image.jpg'" [alt]="course.name">
                 <h3>{{ course.name }}</h3>
+                <div class="grade-wrapper">
+                    Current Grade: {{ course.computed_final_score || 'N/A' }}
+                  </div>
             </div>
         </div>
     </div>

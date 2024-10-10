@@ -9,6 +9,7 @@ interface Course {
     id: number;
     name: string;
     image_download_url: string;
+    computed_final_score: string;
 }
 
 @Component({
