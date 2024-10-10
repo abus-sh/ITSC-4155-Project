@@ -7,9 +7,8 @@ from http import HTTPStatus
 from lru import LRU
 from utils.settings import time_it
 
-from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, password_hasher
-from utils.crypto import decrypt_str, encrypt_str
-import utils.todoist as todoist
+from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, password_hasher, update_password
+from utils.crypto import reencrypt_str
 
 auth = Blueprint('authentication', __name__)
 
@@ -91,17 +90,11 @@ def login():
             session_id = session['_id']
 
             # Decrypt tokens with password and re-encrypt with session_id
-            plain_canvas_token = decrypt_str(db_user.canvas_token_password, password)
-            plain_todoist_token = decrypt_str(db_user.todoist_token_password, password)
-            session_canvas_token = encrypt_str(plain_canvas_token, session_id)
-            session_todoist_token = encrypt_str(plain_todoist_token, session_id)
+            session_canvas_token = reencrypt_str(db_user.canvas_token_password, password, session_id)
+            session_todoist_token = reencrypt_str(db_user.todoist_token_password, password, session_id)
 
             # Cache API re-encrypted tokens for future requests
             api_key_cache[session_id] = (session_canvas_token, session_todoist_token)
-
-        with time_it('Adding missing tasks:'):
-            # Add tasks to Todoist as needed
-            todoist.add_missing_tasks(db_user.id, plain_canvas_token, plain_todoist_token)
 
     # Respond that the user was authenticated
     return jsonify({'success': True, 'message': f"Logged in as {db_user.username}"})
@@ -144,6 +137,45 @@ def sign_up():
     
     # Respond that the user was created
     return jsonify({'success': True, 'message': f"Account created for {username}"})
+
+@auth.route('/change-password', methods=['POST'])
+@login_required
+def change_password():
+    # Check if user is not authenticated
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'User is not authenticated'}), 401
+    
+    
+    # New password must match the confirmed password
+    old_password = request.json.get('oldPassword')
+    new_password = request.json.get('newPassword')
+    
+    if len(new_password) > 128 or len(new_password) < 15:
+        return jsonify({'success': False, 'message': "Password isn't between 15 and 128 characters"}), 400
+    
+    # Verify that the old password matches with the account hashed password
+    try:
+        password_hasher.verify(current_user.password, old_password)
+    except VerifyMismatchError:
+        return jsonify({'success': False, 'message': "Failed to update"}), 400
+    
+    if old_password == new_password:
+        return jsonify({'success': False, 'message': "You can't insert the same password"}), 400
+    
+    # Update database with new password, rencrypt tokens, and new login id
+    update_password(current_user, new_password, old_password)
+    
+    
+    # Delete old session information from cache
+    old_session_id = session.get('_id')
+    if old_session_id:
+        del api_key_cache[old_session_id]
+    
+    # Logout User
+    logout_user()
+    
+    return jsonify({'success': True, 'message': 'Password changed successfully!'}), 200
+
 
 @auth.route('/logout', methods=['POST'])
 @login_required

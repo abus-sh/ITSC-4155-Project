@@ -20,7 +20,7 @@
         </div>
         <ul>
             <li>
-                <a href="/dashboard">
+                <a routerLink="/dashboard">
                     <i class="bx bxs-grid-alt"></i>
                     <span class="nav-item">Dashboard</span>
                 </a>
@@ -46,6 +46,13 @@
                     <span class="nav-item">Groups</span>
                 </a>
                 <span class="tooltip">Groups</span>
+            </li>
+            <li>
+                <a routerLink="/profile">
+                    <i class="bx bxs-grid-alt"></i>
+                    <span class="nav-item">Profile</span>
+                </a>
+                <span class="tooltip">Profile</span>
             </li>
             <li>
                 <a (click)="logout()">

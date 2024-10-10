@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, take, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
-
+import { getBackendURL } from '../config';
 
 interface AuthStatus {
     authenticated: boolean;
@@ -24,12 +24,13 @@ export class AuthService {
     private authStatusSubject = new BehaviorSubject<AuthStatus>({ authenticated: false, picture: this.noPicture });
     authStatus$ = this.authStatusSubject.asObservable();
 
-    private backend = "http://localhost:5000"; // Backend for testing
+    private backend = getBackendURL();
 
     constructor(private http: HttpClient, private router: Router) {
         console.log('Auth Service - Launched')
         this.isLoggedIn().subscribe()
         this.getUserInfo();
+        this.syncTodoist();
     }
 
     // Request CSRF token from backend
@@ -73,6 +74,20 @@ export class AuthService {
         );
     }
 
+    // Sync assignments/tasks with Todoist
+    syncTodoist() {
+        console.log('Syncing tasks with Todoist');
+        this.http.post(`${this.backend}/api/v1/tasks/update`, null).subscribe({
+            next: (response) => {
+                console.log(' * Tasks synced with Todoist', response);
+            },
+            error: (err) => {
+                console.error(' * TODOIST: FAILED TO SYNC', err);
+            }
+        });
+    }
+
+    // Get user profile image to display in sidebar
     getUserInfo(): void {
         console.log('Get user profile image')
         this.http.get<{ canvas: { canvas_pic: string } }>(`${this.backend}/api/v1/user/profile`, { withCredentials: true }).pipe(

@@ -5,7 +5,7 @@
 #                                                                       #
 #########################################################################
 from utils.models import *
-from utils.crypto import encrypt_str
+from utils.crypto import decrypt_str, encrypt_str
 from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
@@ -62,6 +62,23 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
         print(f"Error adding user: {e}")
         return False
 
+def update_password(user: User, new_password: str, old_password: str):
+    try:
+        # Re-encrypt token with new password
+        plain_canvas_token = decrypt_str(user.canvas_token_password, old_password)
+        plain_todoist_token = decrypt_str(user.todoist_token_password, old_password)
+        user.canvas_token_password = encrypt_str(plain_canvas_token, new_password).to_bytes()
+        user.todoist_token_password = encrypt_str(plain_todoist_token, new_password).to_bytes()
+        
+        # Hash new password
+        user.password = password_hasher.hash(new_password)
+        # New login id, makes previous session tokens invalid
+        user.login_id = gen_unique_login_id()
+        
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print("Error: ", e)
 
 def get_all_users() -> list[User]:
     """

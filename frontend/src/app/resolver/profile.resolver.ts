@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { Resolve } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { getBackendURL } from '../../config';
 
 
 @Injectable({
     providedIn: 'root'
 })
 export class ProfileResolver implements Resolve<any> {
-    private profileUrl = 'http://localhost:5000/api/v1/user/profile';
+    private profileUrl = getBackendURL() + '/api/v1/user/profile';
 
     constructor(private http: HttpClient) { }
 

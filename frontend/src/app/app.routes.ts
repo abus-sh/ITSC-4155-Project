@@ -14,8 +14,7 @@ export const routes: Routes = [
         canActivate: [AuthGuard] },
 
     { path: 'profile', component: ProfileComponent, 
-        canActivate: [AuthGuard], 
-        resolve: {profileData: ProfileResolver}},
+        canActivate: [AuthGuard] }, // resolve: {profileData: ProfileResolver} RESOLVE MAY NOT BE NEEDED
 
     // Redirect to dashboard, if user is not logged in, dashboard will redirect to login
     { path: '**', redirectTo: 'dashboard' }

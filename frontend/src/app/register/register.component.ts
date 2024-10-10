@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { getBackendURL } from '../../config';
 
 @Component({
     selector: 'app-register',
@@ -38,7 +39,7 @@ export class RegisterComponent {
             }
 
             // Make HTTP POST request to the registration endpoint
-            this.http.post('http://localhost:5000/api/auth/signup', { username, password, canvasToken, todoistToken }, { withCredentials: true })
+            this.http.post(getBackendURL() + '/api/auth/signup', { username, password, canvasToken, todoistToken }, { withCredentials: true })
                 .subscribe(
                     response => {
                         console.log('Registration successful', response);

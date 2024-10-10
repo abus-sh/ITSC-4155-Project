@@ -53,7 +53,6 @@ def add_missing_tasks(user_id: int, canvas_key: str, todoist_key: str):
             now = datetime.now()
             if due_date > now:
                 due_date = due_date.strftime('%Y-%m-%d')
-                #print("Adding task...")
                 api_queried = add_task_sync(todoist_key, assignment['id'], assignment['name'],
                                             'automated', due_date, user_id)
                 if api_queried:
