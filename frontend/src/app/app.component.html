@@ -15,7 +15,7 @@
         <div class="userprof">
             <a href="/profile"><img [src]="(authStatus$ | async)?.picture" alt="user-profile" class="user-img"></a>
             <div>
-                <a href="/profile"><p class="bold">{{ (authStatus$ | async)?.user?.username }}</p></a>
+                <a href="/profile"><p class="bold clean-hyperlink">{{ (authStatus$ | async)?.user?.username }}</p></a>
             </div>
         </div>
         <ul>
