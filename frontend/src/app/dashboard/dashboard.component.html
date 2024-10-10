@@ -1,5 +1,5 @@
 <div class="assignments-container">
-    <div *ngFor="let assignment of assignments | orderBy: 'due_date'" class="assignment-card">
+    <div *ngFor="let assignment of assignments | orderBy: 'due_at'" class="assignment-card">
         <h3 class="assignment-title">{{ assignment.title }}</h3>
         <p class="assignment-course">
             <strong>Due Date</strong>:

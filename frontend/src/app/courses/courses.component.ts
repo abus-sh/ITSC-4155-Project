@@ -35,7 +35,7 @@ export class CoursesComponent implements OnInit {
 
                 const transformedCourses: Course[] = data.map(course => {
                     const finalScore = (course.enrollments && course.enrollments.length) > 0 
-                        ? course.enrollments[0].computed_current_score : null;
+                        ? course.enrollments[0].computed_current_score : 'N/A';
     
                     return {
                         id: course.id,
