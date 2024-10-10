@@ -1,4 +1,4 @@
-import { Routes, Resolve } from '@angular/router';
+import { Routes } from '@angular/router';
 import { AuthGuard } from './auth.guard';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
@@ -10,9 +10,11 @@ import { CoursesComponent } from './courses/courses.component';
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },       // Route for login page
     { path: 'register', component: RegisterComponent }, // Route for register page
-    
-    { path: 'dashboard', component: DashboardComponent, 
-        canActivate: [AuthGuard] },
+
+    {
+        path: 'dashboard', component: DashboardComponent,
+        canActivate: [AuthGuard]
+    },
 
     { path: 'courses', component: CoursesComponent, 
         canActivate: [AuthGuard] },
