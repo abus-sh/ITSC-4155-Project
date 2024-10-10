@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map, take, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
-
+import { getBackendURL } from '../config';
 
 interface AuthStatus {
     authenticated: boolean;
@@ -24,7 +24,7 @@ export class AuthService {
     private authStatusSubject = new BehaviorSubject<AuthStatus>({ authenticated: false, picture: this.noPicture });
     authStatus$ = this.authStatusSubject.asObservable();
 
-    private backend = "http://localhost:5000"; // Backend for testing
+    private backend = getBackendURL();
 
     constructor(private http: HttpClient, private router: Router) {
         console.log('Auth Service - Launched')

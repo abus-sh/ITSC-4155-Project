@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { Observable } from 'rxjs';
+import { getBackendURL } from '../../config';
 
 interface UserProfile {
     username?: string;
@@ -24,8 +25,8 @@ interface UserProfile {
     styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
-    private profileUrl = 'http://localhost:5000/api/v1/user/profile';
-    private passwordChangeUrl = 'http://localhost:5000/api/auth/change-password';
+    private profileUrl = getBackendURL() + '/api/v1/user/profile';
+    private passwordChangeUrl = getBackendURL() + '/api/auth/change-password';
     authStatus$: Observable<any>;
 
     profileData: UserProfile = {};

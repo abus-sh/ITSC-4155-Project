@@ -11,7 +11,7 @@ from utils.models import db
 
 
 app = Flask(__name__)
-USING_SQLITE = True
+USING_SQLITE = 'DB_CONN_FILE' not in os.environ
 
 
 app.register_blueprint(auth, url_prefix='/api/auth')    # Authentication Endpoint
@@ -53,7 +53,11 @@ if not app.debug:
 
 # Cross Origin Resource sharing configuration. 
 # Only allow request from this address (Angular frontend)
-CORS(app, supports_credentials=True, origins=['http://localhost:4200'])
+CORS(app, supports_credentials=True, origins=[
+    'http://localhost:4200',
+    'https://localhost:4200',
+    'https://itsc4155.abus.sh:4200'
+])
 
 
 # Create all missing tables based on the table models in `backend/src/utils/models.py`

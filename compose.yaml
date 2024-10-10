@@ -11,10 +11,12 @@ services:
     build: backend
     environment:
       DB_CONN_FILE: /run/secrets/database_conn.txt
+      SESSION_SECRET_FILE: /run/secrets/session_secret.txt
     expose:
       - 5000
     secrets:
       - database_conn.txt
+      - session_secret.txt
   # RDS databases are expensive, just run this as part of Docker
   database:
     image: mariadb:11.5
@@ -42,7 +44,9 @@ secrets:
   site.key:
     file: ./secrets/site.key
   database_conn.txt:
-    file: ./secrets/connection_string.txt
+    file: ./secrets/connection_string_docker.txt
+  session_secret.txt:
+    file: ./secrets/session_secret.txt
   db_password:
     file: ./secrets/db_password.txt
   db_root_password:
