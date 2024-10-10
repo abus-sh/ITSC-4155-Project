@@ -48,6 +48,8 @@
     grid-template-columns: repeat(auto-fit, minmax(200px, 350px));
     gap: 20px;
     padding: 20px;
+    max-height: 100%;
+    
 }
 
 .course-tile {

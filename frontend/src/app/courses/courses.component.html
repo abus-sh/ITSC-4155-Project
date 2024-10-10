@@ -4,10 +4,10 @@
       <div class="main-grid">
         <div class="course-tiles">
             <div *ngFor="let course of courses" class="course-tile">
-              <img [src]="course.image_download_url || 'default-image.jpg'" [alt]="course.name">
-              <h3>{{ course.name }}</h3>
+                <img [src]="course.image_download_url || 'default-image.jpg'" [alt]="course.name">
+                <h3>{{ course.name }}</h3>
             </div>
         </div>
-        <div class="notification">Notification Grid</div>
     </div>
+    <div class="notification">Notification Grid</div>
 </div>
