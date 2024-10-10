@@ -1,9 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../auth.service';
+import { Observable } from 'rxjs';
 
+interface UserProfile {
+    username?: string;
+    canvas?: {
+        canvas_id: string;
+        canvas_name: string;
+        canvas_title: string;
+        canvas_bio: string;
+        canvas_pic: string;
+    };
+}
 
 @Component({
     selector: 'app-profile',
@@ -13,7 +24,11 @@ import { FormsModule } from '@angular/forms';
     styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
-    profileData: any;
+    private profileUrl = 'http://localhost:5000/api/v1/user/profile';
+    private passwordChangeUrl = 'http://localhost:5000/api/auth/change-password';
+    authStatus$: Observable<any>;
+
+    profileData: UserProfile = {};
     oldPassword: string = '';
     newPassword: string = '';
     confirmPassword: string = '';
@@ -21,18 +36,20 @@ export class ProfileComponent implements OnInit {
     message: string | null = null;
     messageClass: string = '';
 
-    private passwordChangeUrl = 'http://localhost:5000/api/v1/user/change-password';
-
-
-    constructor(private route: ActivatedRoute, private http: HttpClient) { }
+    constructor(private authService: AuthService, private http: HttpClient) { 
+        this.authStatus$ = this.authService.authStatus$;
+    }
 
     ngOnInit(): void {
         // Get the profile data from the route
-        this.profileData = this.route.snapshot.data['profileData'];
-
-        if (!this.profileData) {
-            console.error('Profile data not found');
-        }
+        this.http.get<any>(this.profileUrl, { withCredentials: true }).subscribe(
+            (data: UserProfile) => {
+                this.profileData = data; // Profile data is loaded here
+            },
+            (error) => {
+                console.error('Error fetching profile data:', error);  // Couldn;t get profile data
+            }
+        );
     }
 
     onSubmit() {
@@ -59,6 +76,7 @@ export class ProfileComponent implements OnInit {
 
         this.http.post<{ message: string }>(this.passwordChangeUrl, payload, { withCredentials: true }).subscribe(
             response => {
+                console.log(response)
                 this.messageBox(false, response.message);
                 this.clearForm();
             },

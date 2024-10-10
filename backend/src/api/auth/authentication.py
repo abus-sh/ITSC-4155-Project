@@ -152,18 +152,22 @@ def change_password():
     if not current_user.is_authenticated:
         return jsonify({'success': False, 'message': 'User is not authenticated'}), 401
     
-    # New password must match the confirmed password
-    new_password = request.json.get('new_password')
-    new_password_confirm = request.json.get('new_password_confirm')
-    if new_password != new_password_confirm:
-        return jsonify({'success': False, 'message': "New password confirmation doesn't match"}), 400
     
-    # Verify that the old password matches with the account password
-    old_password = request.json.get('old_password')
+    # New password must match the confirmed password
+    old_password = request.json.get('oldPassword')
+    new_password = request.json.get('newPassword')
+    
+    if len(new_password) > 128 or len(new_password) < 15:
+        return jsonify({'success': False, 'message': "Password isn't between 15 and 128 characters"}), 400
+    
+    # Verify that the old password matches with the account hashed password
     try:
         password_hasher.verify(current_user.password, old_password)
     except VerifyMismatchError:
         return jsonify({'success': False, 'message': "Failed to update"}), 400
+    
+    if old_password == new_password:
+        return jsonify({'success': False, 'message': "You can't insert the same password"}), 400
     
     # Update database with new password, rencrypt tokens, and new login id
     update_password(current_user, new_password, old_password)
