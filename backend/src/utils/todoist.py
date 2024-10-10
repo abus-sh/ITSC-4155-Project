@@ -3,13 +3,7 @@ This file provides utilities for adding tasks to Todoist.
 """
 
 
-from ctypes import c_bool
 from datetime import datetime, timedelta
-from multiprocessing import Manager, Pool
-from multiprocessing.managers import ValueProxy
-from queue import Queue
-from threading import Lock
-from time import sleep
 from todoist_api_python.api import TodoistAPI
 import gevent
 
