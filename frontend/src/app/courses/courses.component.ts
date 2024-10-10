@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
 interface Course {
     id: number;
     name: string;
-    course_image: string;
+    image_download_url: string;
 }
 
 @Component({
@@ -20,6 +20,7 @@ interface Course {
 })
 export class CoursesComponent implements OnInit {
   private coursesUrl = getBackendURL() + '/api/v1/courses/all';
+  public courses: Course[] = [];
 
     constructor(private http: HttpClient) {
         this.fetchCourses();
