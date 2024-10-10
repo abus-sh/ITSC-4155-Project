@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 
 from api.auth.authentication import auth, login_manager, csrf
-from api.v1.task import api_v1
+from api.v1.base import api_v1
 from utils.models import db
 
 
