@@ -1,4 +1,6 @@
 from canvasapi import Canvas
+from canvasapi.assignment import Assignment
+from canvasapi.course import Course
 from datetime import datetime
 from flask import Blueprint, jsonify
 
@@ -9,6 +11,11 @@ from utils.settings import get_canvas_url
 courses = Blueprint('courses', __name__)
 BASE_URL = get_canvas_url()
 
+# Custom parameters to get from the Canvas API for course requests
+# Specified here to ensure standardization.
+CUSTOM_COURSE_PARAMS = [
+    "total_scores", "term", "concluded", "course_image"
+]
 
 def get_term() -> tuple[str, str]:
     """Returns current year and semester."""
@@ -50,16 +57,8 @@ def get_all_courses(canvas_key: str|None=None) -> list:
     try:
         canvas = Canvas(BASE_URL, canvas_key)
         current_courses = canvas.get_courses(enrollment_state='active',
-                                             include=["total_scores", "term", "concluded",
-                                                      "course_image"])
+                                             include=CUSTOM_COURSE_PARAMS)
         courses_list = []
-        fields = [
-            'id', 'name', 'due_at', 'points_possible', 'omit_from_final_grade', 
-            'allowed_attempts', 'course_id', 'submission_types', 'has_submitted_submissions', 
-            'is_quiz_assignment', 'html_url', 'quiz_id', 'submissions_download_url', 
-            'require_lockdown_browser', 'course_code', 'calendar', 'enrollments', 'term',
-            'concluded', 'image_download_url'
-        ]
         for course in current_courses:
             # Some courses, like the `Training Supplement`, are never considered to be concluded,
             # so we still need to filter by semester, but using concluded will make it much faster
@@ -72,7 +71,7 @@ def get_all_courses(canvas_key: str|None=None) -> list:
                 semester, year = term[-2:], term[:-2]
                 if year != current_year or semester != current_semester:
                     continue
-            one_course = {field: getattr(course, field, None) for field in fields}
+            one_course = _course_to_dict(course)
             courses_list.append(one_course)
 
     except AttributeError as e:
@@ -96,16 +95,8 @@ def get_course(courseid):
 
     try:
         canvas = Canvas(BASE_URL, canvas_key)
-        course = canvas.get_course(courseid, include=["total_scores", "term", "concluded",
-                                                      "course_image"])
-        fields = [
-            'id', 'name', 'due_at', 'points_possible', 'omit_from_final_grade', 
-            'allowed_attempts', 'course_id', 'submission_types', 'has_submitted_submissions', 
-            'is_quiz_assignment', 'html_url', 'quiz_id', 'submissions_download_url', 
-            'require_lockdown_browser', 'course_code', 'calendar', 'enrollments', 'term',
-            'concluded', 'image_download_url'
-        ]
-        course_info = {field: getattr(course, field, None) for field in fields}
+        course = canvas.get_course(courseid, include=CUSTOM_COURSE_PARAMS)
+        course_info = _course_to_dict(course)
             
     except Exception as e:
         return 'Unable to make request to Canvas API', 400
@@ -135,14 +126,8 @@ def get_course_assignments(courseid, canvas_key: str|None=None):
         course = Canvas(BASE_URL, canvas_key).get_course(courseid)
         course_assignments = course.get_assignments()
         assignments = []
-        fields = [
-            'id', 'name', 'due_at', 'points_possible', 'omit_from_final_grade', 
-            'allowed_attempts', 'course_id', 'submission_types', 'has_submitted_submissions', 
-            'is_quiz_assignment', 'html_url', 'quiz_id', 'submissions_download_url', 
-            'require_lockdown_browser'
-        ]
         for assignment in course_assignments:
-            assignment_dict = {field: getattr(assignment, field, None) for field in fields}
+            assignment_dict = _assignment_to_dict(assignment)
             assignments.append(assignment_dict)
 
     except AttributeError as e:
@@ -166,14 +151,7 @@ def get_course_assignment(courseid, assignmentid):
     try:
         canvas = Canvas(BASE_URL, canvas_key)
         assignment = canvas.get_course(courseid).get_assignment(assignmentid)
-        fields = [
-            'id', 'name', 'description', 'due_at', 'lock_at', 'course_id', 'html_url', 
-            'submissions_download_url', 'allowed_extensions', 'turnitin_enabled', 
-            'grade_group_students_individually', 'group_category_id', 'points_possible', 
-            'submission_types', 'published', 'quiz_id', 'omit_from_final_grade', 
-            'allowed_attempts', 'can_submit', 'is_quiz_assignment', 'workflow_state'
-        ]
-        assignment_dict = {field: getattr(assignment, field, None) for field in fields}
+        assignment_dict = _assignment_to_dict(assignment)
 
     except Exception as e:
         return 'Unable to make request to Canvas API', 400
@@ -185,3 +163,46 @@ def get_course_assignment(courseid, assignmentid):
 # GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions (List assignment submissions)
 # GET /api/v1/courses/:course_id/students/submissions (List submissions for multiple assignments)
 # GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id (Get a single submission)
+
+def _course_to_dict(course: Course, fields: list[str]|None=None) -> dict[str, str|None]:
+    """
+    Converts a course into a dict, taking only the fields specified in fields. If fields is None,
+    then a default set of fields are used.
+
+    :param course: The course to convert to a dict.
+    :param fields: The fields to extract from the course. If fields is not specified, a default list
+    of fields are used instead.
+    :return dict[str, str|None]: Returns a dict with each key. If no value was present for the key,
+    None is returned instead.
+    """
+    if fields == None:
+        fields = [
+            'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments', 'term', 'concluded',
+            'image_download_url'
+        ]
+    print(fields)
+    print(type(fields))
+
+    return {field: getattr(course, field, None) for field in fields}
+
+def _assignment_to_dict(assignment: Assignment, fields: list[str]|None=None) -> dict[str, str|None]:
+    """
+    Converts an assignment into a dict, taking only the fields specified in fields. If fields is
+    None, then a default set of fields are used.
+
+    :param assignment: The assignment to convert to a dict.
+    :param fields: The fields to extract from the assignment. If fields is not specified, a default
+    list of fields are used instead.
+    :return dict[str, str|None]: Returns a dict with each key. If no value was present for the key,
+    None is returned instead.
+    """
+    if fields == None:
+        fields = [
+            'id', 'name', 'description', 'due_at', 'lock_at', 'course_id', 'html_url', 
+            'submissions_download_url', 'allowed_extensions', 'turnitin_enabled', 
+            'grade_group_students_individually', 'group_category_id', 'points_possible', 
+            'submission_types', 'published', 'quiz_id', 'omit_from_final_grade', 
+            'allowed_attempts', 'can_submit', 'is_quiz_assignment', 'workflow_state'
+        ]
+
+    return {field: getattr(assignment, field, None) for field in fields}
