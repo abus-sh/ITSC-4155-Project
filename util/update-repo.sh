@@ -5,7 +5,7 @@ reslog=$(git log HEAD..origin/main --oneline)
 if [[ "${reslog}" != "" ]]; then
   git merge origin/main
   docker compose build
-  docker compose down
+  docker compose down -v
   docker compose up -d
   echo "Updated local repo"
 else
