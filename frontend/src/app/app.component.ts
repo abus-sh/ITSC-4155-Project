@@ -1,7 +1,7 @@
 import { RouterOutlet } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from './auth.service';
+import { AuthService, AuthStatus } from './auth.service';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common';
 })
 export class AppComponent implements OnInit {
     title = 'frontend';             // Title of the application
-    authStatus$: Observable<any>;   // Observable for tracking authentication status
+    authStatus$: Observable<AuthStatus>;   // Observable for tracking authentication status
 
     constructor(private authService: AuthService) {
         this.authStatus$ = this.authService.authStatus$;
@@ -41,9 +41,9 @@ export class AppComponent implements OnInit {
             // Check if the user is authenticated
             if (authStatus.authenticated) {
                 // Now that authentication is confirmed, proceed with DOM manipulation
-                let btn = document.querySelector('#btn') as HTMLElement;
-                let sidebar = document.querySelector('.sidebar') as HTMLElement;
-                let mainContent = document.querySelector('.main-content') as HTMLElement;
+                const btn = document.querySelector('#btn') as HTMLElement;
+                const sidebar = document.querySelector('.sidebar') as HTMLElement;
+                const mainContent = document.querySelector('.main-content') as HTMLElement;
 
                 if (btn) {
                     btn.onclick = function () {

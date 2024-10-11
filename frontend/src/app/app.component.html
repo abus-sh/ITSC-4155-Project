@@ -55,9 +55,9 @@
                 <span class="tooltip">Profile</span>
             </li>
             <li>
-                <a (click)="logout()">
+                <a (click)="logout()" (keypress)="logout()" tabindex="0">
                     <i class="bx bxs-grid-alt"></i>
-                    <span (click)="logout()" class="nav-item">Logout</span>
+                    <span class="nav-item">Logout</span>
                 </a>
                 <span class="tooltip">Logout</span>
             </li>

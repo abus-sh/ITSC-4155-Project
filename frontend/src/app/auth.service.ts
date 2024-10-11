@@ -1,17 +1,26 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map, take, tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { getBackendURL } from '../config';
 
-interface AuthStatus {
+export interface AuthStatus {
     authenticated: boolean;
     user?: {
         id: number;
         username: string;
     };
     picture?: string;
+}
+
+interface CSRFResponse {
+    csrf_token: string
+}
+
+interface AuthResponse {
+    message: string,
+    success: boolean
 }
 
 @Injectable({
@@ -34,24 +43,27 @@ export class AuthService {
     }
 
     // Request CSRF token from backend
-    getCsrfToken(): Observable<any> {
+    getCsrfToken() {
         console.log('Getting CSRF Token')
-        return this.http.get(`${this.backend}/api/auth/csrf-token`, { withCredentials: true });
+        return this.http.get<CSRFResponse>(`${this.backend}/api/auth/csrf-token`,
+            { withCredentials: true });
     }
 
     // Login into the backend with username and password, return the user session
     // Does an extra login authentication with the session
-    login(username: string, password: string): Observable<any> {
+    login(username: string, password: string): Observable<AuthResponse> {
         console.log('Logging in..')
-        return this.http.post(`${this.backend}/api/auth/login`, { username, password }, { withCredentials: true }).pipe(
-            tap(() => this.isLoggedIn())
-        );
+        return this.http.post<AuthResponse>(`${this.backend}/api/auth/login`,
+            { username, password }, { withCredentials: true }).pipe(
+                tap(() => this.isLoggedIn())
+            );
     }
 
     // Logout of the session, reset the sessio cookie and set authenticated to false
-    logout(): Observable<any> {
+    logout(): Observable<AuthResponse> {
         console.log('Logging out..')
-        return this.http.post(`${this.backend}/api/auth/logout`, {}, { withCredentials: true }).pipe(
+        return this.http.post<AuthResponse>(`${this.backend}/api/auth/logout`, {},
+            { withCredentials: true }).pipe(
             tap(() => {
                 this.authStatusSubject.next({ authenticated: false, picture: this.noPicture });
                 this.router.navigate(['/login']);

@@ -16,7 +16,7 @@ import { RouterModule } from '@angular/router';
 })
 export class LoginComponent {
     loginForm: FormGroup;
-    errorMessage: string = '';
+    errorMessage = '';
 
     constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
         this.loginForm = this.fb.group({
@@ -29,6 +29,9 @@ export class LoginComponent {
         const { username, password } = this.loginForm.value;
         this.authService.login(username, password).subscribe(
             res => {
+                console.log("***");
+                console.log(res);
+                console.log("***");
                 if (res.success) {
                     window.location.replace('/dashboard');
                 } else {
