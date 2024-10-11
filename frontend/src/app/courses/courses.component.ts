@@ -1,23 +1,39 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { OnInit } from '@angular/core';
 import { getBackendURL } from '../../config';
 import { CommonModule } from '@angular/common';
 
 interface Assignment {
-    assignment_id: number;
+    assignment_id: string;
     html_url: string;
     name: string;
-    score: string;
+    score: string | number;
+    points_possible?: number;
 }
 
 interface Course {
     id: number;
     name: string;
     image_download_url: string;
-    computed_current_score: string;
+    computed_current_score: string | number | null;
     assignments: Assignment[];
     showAssignments?: boolean;
+}
+
+interface Enrollment {
+    computed_current_score: string;
+}
+
+interface APICourse extends Course {
+    enrollments: Enrollment[];
+}
+
+interface APIAssignment {
+    assignment_id: string;
+    html_url: string;
+    name: string;
+    score: number;
+    points_possible: number;
 }
 
 @Component({
@@ -27,7 +43,7 @@ interface Course {
     templateUrl: './courses.component.html',
     styleUrls: ['./courses.component.scss']
 })
-export class CoursesComponent implements OnInit {
+export class CoursesComponent {
     private coursesUrl = getBackendURL() + '/api/v1/courses/all';
     private courseGradedAssignments = getBackendURL() + '/api/v1/courses/graded_assignments';
     public courses: Course[] = [];
@@ -36,13 +52,11 @@ export class CoursesComponent implements OnInit {
         this.fetchCourses();
     }
 
-    ngOnInit(): void { }
-
     fetchCourses(): void {
-        this.http.get<any[]>(this.coursesUrl, { withCredentials: true }).subscribe(
-            (data: any[]) => {
+        this.http.get<APICourse[]>(this.coursesUrl, { withCredentials: true }).subscribe(
+            (data: APICourse[]) => {
 
-                const transformedCourses: Course[] = data.map(course => {
+                const transformedCourses = data.map(course => {
                     const finalScore = (course.enrollments && course.enrollments.length) > 0
                         ? course.enrollments[0].computed_current_score : 'N/A';
 
@@ -52,7 +66,7 @@ export class CoursesComponent implements OnInit {
                         image_download_url: course.image_download_url,
                         computed_current_score: finalScore,
                         assignments: []
-                    };
+                    } as Course;
                 });
 
                 this.courses = transformedCourses;
@@ -62,7 +76,7 @@ export class CoursesComponent implements OnInit {
                     this.getGradedAssignments(course.id).subscribe(assignments => {
                         console.log(assignments)
                         // Assuming assignments contains assignment_id, name, and score 
-                        course.assignments = assignments.map((assignment: any) => ({
+                        course.assignments = assignments.map((assignment: APIAssignment) => ({
                             assignment_id: assignment.assignment_id,
                             html_url: assignment.html_url,
                             name: assignment.name, 
@@ -81,7 +95,7 @@ export class CoursesComponent implements OnInit {
 
     getGradedAssignments(courseId: number)  {
         const body = { course_id: courseId };
-        return this.http.post<any>(this.courseGradedAssignments, body, { withCredentials: true });
+        return this.http.post<APIAssignment[]>(this.courseGradedAssignments, body, { withCredentials: true });
     }
 
     calculatePercentage(score: number, pointsPossible: number): string {

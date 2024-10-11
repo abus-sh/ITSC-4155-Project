@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { getBackendURL } from '../../config';
 import { HttpClient } from '@angular/common/http';
@@ -26,7 +26,7 @@ interface Assignment {
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
     private dueSoonUrl = getBackendURL() + '/api/v1/user/due_soon';
     assignments: Assignment[] = [];
 

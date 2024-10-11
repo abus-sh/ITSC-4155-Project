@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Observable } from 'rxjs';
-//import { AuthService } from './auth.service';
 
 @Injectable()
 export class CsrfInterceptor implements HttpInterceptor {
-    constructor() { }
 
+    /* eslint-disable  @typescript-eslint/no-explicit-any */
     // Intercept method to modify HTTP requests to add the X-CSRFToken in header
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         const csrfToken = this.getCsrfTokenFromCookie();

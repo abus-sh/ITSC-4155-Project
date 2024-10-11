@@ -11,6 +11,7 @@ export class AuthGuard implements CanActivate {
     constructor(private loginService: AuthService, private router: Router) {}
 
     // Protect routes/pages that require login to access
+    /* eslint-disable  @typescript-eslint/no-unused-vars */
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
         // Send a request to the server if the user is logged in
         return this.loginService.isLoggedIn().pipe(
