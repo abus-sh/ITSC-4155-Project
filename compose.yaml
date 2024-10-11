@@ -31,11 +31,11 @@ services:
     secrets:
       - db_password
       - db_root_password
-    #volumes:
-    #   - itsc4155db:/var/lib/mysql:rw
+    volumes:
+       - itsc4155db:/var/lib/mysql:rw
 
-#volumes:
-#  itsc4155db:
+volumes:
+  itsc4155db:
 
 secrets:
   # The cert is not technically a secret, but is managed as one for consistency
