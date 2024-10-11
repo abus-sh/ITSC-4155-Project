@@ -1,0 +1,70 @@
+.assignments-container {
+    display: flex;
+    flex-wrap: wrap;  /* Allow wrapping to the next row when space is insufficient */
+    gap: 15px;
+    padding: 20px;
+}
+
+.assignment-card {
+    display: flex;
+    flex-direction: column;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+    min-width: 250px;
+    width: 350px;
+    box-sizing: border-box;
+}
+
+.assignment-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.assignment-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.assignment-description {
+    font-size: 1em;
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.assignment-course {
+    font-size: 0.9em;
+    color: #777;
+    margin-bottom: 5px;
+}
+
+.assignment-duedate {
+    font-size: 0.9em;
+    color: #777;
+    margin-bottom: 10px;
+}
+
+.assignment-points {
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.assignment-link {
+    margin-top: auto;
+    display: inline-block;
+    max-width: fit-content;
+    padding: 8px 35px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.assignment-link:hover {
+    background-color: #0056b3;
+}

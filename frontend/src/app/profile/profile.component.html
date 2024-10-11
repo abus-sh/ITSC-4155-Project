@@ -1,0 +1,61 @@
+<div *ngIf="!profileData.canvas" class="loading-message">
+    <p>Loading profile data...</p>
+</div>
+<div *ngIf="profileData.canvas">
+    <h1>{{ profileData.username }}'s Profile</h1><br>
+    <div class="profile-section">
+        <div>
+            <div *ngIf="profileData.canvas?.canvas_name" class="valid-canvas">
+                <h2>Canvas: ✔️</h2>
+                <img [src]="(authStatus$ | async)?.picture" alt="Canvas Avatar">
+                <p><strong>Status:</strong> Working</p>
+                <p><strong>Name:</strong> {{ profileData.canvas.canvas_name }}</p>
+                <p><strong>Title:</strong> {{ profileData.canvas.canvas_title }}</p>
+                <p><strong>Bio:</strong> {{ profileData.canvas.canvas_bio }}</p>
+            </div>
+            <div *ngIf="!profileData.canvas" class="invalid-canvas">
+                <h2>Canvas: ❌</h2>
+                <p><strong>Status:</strong> Not responding..</p>
+            </div>
+        </div>
+        <div>
+            <div *ngIf="profileData.canvas?.canvas_name" class="valid-canvas">
+                <h2>Todoist: ✔️</h2>
+                <img src="https://static-00.iconduck.com/assets.00/apps-todoist-icon-2048x2048-638ovjjk.png" alt="Canvas Avatar">
+                <p><strong>Status:</strong> Working</p>
+            </div>
+            <div *ngIf="!profileData.canvas" class="invalid-canvas">
+                <h2>Todoist: ❌</h2>
+                <p><strong>Status:</strong> Not responding..</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="settings-section">
+    <!-- <div *ngIf="profileData.username"> 
+        <h4><strong>Username:</strong> {{ profileData.username }}</h4>
+    </div> -->
+    <div>
+        <form (ngSubmit)="onSubmit()" #passwordForm="ngForm">
+            <h3>Change Password</h3>
+            <div>
+                <label for="oldPassword">Old Password:</label>
+                <input type="password" id="oldPassword" required [(ngModel)]="oldPassword" name="oldPassword">
+            </div>
+            <div>
+                <label for="newPassword">New Password:</label>
+                <input type="password" id="newPassword" required [(ngModel)]="newPassword" name="newPassword">
+            </div>
+            <div>
+                <label for="confirmPassword">Confirm New Password:</label>
+                <input type="password" id="confirmPassword" required [(ngModel)]="confirmPassword"
+                    name="confirmPassword">
+            </div>
+            <button type="submit">Update Password</button>
+        </form>
+        <div *ngIf="message" [ngClass]="['message', messageClass]">
+            {{ message }}
+        </div>
+    </div>
+</div>

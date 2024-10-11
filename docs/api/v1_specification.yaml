@@ -13,8 +13,10 @@ servers:
 tags:
   - name: task
     description: Endpoints about tasks, which include assignments, meetings, and more.
+  - name: auth
+    description: Endpoints about authentication, which include logging in and signing up.
 security:
-  - api_key: []
+  - session: []
 
 paths:
   /task/all:
@@ -67,6 +69,74 @@ paths:
           description: Successful operation
         '429':
           description: Too many requests
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Logs an existing user in.
+      security: []
+      operationId: logInPassword
+      requestBody:
+        description: The authentication information for the user.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - canvasKey
+                - todoistKey
+              properties:
+                username:
+                  $ref: '#/components/schemas/Username'
+                password:
+                  $ref: '#/components/schemas/Password'
+      responses:
+        '200':
+          description: The username and password were correct.
+        '400':
+          description: The username and/or password were missing or invalid.
+        '401':
+          description: The username and/or password were incorrect.
+  /auth/signup:
+    post:
+      tags:
+        - auth
+      summary: Signs a user up.
+      security: []
+      operationId: signUpPassword
+      requestBody:
+        description: The authentication information for the new user.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - canvasKey
+                - todoistKey
+              properties:
+                username:
+                  $ref: '#/components/schemas/Username'
+                password:
+                  $ref: '#/components/schemas/Password'
+                canvas_key:
+                  type: string
+                  examples: ["0000~xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"]
+                todoist_key:
+                  type: string
+                  examples: ["deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"]
+      responses:
+        '200':
+          description: The user was signed up.
+        '400':
+          description: The username, password, and/or API keys were missing or invalid.
+        '500':
+          description: The user was not signed up for an unknown reason.
 
 
 components:
@@ -144,11 +214,20 @@ components:
           type: string
           description: The ID of the task in Todoist, as returned by the Todoist API.
           examples: ["220474322"]
+    Username:
+      type: string
+      minLength: 1
+      maxLength: 90
+      examples: ["username"]
+    Password:
+      type: string
+      minLength: 15
+      maxLength: 128
+      examples: ["correct horse battery staple"]
 
   requestBodies:
   securitySchemes:
-    api_key:
+    session:
       type: apiKey
-      name: X-API-KEY
-      in: header
-      description: The API key must contain a Canvas API key and a Todoist API key in the form "canvas;todoist", where "canvas" is replaced by the Canvas API token and "todoist" is replaced by the Todoist API token.
+      name: session
+      in: cookie
