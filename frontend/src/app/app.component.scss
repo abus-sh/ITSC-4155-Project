@@ -47,6 +47,17 @@ main {
     border: 1px solid #eee;
 }
 
+.clean-hyperlink {
+    color: white;
+    text-decoration: none;
+    border-bottom: none;  
+}
+
+.clean-hyperlink p:hover {
+    color: white;
+    border-bottom: 2px solid white; 
+}
+
 .sidebar {
     position: absolute;
     top: 0;
@@ -127,6 +138,7 @@ main {
 
 .bold {
     font-weight: 600;
+    font-size: 1.1rem;
 }
 
 .sidebar p {

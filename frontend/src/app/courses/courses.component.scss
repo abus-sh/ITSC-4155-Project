@@ -30,7 +30,6 @@
     height: 1.5in;
     width: (100% - 70%);
     background-color: brown;
-
 }
 
 .main-grid {
@@ -48,6 +47,7 @@
     grid-template-columns: repeat(auto-fit, minmax(200px, 350px));
     gap: 20px;
     padding: 20px;
+    max-height: 100%;
 }
 
 .course-tile {
@@ -69,4 +69,64 @@
     margin-top: 10px;
     font-size: 18px;
     color: #333;
+}
+
+.grade-wrapper {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #555;
+    background-color: #fff;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+}
+
+/* Assignments Section */
+.toggle-btn {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.toggle-btn:hover {
+    background-color: #0056b3;
+}
+
+.assignments {
+    margin-top: 15px;
+    text-align: left;
+    transition: max-height 0.3s ease;
+}
+
+.assignment-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.assignment-link {
+    text-decoration: none;
+}
+
+.assignment-card:hover {
+    background-color: #f0f0f0;
+}
+
+.assignment-card h5 {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.assignment-card p {
+    margin: 5px 0 0 0;
+    font-size: 12px;
+    color: #555;
 }

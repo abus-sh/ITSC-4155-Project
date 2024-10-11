@@ -1,16 +1,21 @@
 .assignments-container {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;  /* Allow wrapping to the next row when space is insufficient */
     gap: 15px;
     padding: 20px;
 }
 
 .assignment-card {
+    display: flex;
+    flex-direction: column;
     background-color: #f9f9f9;
     border-radius: 8px;
     padding: 15px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease-in-out;
+    min-width: 250px;
+    width: 350px;
+    box-sizing: border-box;
 }
 
 .assignment-card:hover {
@@ -33,6 +38,13 @@
 .assignment-course {
     font-size: 0.9em;
     color: #777;
+    margin-bottom: 5px;
+}
+
+.assignment-duedate {
+    font-size: 0.9em;
+    color: #777;
+    margin-bottom: 10px;
 }
 
 .assignment-points {
@@ -42,8 +54,10 @@
 }
 
 .assignment-link {
+    margin-top: auto;
     display: inline-block;
-    padding: 8px 15px;
+    max-width: fit-content;
+    padding: 8px 35px;
     background-color: #007bff;
     color: #fff;
     text-decoration: none;

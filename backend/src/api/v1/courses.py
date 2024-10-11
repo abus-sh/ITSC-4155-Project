@@ -2,7 +2,7 @@ from canvasapi import Canvas
 from canvasapi.assignment import Assignment
 from canvasapi.course import Course
 from datetime import datetime
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 from utils.session import decrypt_canvas_key
 from utils.settings import get_canvas_url
@@ -105,6 +105,43 @@ def get_course(courseid):
     return jsonify(course_info), 200
 
 
+@courses.route('/graded_assignments', methods=['GET', 'POST'])
+def get_graded_assignments():
+    try:
+        # Get course id in body json
+        course_id = request.json.get('course_id')
+        if not course_id:
+            return jsonify("Invalid course_id!"), 400
+        
+        canvas_key = decrypt_canvas_key()
+        canvas = Canvas(BASE_URL, canvas_key)
+        
+        # Get graded submissions for course_id
+        assignments = canvas.get_course(course_id).get_multiple_submissions(workflow_state='graded', include=['assignment'])
+        
+        graded_assignments = []
+        for graded in assignments:
+            fields = [
+                'id', 'grade', 'score', 'assignment_id', 'late', 'course_id', 'late',
+                'points_deducted', 'excused', 'attempt', 'graded_at', 'submitted_at', 'body',
+            ]
+            extra_fields = [
+                'html_url', 'name', 'points_possible'
+            ]
+            one_graded = {field: getattr(graded, field, None) for field in fields}
+            # Fields inside the assignment dict
+            assignment_details = getattr(graded, 'assignment', None)
+            if assignment_details:           
+                for extra_field in extra_fields:
+                    one_graded[extra_field] = assignment_details.get(extra_field, None)
+                    
+            graded_assignments.append(one_graded)
+    except Exception as e:
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError as e:
+        return 'Unable to get field for graded assignments', 404
+    return jsonify(graded_assignments), 200
+
 # Get all assignments for a course
 @courses.route('/<courseid>/assignments', methods=['GET'])
 def get_course_assignments(courseid, canvas_key: str|None=None):
@@ -180,8 +217,6 @@ def _course_to_dict(course: Course, fields: list[str]|None=None) -> dict[str, st
             'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments', 'term', 'concluded',
             'image_download_url'
         ]
-    print(fields)
-    print(type(fields))
 
     return {field: getattr(course, field, None) for field in fields}
 

@@ -40,18 +40,16 @@ def get_date_range(start_date: datetime=None, months=0, days=0, hours=0) -> tupl
     # Return the formatted start and end date as a tuple
     return (start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
 
-def localize_date(due_date_str) -> str:
+def localize_date(due_date_naive: datetime) -> str:
     """
     Adjusts a due date to America/New_York Timezone, considering daylight saving time (DST).
 
     Args:
-        due_date_str (str): The due date in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ). Has to be UTC.
+        due_date_naive (datetime): The due date in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ). Has to be UTC.
 
     Returns:
         str: The adjusted due date as a string in ISO 8601 format (YYYY-MM-DD HH:MM:SSZ). 
     """
-    # Date should already be in UTC
-    due_date_naive = datetime.strptime(due_date_str, "%Y-%m-%dT%H:%M:%SZ")
     # Set the naive datetime to be aware (UTC time zone)
     due_date_aware = UTC_TZ.localize(due_date_naive)
     # Convert to Charlotte (Eastern Time)
