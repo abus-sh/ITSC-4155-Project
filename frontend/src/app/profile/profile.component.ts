@@ -80,6 +80,7 @@ export class ProfileComponent implements OnInit {
                 console.log(response)
                 this.messageBox(false, response.message);
                 this.clearForm();
+                window.location.reload();
             },
             error => {
                 if (error.error?.message) {
