@@ -78,13 +78,16 @@ def get_assignments_due_soon():
                 # Get the due date; if it doesn't have one, use the lock at date
                 due_date = more_details.get('due_at') or more_details.get('lock_at')
 
-                # Skip assignment if no due date or if it's older than yesterday
-                if due_date:
-                    parsed_due_date = datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%SZ")
-                    if parsed_due_date >= (datetime.now() - timedelta(days=1)):
-                        # Adjust due date for time zone (-4 hours or -5 for daylight savings)
-                        one_assignment['due_at'] = localize_date(parsed_due_date)
-            
+                # Skip assignment if no due date
+                if not due_date:
+                    continue
+                
+                parsed_due_date = datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%SZ")
+                # Skip to the next iteration if the due date is older than yesterday
+                if parsed_due_date < datetime.now() - timedelta(days=1):
+                    continue  
+                
+                one_assignment['due_at'] = localize_date(parsed_due_date)
             assignments_due_soon.append(one_assignment)
 
     except Exception as e:

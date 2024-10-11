@@ -47,11 +47,30 @@ export class DashboardComponent {
         );
     }
 
-    // Check if the assignment is due today
-    isDueToday(dueDate: string): boolean {
+    getDueDateColor(dueDate: string): string {
+        const daysDiff = this.dayDifference(dueDate)
+    
+        if (daysDiff <= 1) {
+            return "#FF0000";  // Today or tomorrow is red
+        } else if (daysDiff <= 3) {
+            return "#DF6F00";  // 1 to 3 days is orange
+        } else if (daysDiff <= 8) {
+            return "#00B100";  // 4 to 7 days is green
+        } else {
+            return "#494A53";  // More than 7 days is gray
+        }
+    }
+
+    dayDifference(dueDate: string): number {
         const today = new Date();
         const due = new Date(dueDate);
+        today.setHours(0, 0, 0, 0);
+        due.setHours(0, 0, 0, 0);
+    
+        const timeDifference = due.getTime() - today.getTime();
+        // Convert the difference from milliseconds to days
+        const daysDifference = timeDifference / (1000 * 3600 * 24);
 
-        return today.toDateString() === due.toDateString();
+        return Math.floor(daysDifference);
     }
 }
