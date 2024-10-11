@@ -105,7 +105,7 @@ def get_course(courseid):
     return jsonify(course_info), 200
 
 
-@courses.route('/graded_assignments', methods=['GET'])
+@courses.route('/graded_assignments', methods=['GET', 'POST'])
 def get_graded_assignments():
     try:
         # Get course id in body json
@@ -126,7 +126,7 @@ def get_graded_assignments():
                 'points_deducted', 'excused', 'attempt', 'graded_at', 'submitted_at', 'body',
             ]
             extra_fields = [
-                'html_url', 'name',
+                'html_url', 'name', 'points_possible'
             ]
             one_graded = {field: getattr(graded, field, None) for field in fields}
             # Fields inside the assignment dict

@@ -1,16 +1,29 @@
 <div class="wrapper">
     <div class="announcement">Announcement Grid</div>
     <div class="content-area">
-      <div class="main-grid">
-        <div class="course-tiles">
-            <div *ngFor="let course of courses" class="course-tile">
-                <img [src]="course.image_download_url || 'default-image.jpg'" [alt]="course.name">
-                <h3>{{ course.name }}</h3>
-                <div class="grade-wrapper">
-                    Current Grade: {{ course.computed_current_score + '%'|| 'N/A' }}
-                  </div>
+        <div class="main-grid">
+            <div class="course-tiles">
+                <div *ngFor="let course of courses" class="course-tile">
+                    <img [src]="course.image_download_url || 'default-image.jpg'" [alt]="course.name">
+                    <h3>{{ course.name }}</h3>
+                    <div class="grade-wrapper">
+                        Current Grade: {{ course.computed_current_score + '%' || 'N/A' }}
+                    </div>
+                    <!-- Toggle Button -->
+                    <button class="toggle-btn" (click)="toggleAssignments(course)">
+                        {{ course.showAssignments ? 'Hide Assignments' : 'Show Assignments' }}
+                    </button>
+                    <!-- Assignments Dropdown -->
+                    <div class="assignments" *ngIf="course.showAssignments">
+                        <h4>Assignments</h4>
+                        <div *ngFor="let assignment of course.assignments" class="assignment-card">
+                            <h5>{{ assignment.name }}</h5>
+                            <p>Score: {{ assignment.score }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+        <!-- <div class="notification">Notification Grid</div> -->
     </div>
-    <div class="notification">Notification Grid</div>
 </div>
