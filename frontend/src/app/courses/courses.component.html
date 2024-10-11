@@ -17,8 +17,11 @@
                     <div class="assignments" *ngIf="course.showAssignments">
                         <h4>Assignments</h4>
                         <div *ngFor="let assignment of course.assignments" class="assignment-card">
-                            <h5>{{ assignment.name }}</h5>
-                            <p>Score: {{ assignment.score }}</p>
+                            <!-- Clickable assignment card to navigate to assignment.html_url -->
+                            <a [href]="assignment.html_url" target="_blank" class="assignment-link">
+                                <h5>{{ assignment.name }}</h5>
+                                <p>Score: {{ assignment.score }}</p>
+                            </a>
                         </div>
                     </div>
                 </div>
