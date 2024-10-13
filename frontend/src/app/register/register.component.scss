@@ -20,6 +20,13 @@
         .form-group {
             margin-bottom: 20px;
 
+            p {
+                font-weight: 400;
+                font-size: 1.1rem;
+                font-style: italic;
+                height: 1.1rem;
+            }
+
             label {
                 display: block;
                 margin-bottom: 5px;
@@ -37,6 +44,23 @@
 
                 &:focus {
                     border-color: #007bff;
+                }
+            }
+
+            .oauth-btn {
+                width: 100%;
+                padding: 10px;
+                border: none;
+                background: #ff4c3b;
+                color: white;
+                font-size: 1.1rem;
+                border-radius: 5px;
+                cursor: pointer;
+                display: inline-block;
+                text-align: center;
+            
+                &:hover {
+                    background: #c53b2d;
                 }
             }
         }
