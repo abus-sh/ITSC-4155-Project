@@ -1,11 +1,13 @@
 from contextlib import contextmanager
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
-import os, time
-import pytz
+import os, time, string, pytz, random
+
 
 UTC_TZ = pytz.UTC
 CHARLOTTE_TZ = pytz.timezone('America/New_York')
+
+
 
 @contextmanager
 def time_it(info: str, end_text: str=' seconds'):
@@ -57,6 +59,19 @@ def localize_date(due_date_naive: datetime) -> str:
     
     return due_date_local.strftime("%Y-%m-%d %H:%M:%S")
 
+def generate_random_string(length: int=15) -> str:
+    """Generates a random string of 15 characters (digits and letters)."""
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))
+
+
+
+#################################################################
+#                                                               #
+#                        GET VARIABLES                          #
+#                                                               #
+#################################################################
+
 def get_canvas_url() -> str:
     """
     Returns the base URL for Canvas to make API calls against.
@@ -64,3 +79,7 @@ def get_canvas_url() -> str:
     :return str: The base URL for Canvas.
     """
     return os.environ.get('CANVAS_BASE_URL', 'https://uncc.instructure.com')
+
+def get_frontend_url() -> str:
+    # env 'FRONTEND_URL' is for deployment, second is for local testing
+    return os.environ.get('FRONTEND_URL', 'http://localhost:4200')
