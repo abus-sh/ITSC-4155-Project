@@ -2,6 +2,7 @@ from argon2.exceptions import VerifyMismatchError
 from flask import Blueprint, request, abort, Request, jsonify, session
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from flask_wtf import CSRFProtect
+from api.auth.todoist import todoist, exchange_token
 from flask_wtf.csrf import generate_csrf
 from http import HTTPStatus
 from lru import LRU
@@ -10,13 +11,16 @@ from utils.settings import time_it
 from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, password_hasher, update_password
 from utils.crypto import reencrypt_str
 
+
 auth = Blueprint('authentication', __name__)
+auth.register_blueprint(todoist, url_prefix='/todoist')
+
 
 login_manager = LoginManager()
 csrf = CSRFProtect()
-
 # This value effectively limits the maximum number of concurrent sessions
 api_key_cache = LRU(50)
+
 
 # Retrieve the User based on the login_id stored in the session
 @login_manager.user_loader
@@ -111,7 +115,7 @@ def sign_up():
         abort(HTTPStatus.BAD_REQUEST)
         return
     
-    username, password, canvasToken, todoistToken = parameters
+    username, password, canvasToken, todoistCode, todoistState = parameters
     
 
     # If the username is invalid, determine it to be unprocessable
@@ -128,6 +132,13 @@ def sign_up():
         abort(HTTPStatus.BAD_REQUEST)
         return
 
+    # Exchange the code and state for the Todoist Token
+    exchange_response = exchange_token(todoistCode, todoistState, session)
+    if not exchange_response:
+        print('Invalid token exchange')
+        abort(HTTPStatus.BAD_REQUEST)
+        return
+    bearer, todoistToken = exchange_response    # Bearer is not needed right now, but in case we may need it in the future
 
     # Create the user, tokens are encrypted and password is hashed
     if not add_user(username, password, canvasToken, todoistToken):
@@ -136,7 +147,7 @@ def sign_up():
         return
     
     # Respond that the user was created
-    return jsonify({'success': True, 'message': f"Account created for {username}"})
+    return jsonify({'success': True, 'message': f"Account created for {username}"}), 200
 
 @auth.route('/change-password', methods=['POST'])
 @login_required
@@ -209,12 +220,12 @@ def auth_status():
 #                                                               #
 #################################################################
 
-def _get_authentication_params(request: Request, include_tokens: bool=False) -> tuple[str, str] | tuple[str, str, str, str] |None:
+def _get_authentication_params(request: Request, include_tokens: bool=False) -> tuple[str, str] | tuple[str, str, str, str, str] |None:
     """
     Extracts the username and password from a request, if both exist and are valid.
 
     :param request: The Flask request to validate.
-    :param include_tokens: If to extract the tokens from the request, will return a tuple[str, str, str, str].
+    :param include_tokens: If to extract the tokens from the request, will return a tuple[str, str, str, str, str].
     :return tuple[str, str]: Returns the username and password if both exist and are valid. `include_tokens` is False.
     :return tuple[str, str, str, str]: Returns the username, password, and the tokens if they all exist and are valid.
     :return None: Returns None if the username, password or the tokens don't exist or are invalid.
@@ -229,8 +240,14 @@ def _get_authentication_params(request: Request, include_tokens: bool=False) -> 
 
     if include_tokens:
         canvas_token = request.json.get('canvasToken')
-        todoist_token = request.json.get('todoistToken')
-        params = (username, password, canvas_token, todoist_token)
+        
+        todoist_info = request.json.get('todoist')
+        if todoist_info:
+            todoist_code = todoist_info.get('code')
+            todoist_state = todoist_info.get('state')
+        else:
+            return None
+        params = (username, password, canvas_token, todoist_code, todoist_state)
     else:
         params = (username, password)
 
