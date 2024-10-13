@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../auth.service';
+import { AuthService, AuthStatus } from '../auth.service';
 import { Observable } from 'rxjs';
 import { getBackendURL } from '../../config';
 
-interface UserProfile {
+export interface UserProfile {
     username?: string;
     canvas?: {
         canvas_id: string;
@@ -27,15 +27,15 @@ interface UserProfile {
 export class ProfileComponent implements OnInit {
     private profileUrl = getBackendURL() + '/api/v1/user/profile';
     private passwordChangeUrl = getBackendURL() + '/api/auth/change-password';
-    authStatus$: Observable<any>;
+    authStatus$: Observable<AuthStatus>;
 
     profileData: UserProfile = {};
-    oldPassword: string = '';
-    newPassword: string = '';
-    confirmPassword: string = '';
+    oldPassword = '';
+    newPassword = '';
+    confirmPassword = '';
 
     message: string | null = null;
-    messageClass: string = '';
+    messageClass = '';
 
     constructor(private authService: AuthService, private http: HttpClient) { 
         this.authStatus$ = this.authService.authStatus$;
@@ -43,7 +43,7 @@ export class ProfileComponent implements OnInit {
 
     ngOnInit(): void {
         // Get the profile data from the route
-        this.http.get<any>(this.profileUrl, { withCredentials: true }).subscribe(
+        this.http.get<UserProfile>(this.profileUrl, { withCredentials: true }).subscribe(
             (data: UserProfile) => {
                 this.profileData = data; // Profile data is loaded here
             },

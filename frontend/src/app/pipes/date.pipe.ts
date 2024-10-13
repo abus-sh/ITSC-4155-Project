@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from "@angular/core";
 
-
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 // Sort array by due date
 @Pipe({
     name: 'orderBy',
