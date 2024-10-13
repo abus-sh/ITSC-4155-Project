@@ -42,7 +42,7 @@ export class RegisterComponent {
 
     ngOnInit(): void {
         window.addEventListener('message', (event) => {
-            // Ensure the message is coming from the expected origin
+            // Retrieve code and state from backend
             if (event.origin === getBackendURL()) {
                 this.handleOAuthResponse(event.data);
             }
@@ -96,7 +96,6 @@ export class RegisterComponent {
     openTodoistAuth() {
         if (this.canOpenTodoist) {
             const popup = window.open(getBackendURL() + '/api/auth/todoist/redirect', 'Todoist OAuth', 'width=600,height=400');
-
             if (popup) {
                 // Make popup the focus
                 popup.focus();
@@ -110,7 +109,7 @@ export class RegisterComponent {
     handleOAuthResponse(data: { result: string, code: string, state: string }) {
         // Authorization retrieval process has ended, allow for registration
         if (data.result == 'success') {
-            console.log('Token retrieval result: ', data.result);
+            console.log('Token info retrieval result: ', data.result);
             this.authCode = data.code;
             this.authState = data.state;
             this.tokenRetrieved = true;
