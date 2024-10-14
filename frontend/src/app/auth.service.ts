@@ -37,9 +37,12 @@ export class AuthService {
 
     constructor(private http: HttpClient, private router: Router) {
         console.log('Auth Service - Launched')
-        this.isLoggedIn().subscribe()
-        this.getUserInfo();
-        this.syncTodoist();
+        this.isLoggedIn().subscribe(isAuthenticated => {
+            if (isAuthenticated) {
+                this.getUserInfo();
+                this.syncTodoist();
+            }
+        });
     }
 
     // Request CSRF token from backend

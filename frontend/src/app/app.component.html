@@ -10,7 +10,7 @@
                 <i class='bx bx-home-smile'></i>
                 <span>CanvasHub</span>
             </div>
-            <i class="bx bx-menu" id="btn"></i>
+            <i class="bx bx-menu" id="btn" (click)="toggleSidebar()"></i>
         </div>
         <div class="userprof">
             <a routerLink="/profile"><img [src]="(authStatus$ | async)?.picture" alt="user-profile" class="user-img"></a>
