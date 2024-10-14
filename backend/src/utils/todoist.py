@@ -4,61 +4,158 @@ This file provides utilities for adding tasks to Todoist.
 
 
 from ctypes import c_bool
-from datetime import datetime, timedelta
+from datetime import datetime
 from multiprocessing import Manager, Pool
 from multiprocessing.managers import ValueProxy
 from queue import Queue
 from threading import Lock
 from time import sleep
 from todoist_api_python.api import TodoistAPI
-import gevent
-
+import gevent, requests, uuid, json
 
 from api.v1.courses import get_all_courses, get_course_assignments
 from utils.models import User
-from utils.queries import add_or_return_task, set_todoist_task, update_task_duedate
+from utils.settings import localize_date, date_passed, time_it
+from utils.queries import add_or_return_task, update_task_id, set_task_duedate
 
 
-def add_missing_tasks(user_id: int, canvas_key: str, todoist_key: str):
+def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
     """
-    Add all missing tasks for a given user.
+    Add all missing tasks for a given user or update them if the due date has changed.
 
     :param user_id: The primary key for the current user.
     :param canvas_key: The Canvas API key for the current user.
     :param todoist_key: The Todoist API key for the current user.
     """
-    courses = get_all_courses(canvas_key)
+    
+    # Get all courses from canvas
+    with time_it("      Canvas requests: "):
+        courses = get_all_courses(canvas_key)
 
-    # Don't spam the Todoist API, set rates limits. Only add 25 tasks per logon.
-    rate_limit = 25
-    counter = 0
-
-    greenlets = [gevent.spawn(get_course_assignments, course['id'], canvas_key) for course in courses]
-    gevent.joinall(greenlets)
-    all_courses_assignments = [greenlet.value for greenlet in greenlets]
-
-    # Account for timezone, UNCC is in (GMT-4)
-    timezone_gmt = timedelta(hours=4)
-    for course_assignments in all_courses_assignments:
-        course_assignments.sort(key=_get_assignment_date_or_default)
+        greenlets = [gevent.spawn(get_course_assignments, course['id'], canvas_key) for course in courses]
+        gevent.joinall(greenlets)
         
-        for assignment in course_assignments:
-            try:
-                due_date = assignment['due_at']
-                due_date = datetime.strptime(due_date, '%Y-%m-%dT%H:%M:%SZ') - timezone_gmt
-            except:
-                due_date = datetime.now()
+    # Creates list of all assignments
+    with time_it("      Create assignments list: "):
+        all_assignments = [assignment for greenlet in greenlets for assignment in greenlet.value]
+        # I may have a better alternative for the sorting
+        all_assignments.sort(key=_get_assignment_date_or_default)
+    
+    todoist_queue = []  # Command queue to send to todoist
+    temp_ids = {}       # temp id mapping (for updating the todoist_id after sending the request to todoist)
+    
+    todoist_url = 'https://api.todoist.com/sync/v9/sync'
+    headers = {"Authorization": f"Bearer {todoist_key}"}
 
-            # Don't add Todoist tasks for assignments that are in the past.
-            now = datetime.now()
-            if due_date > now:
-                due_date = due_date.strftime('%Y-%m-%d')
-                api_queried = add_task_sync(todoist_key, assignment['id'], assignment['name'],
-                                            'automated', due_date, user_id)
-                if api_queried:
-                    counter += 1
-                    if counter >= rate_limit:
-                        return
+    with time_it("      Creating Tasks: "):
+        for assignment in all_assignments:
+            # Only consider assignments where due date has not already passed
+            due_date_str = assignment.get('due_at')
+            if due_date_str:
+                date_aware = localize_date(datetime.strptime(due_date_str, '%Y-%m-%dT%H:%M:%SZ'))
+
+            if not date_passed(date_aware):
+                due_date = date_aware.strftime('%Y-%m-%d %H:%M:%S')
+                # Creates tasks in the database if they dont exist / update them, and creates the todoist queue
+                add_tasks_to_database(assignment, due_date, user_id, todoist_queue, temp_ids)
+
+    # If the todoist queue is not empty (something need to be added/updated)
+    if todoist_queue:
+        body = {
+            'sync_token': '*',
+            'commands': json.dumps(todoist_queue), # Todoist command queue
+        }
+        # Send the todoist queue request
+        response_data = send_post_todoist(todoist_url, body, headers)
+        
+        # Update the tasks in the database with their final todoist_id
+        with time_it("      Updating IDs of assignments: "):
+            temp_id_mapping = response_data.get('temp_id_mapping')
+            if temp_id_mapping:
+                for temp_id, final_id in temp_id_mapping.items():
+                    task_id = temp_ids[temp_id]
+                    update_task_id(task_id, final_id)
+    
+
+def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todoist_queue: list, temp_ids: dict):
+    """
+    Adds tasks to the database and prepares them for synchronization with Todoist.
+
+    Args:
+        assignment (dict): A dictionary containing assignment details, including 'id' and 'name'.
+        due_date (str): The due date for the task in string format.
+        owner (User | int): The owner of the task, which can be a User object or an integer user ID.
+        todoist_queue (list): A list that stores tasks to be added or updated in Todoist.
+        temp_ids (dict): A dictionary mapping temporary task IDs to their corresponding database IDs.
+
+    Returns:
+        None
+    """
+    if type(owner) == User:
+        owner = owner.id
+
+    # Debug info, remove later
+    if type(owner) != int:
+        print(f"Owner is {owner}, type is {type(owner)}")
+    
+    temp_id = str(uuid.uuid4())     # Todoist wants a unique uuid for every command
+    
+    # Get task from database or add it if it doesnt exists
+    task = add_or_return_task(owner, assignment['id'], due_date=due_date)
+    
+    # If the task doesn't have a todoist it, create the command for adding it to todoist
+    if not task.todoist_id:
+        add_task_todoist = {
+            "type": "item_add",
+            "temp_id": temp_id,
+            "uuid": str(uuid.uuid4()), 
+            "args": {
+                "content": assignment['name'],
+                "due": {"date": due_date},
+                "labels": ["assignment"]
+            }
+        }
+        # Put the command in the queue that will be sent to Todoist 
+        todoist_queue.append(add_task_todoist)
+        # Save the temp id of the task, this will be used to get the final todoist_id after sending the request
+        temp_ids.update({temp_id: task.id})
+    
+    # If the task exists but the due date has been updated, create the command for updating it in todoist
+    elif task.todoist_id and task.due_date != due_date:
+        update_task_todoist = {
+            "type": "item_update",
+            "uuid": str(uuid.uuid4()), 
+            "args": {
+                "id": task.todoist_id,
+                "due": {"date": due_date},
+            }
+        }
+        # Put the command in the queue that will be sent to Todoist
+        todoist_queue.append(update_task_todoist)
+        # Update the task due date in the database
+        set_task_duedate(task, due_date)
+
+
+def send_post_todoist(todoist_url, body, headers):
+    """
+    Sends a POST request to the Todoist API.
+
+    Args:
+        todoist_url (str): The URL endpoint of the Todoist API.
+        body (dict): The data to be sent in the request body, typically as a dictionary.
+        headers (dict): The headers to include in the request: the authorization token.
+
+    Returns:
+        dict: The JSON response data from the Todoist API if the request is successful. If not, raise an exception.
+    """
+    with time_it("      Send Todoist request: "):
+        response = requests.post(todoist_url, data=body, headers=headers)
+    response_data = response.json()
+    if not response.ok:
+        error = response_data.get('error') 
+        print("Error sending to Todoist: ", error)
+        raise Exception
+    return response_data # Return response json data
 
 
 def _get_assignment_date_or_default(assignment: dict, default:str='~') -> str:
@@ -76,52 +173,6 @@ def _get_assignment_date_or_default(assignment: dict, default:str='~') -> str:
         return default
 
 
-def add_task_sync(todoist_api_key: str, canvas_task_id: str, task_name: str, class_name: str,
-                  due_date: str, owner: User|int) -> bool:
-    """ 
-    Synchronously add a task to Todoist.
-
-    :param todoist_api_key: The user's Todoist API key.
-    :param canvas_task_id: The ID of the task in Canvas.
-    :param task_name: The name of the task to add.
-    :param class_name: The name of the class that the assignment is for.
-    :param due_date: The date that the assignment is due in YYYY-MM-DD format.
-    :param owner: Either the User who will own the task or their ID.
-    :return bool: Returns True if the Todoist API was queried, False otherwise.
-    """
-    if type(owner) == User:
-        owner = owner.id
-
-    # Debug info, remove later
-    if type(owner) != int:
-        print(f"Owner is {owner}, type is {type(owner)}")
-    
-    # Standardize class_name
-    class_name = class_name.upper().replace(" ", "")
-
-    todoist_api = TodoistAPI(todoist_api_key)
-
-    # Add the task if it doesn't exist or get it if it does
-    task = add_or_return_task(owner, canvas_task_id, due_date=due_date)
-
-    # If it doesn't have a Todoist ID associated with it, create a Todoist task
-    if not task.todoist_id:
-        todoist_task = todoist_api.add_task(
-            content=task_name,
-            due_string=due_date,
-            labels=[class_name]
-        )
-        set_todoist_task(task, todoist_task.id)
-        return True
-    # Task already associated with a Todoist id, but due date was changed. 
-    # Update the due_date in database and todoist.
-    elif task.todoist_id and task.due_date != due_date:
-        if todoist_api.update_task(task.todoist_id, due_string=due_date):
-            update_task_duedate(task, due_date)
-            return True
-    return False 
-
-
 # TODO: this breaks in very strange ways. Ex. sometimes functions will stop executing if specific
 # attributes are accessed on a variable. I suspect this is related to some really screwy stuff with
 # pointers, but I'm not sure. This is probably impossible to do in a reasonable amount of time
@@ -132,7 +183,7 @@ class FuncQueue():
     """
 
     FUNC_IDS = dict([
-        ('ADD_TASK', add_task_sync)
+        ('ADD_TASK', None)
     ])
 
     def __init__(self, num_processes: int=3):
