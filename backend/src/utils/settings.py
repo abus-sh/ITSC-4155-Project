@@ -17,6 +17,7 @@ def time_it(info: str, end_text: str=' seconds'):
     end_time = time.time()
     print(f"{info} {end_time - start_time:.4f}{end_text}")
     
+    
 def get_date_range(start_date: datetime=None, months=0, days=0, hours=0) -> tuple[str, str]:
     """
     Return a tuple with the `(start date, end date)` in format `%Y-%m-%d`
@@ -42,7 +43,8 @@ def get_date_range(start_date: datetime=None, months=0, days=0, hours=0) -> tupl
     # Return the formatted start and end date as a tuple
     return (start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
 
-def localize_date(due_date_naive: datetime) -> str:
+
+def localize_date(due_date_naive: datetime) -> datetime:
     """
     Adjusts a due date to America/New_York Timezone, considering daylight saving time (DST).
 
@@ -50,14 +52,28 @@ def localize_date(due_date_naive: datetime) -> str:
         due_date_naive (datetime): The due date in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ). Has to be UTC.
 
     Returns:
-        str: The adjusted due date as a string in ISO 8601 format (YYYY-MM-DD HH:MM:SSZ). 
+        datetime: The adjusted due date as a datetime in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) for the Charlotte timezone.
     """
     # Set the naive datetime to be aware (UTC time zone)
     due_date_aware = UTC_TZ.localize(due_date_naive)
     # Convert to Charlotte (Eastern Time)
-    due_date_local = due_date_aware.astimezone(CHARLOTTE_TZ)
+    return due_date_aware.astimezone(CHARLOTTE_TZ)
+
+
+def date_passed(due_date_aware: datetime) -> bool:
+    """
+    Checks if a given due date has passed in the America/New_York timezone (Charlotte timezone).
+
+    Args:
+        due_date_aware (datetime): The due date as a naive datetime object (without timezone information).
+                                     This should be localized in America/New_York timezone.
+
+    Returns:
+        bool: True if the due date has passed in the Charlotte timezone, False otherwise.
+    """
+    now = datetime.now(CHARLOTTE_TZ)
+    return due_date_aware < now 
     
-    return due_date_local.strftime("%Y-%m-%d %H:%M:%S")
 
 def generate_random_string(length: int=15) -> str:
     """Generates a random string of 15 characters (digits and letters)."""

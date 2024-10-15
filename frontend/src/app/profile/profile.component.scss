@@ -53,7 +53,11 @@
     margin-top: 20px;
 }
 
-.settings-section {
+.settings {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: flex-start;
     background-color: #f9f9f9;
     padding: 30px;
     border-radius: 8px;
@@ -70,15 +74,13 @@
     }
 
     input {
-        min-width: 500px;
-        max-width: 70%;
+        width: 100%;
         padding: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
     }
 
     button {
-        margin-top: 20px;
         padding: 10px;
         background-color: #28a745;
         color: white;
@@ -112,9 +114,41 @@
         border: 1px solid rgb(49, 233, 49); 
         background-color: rgba(49, 233, 49, 0.1); 
     }
+
+    .setting-section {
+        padding: 15px;
+        margin-bottom: 20px;
+        min-width: 350px;
+        width: 500px;
+        box-sizing: border-box;
+    }
 }
 
 h4 {
     font-weight: normal;
     font-size: 1.2rem;
+}
+
+hr {
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
+.space-top-one {
+    margin-top: 10px
+}
+
+.space-top-two {
+    margin-top: 20px
+}
+
+.standard-text {
+    font-weight: normal;
+    font-size: 1.1rem;
+}
+
+.sync {
+    color: gray;
+    font-style: italic;
+    padding-left: 5px
 }

@@ -4,7 +4,7 @@ from flask_login import current_user
 from datetime import datetime, timedelta
 
 from utils.session import decrypt_canvas_key
-from utils.settings import get_canvas_url, get_date_range, localize_date, time_it
+from utils.settings import get_canvas_url, get_date_range, localize_date, date_passed
 from api.v1.courses import get_all_courses
 
 
@@ -82,12 +82,12 @@ def get_assignments_due_soon():
                 if not due_date:
                     continue
                 
-                parsed_due_date = datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%SZ")
+                parsed_due_date = localize_date(datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%SZ"))
                 # Skip to the next iteration if the due date is older than yesterday
-                if parsed_due_date < datetime.now() - timedelta(days=1):
+                if date_passed(parsed_due_date):
                     continue  
                 
-                one_assignment['due_at'] = localize_date(parsed_due_date)
+                one_assignment['due_at'] = parsed_due_date.strftime('%Y-%m-%d %H:%M:%S')
             assignments_due_soon.append(one_assignment)
 
     except Exception as e:

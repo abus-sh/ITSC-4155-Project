@@ -9,6 +9,7 @@ from utils.crypto import decrypt_str, encrypt_str
 from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
+from datetime import datetime, timedelta
 
 def add_user(username: str, password: str, canvas_token: str, todoist_token: str) -> bool:
     """
@@ -163,23 +164,24 @@ def add_or_return_task(owner: User|int, canvas_id: str, todoist_id: str|None=Non
         print(f"Error adding task: {e}")
         raise e
 
-
-def set_todoist_task(task: Task, todoist_id: str) -> None:
+def update_task_id(primary_key: str, todoist_id: str) -> None:
     """
     Update a task to reference a Todoist task.
 
-    :param Task: A Task in the database.
+    :param task_id: The primary key of a Task in the database.
     :param todoist_id: The ID of a task in Todoist.
     """
     try:
-        task.todoist_id = todoist_id
-        db.session.commit()
+        task = Task.query.get(primary_key)
+        if task:
+            task.todoist_id = todoist_id
+            db.session.commit()
     except Exception as e:
         db.session.rollback()
         print(f"Error updating task: {e}")
         raise e
     
-def update_task_duedate(task: Task, due_date: str) -> None:
+def set_task_duedate(task: Task, due_date: str) -> None:
     """
     Update a task to have a new due_date in the database
 
@@ -213,3 +215,14 @@ def get_task_by_canvas_id(owner: User|int, canvas_id: str, dict=False) -> Task |
         return task.to_dict()
     return task
 
+#########################################################################
+#                                                                       #
+#    THIS IS PURELY FOR TESTING DON'T USE THESE FUNCTIONS OTHERWISE     #
+#                                                                       #
+#########################################################################
+
+def delete_task_entries():
+    """Deletes every entry in the Task table."""
+    Task.query.delete()
+    db.session.commit()
+    

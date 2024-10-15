@@ -5,7 +5,7 @@ from datetime import datetime
 from flask import Blueprint, jsonify, request
 
 from utils.session import decrypt_canvas_key
-from utils.settings import get_canvas_url
+from utils.settings import get_canvas_url, localize_date
 
 
 courses = Blueprint('courses', __name__)
@@ -168,11 +168,13 @@ def get_course_assignments(courseid, canvas_key: str|None=None):
             assignments.append(assignment_dict)
 
     except AttributeError as e:
-            if raw_data:
-                return []
-            return 'Unable to get field for courses', 404
+        if raw_data:
+            print(f'Attribute error while getting assignments for {courseid}..')
+            return []
+        return 'Unable to get field for courses', 404
     except Exception as e:
         if raw_data:
+            print(f'Exception while getting assignments for {courseid}..')
             return []
         return 'Unable to make request to Canvas API', 400
     if raw_data:
@@ -239,5 +241,5 @@ def _assignment_to_dict(assignment: Assignment, fields: list[str]|None=None) -> 
             'submission_types', 'published', 'quiz_id', 'omit_from_final_grade', 
             'allowed_attempts', 'can_submit', 'is_quiz_assignment', 'workflow_state'
         ]
-
+        
     return {field: getattr(assignment, field, None) for field in fields}

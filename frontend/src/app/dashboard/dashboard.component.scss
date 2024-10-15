@@ -1,8 +1,16 @@
+.dashboard-container {
+    padding: 20px;
+}
+
+h2 {
+    margin-bottom: 5px;
+}
+
 .assignments-container {
     display: flex;
     flex-wrap: wrap;  /* Allow wrapping to the next row when space is insufficient */
     gap: 15px;
-    padding: 20px;
+    padding: 20px 5px;
 }
 
 .assignment-card {
