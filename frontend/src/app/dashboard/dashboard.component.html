@@ -1,15 +1,21 @@
-<div class="assignments-container">
-    <div *ngFor="let assignment of assignments | orderBy: 'due_at'" class="assignment-card">
-        <h3 class="assignment-title">{{ assignment.title }}</h3>
-        <p class="assignment-duedate">
-            <strong>Due Date</strong>:
-            <span [ngStyle]="{'color': getDueDateColor(assignment.due_at)}">
-                {{ assignment.due_at }} - ({{ dayDifference(assignment.due_at) }} days)
-            </span>
-        </p>
-        <!--<p class="assignment-description">{{ assignment.description }}</p> -->
-        <p class="assignment-course">{{ assignment.context_name }}</p>
-        <!--<p class="assignment-points">Points: {{ assignment.points_possible }}</p> -->
-        <a class="assignment-link" [href]="assignment.html_url" target="_blank">View Assignment</a>
+<div class="dashboard-container">
+    <h2>Upcoming Assignments</h2>
+    <hr>
+    <div class="assignments-container">
+        <div *ngFor="let assignment of assignments | orderBy: 'due_at'" class="assignment-card">
+            <h3 class="assignment-title">{{ assignment.title }}</h3>
+            <p class="assignment-duedate">
+                <strong>Due Date</strong>:
+                <span [ngStyle]="{'color': getDueDateColor(assignment.due_at)}">
+                    {{ assignment.due_at }} - ({{ dayDifference(assignment.due_at) }} days)
+                </span>
+            </p>
+            <!--<p class="assignment-description">{{ assignment.description }}</p> -->
+            <p class="assignment-course">{{ assignment.context_name }}</p>
+            <!--<p class="assignment-points">Points: {{ assignment.points_possible }}</p> -->
+            <a class="assignment-link" [href]="assignment.html_url" target="_blank">View Assignment</a>
+        </div>
     </div>
+    <h2>Completed Assignments</h2>
+    <hr>
 </div>
