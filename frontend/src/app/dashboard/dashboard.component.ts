@@ -28,12 +28,22 @@ interface Assignment {
 })
 export class DashboardComponent implements OnInit {
     private dueSoonUrl = getBackendURL() + '/api/v1/user/due_soon';
+    sectionCollapseUpcoming = false;
+    sectionCollapseComplete = false;
     assignments: Assignment[] = [];
 
     constructor(private http: HttpClient) { }
 
     ngOnInit() {
         this.dueSoonAssignments();
+    }
+
+    toggleSection(section: number) {
+        if (section == 0) {
+            this.sectionCollapseUpcoming = !this.sectionCollapseUpcoming;
+        } else {
+            this.sectionCollapseComplete = !this.sectionCollapseComplete;
+        }
     }
 
     dueSoonAssignments(): void {
@@ -49,7 +59,7 @@ export class DashboardComponent implements OnInit {
 
     getDueDateColor(dueDate: string): string {
         const daysDiff = this.dayDifference(dueDate)
-    
+
         if (daysDiff <= 1) {
             return "#FF0000";  // Today or tomorrow is red
         } else if (daysDiff <= 3) {
@@ -66,7 +76,7 @@ export class DashboardComponent implements OnInit {
         const due = new Date(dueDate);
         today.setHours(0, 0, 0, 0);
         due.setHours(0, 0, 0, 0);
-    
+
         const timeDifference = due.getTime() - today.getTime();
         // Convert the difference from milliseconds to days
         const daysDifference = timeDifference / (1000 * 3600 * 24);

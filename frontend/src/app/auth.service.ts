@@ -91,10 +91,10 @@ export class AuthService {
 
     // Sync assignments/tasks with Todoist
     syncTodoist() {
-        console.log('Syncing tasks with Todoist');
+        console.log('Syncing Tasks with Todoist...');
         this.http.post(`${this.backend}/api/v1/tasks/update`, null).subscribe({
             next: (response) => {
-                console.log(' * Tasks synced with Todoist', response);
+                console.log(' * Synched with Todoist: Done!');
             },
             error: (err) => {
                 console.error(' * TODOIST: FAILED TO SYNC', err);

@@ -1,7 +1,7 @@
 <div class="dashboard-container">
-    <h2>Upcoming Assignments</h2>
+    <h2 (click)="toggleSection(0)">{{ sectionCollapseUpcoming ? '&#9662;' : '&#9652;' }}    Upcoming Assignments</h2>
     <hr>
-    <div class="assignments-container">
+    <div class="assignments-container collapsible-section" *ngIf="!sectionCollapseUpcoming">
         <div *ngFor="let assignment of assignments | orderBy: 'due_at'" class="assignment-card">
             <h3 class="assignment-title">{{ assignment.title }}</h3>
             <p class="assignment-duedate">
@@ -10,12 +10,11 @@
                     {{ assignment.due_at }} - ({{ dayDifference(assignment.due_at) }} days)
                 </span>
             </p>
-            <!--<p class="assignment-description">{{ assignment.description }}</p> -->
             <p class="assignment-course">{{ assignment.context_name }}</p>
-            <!--<p class="assignment-points">Points: {{ assignment.points_possible }}</p> -->
             <a class="assignment-link" [href]="assignment.html_url" target="_blank">View Assignment</a>
         </div>
     </div>
-    <h2>Completed Assignments</h2>
+    <br>
+    <h2 (click)="toggleSection(1)">{{ sectionCollapseComplete ? '&#9662;' : '&#9652;' }}    Completed Assignments</h2>
     <hr>
 </div>
