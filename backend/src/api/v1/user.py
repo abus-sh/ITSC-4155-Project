@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 from flask_login import current_user
 from datetime import datetime, timedelta
 
+from utils.queries import get_subtasks_for_tasks
 from utils.session import decrypt_canvas_key
 from utils.settings import get_canvas_url, get_date_range, localize_date, date_passed
 from api.v1.courses import get_all_courses
@@ -97,6 +98,21 @@ def get_assignments_due_soon():
         print(e)
         return 'Unable to get field for courses', 404
     return jsonify(assignments_due_soon), 200
+
+
+# Get the subtasks for assignment IDs provided
+@user.route('/get_subtasks', methods=['GET'])
+def get_subtasks():
+    try:
+        ids = request.args.get('ids')
+        if ids:
+            assignment_ids = list(map(int, ids.split(',')))
+            subtasks_data = get_subtasks_for_tasks(current_user, assignment_ids, format=True)
+            return jsonify(subtasks_data), 200
+    except Exception as e:
+        return 'Unable to process request', 400
+    return 'No assignment IDs provided', 404
+
 
 # Get missing submissions for active courses (past the due date)
 @user.route('/missing_submissions', methods=['GET', 'POST'])
