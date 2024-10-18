@@ -81,6 +81,20 @@ def generate_random_string(length: int=15) -> str:
     return ''.join(random.choice(characters) for _ in range(length))
 
 
+def is_valid_date(date_str: str) -> str | None:
+    """
+    Check if it's a valid date and time, add the time if it's missing (default to 23:59).
+    If date_str is not a valid date, return None. Format is `%Y-%m-%d %H:%M`.
+    """
+    try:
+        if len(date_str.strip()) == 10: # Date without time
+            datetime.strptime(date_str, '%Y-%m-%d')
+            return date_str.strip() + ' 23:59'
+        else:  # Date with time
+            return datetime.strptime(date_str, '%Y-%m-%dT%H:%M').strftime('%Y-%m-%d %H:%M')
+    except ValueError:
+        return None
+
 
 #################################################################
 #                                                               #
