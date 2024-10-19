@@ -126,6 +126,29 @@ h2 {
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
+.dropdown-content .add-form-button {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    border: 2px solid rgb(0, 123, 255);
+    background-color: rgba(0, 123, 255, 0.1); 
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgb(0, 123, 255);
+    cursor: pointer;
+    text-align: start;
+    padding: 3px 5px;
+    border-radius: 8px;
+}
+
+.dropdown-content .add-form-button:hover {
+    background-color: rgba(0, 123, 255, 0.2); 
+}
+
+.dropdown-content .subtask-list {
+    margin-top: 10px;
+}
+
 .dropdown-content.show {
     opacity: 1;
     visibility: visible;

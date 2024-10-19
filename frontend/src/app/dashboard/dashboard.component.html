@@ -18,12 +18,15 @@
             <button class="dropdown-toggle" (click)="toggleDropdown(assignment.id, $event)">Sub Tasks</button>
             <div class="dropdown-content {{ assignment.id }}">
 
-                <button (click)="openForm(assignment)">&#43;</button>
+                <button class="add-form-button" (click)="openForm(assignment)">+ Add</button>
 
                 <!-- <p *ngFor="let subtask of assignment.subtasks">{{ subtask }}</p> -->
-                <p>Subtask 1: ..</p>
-                <p>Subtask 2: ..</p>
-                <p>Subtask 3: ..</p>
+                <h4>List of Subtasks:</h4>
+                <div class="subtask-list">
+                    <p>Subtask 1: ..</p>
+                    <p>Subtask 2: ..</p>
+                    <p>Subtask 3: ..</p>
+                </div>
             </div>
 
         </div>
