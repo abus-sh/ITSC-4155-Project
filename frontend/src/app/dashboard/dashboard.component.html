@@ -3,6 +3,7 @@
         Upcoming Assignments</h2>
     <hr>
     <div class="assignments-container" *ngIf="!sectionCollapseUpcoming">
+        <!-- ASSIGNMENT LIST -->
         <div *ngFor="let assignment of assignments | orderBy: 'due_at'" class="assignment-card">
             <h3 class="assignment-title">{{ assignment.title }}</h3>
             <p class="assignment-duedate">
@@ -15,18 +16,27 @@
             <a class="assignment-link" [href]="assignment.html_url" target="_blank">View Assignment</a>
 
             <!-- DROPDOWN SUBTASKS -->
-            <button class="dropdown-toggle" (click)="toggleDropdown(assignment.id, $event)">Sub Tasks</button>
-            <div class="dropdown-content {{ assignment.id }}">
+            <button class="dropdown-toggle" (click)="toggleDropdown(assignment.canvas_id, $event)">Sub Tasks</button>
+            <div class="dropdown-content {{ assignment.canvas_id }}">
 
                 <button class="add-form-button" (click)="openForm(assignment)">+ Add</button>
 
-                <!-- <p *ngFor="let subtask of assignment.subtasks">{{ subtask }}</p> -->
                 <h4>List of Subtasks:</h4>
-                <div class="subtask-list">
-                    <p>Subtask 1: ..</p>
-                    <p>Subtask 2: ..</p>
-                    <p>Subtask 3: ..</p>
+                <!-- SUBTASKS LIST -->
+                <div *ngIf="assignment.subtasks.length > 0; else emptyState">
+                    <div *ngFor="let subtask of assignment.subtasks | orderBy: 'due_date'" class="subtask-list">
+                        <div class="subtask-card" title="{{ subtask.description }}">
+                            <span class="subtask-name">{{ subtask.name }}</span>
+                            <span class="subtask-status {{ subtask.status ? 'complete' : 'incomplete' }}">
+                                {{ subtask.status ? 'Complete' : 'Incomplete' }}
+                            </span>
+                            <span class="subtask-due-date">{{ subtask.due_date }}</span>
+                        </div>
+                    </div>
                 </div>
+                <ng-template #emptyState>
+                    <p style="font-style: italic;">Empty..</p>
+                </ng-template>
             </div>
 
         </div>
