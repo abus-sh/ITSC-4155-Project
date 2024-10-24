@@ -5,7 +5,7 @@ import utils.session as session
 import utils.todoist as todoist
 from utils.settings import get_canvas_url, time_it
 
-from utils.queries import create_subtask, SubStatus
+from utils.queries import get_subtasks_for_tasks, SubStatus
 
 
 tasks = Blueprint('tasks', __name__)
@@ -27,21 +27,21 @@ def update_tasks():
         return jsonify({'success': False}), 400
 
 @tasks.post('/add_subtask')
-def add_subtask():
+def add_subtask_user():
     try:
-        #canvas_token, todoist_token = session.decrypt_api_keys()
+        _, todoist_token = session.decrypt_api_keys()
         data = request.json
         
-        task_id = data.get('task_id')
-        subtask_name = data.get('name')
+        canvas_id = data.get('canvas_id')
+        subtask_name = data.get('name').strip()
         subtask_desc = data.get('description')
         subtask_status = SubStatus.from_integer(data.get('status'))
         subtask_date = data.get('due_date')
         
-        if not task_id or not subtask_name or not subtask_status:
+        if not canvas_id or not subtask_name or not subtask_status:
             return jsonify({'success': False, 'message': 'Invalid subtask parameters'}), 400
         
-        result = create_subtask(current_user, task_id, subtask_name, subtask_desc, 
+        result = todoist.add_subtask(current_user, todoist_token, canvas_id, subtask_name, subtask_desc, 
                                 subtask_status, subtask_date)
         if result:
             return jsonify({'success': True}), 200
@@ -50,3 +50,20 @@ def add_subtask():
     except Exception as e:
         print('Error adding a subtask: ', e)
         return jsonify({'success': False, 'message':'Unable to create subtask'}), 400
+    
+@tasks.post('/get_subtasks')
+def get_subtasks():
+    try:
+        data = request.json
+        task_ids = data.get('task_ids')
+        
+        if task_ids and isinstance(task_ids, list):
+            subtasks = get_subtasks_for_tasks(current_user, task_ids)
+            return jsonify(subtasks), 200
+        elif len(task_ids) == 0:
+            return jsonify({'success': True, 'message':'No IDs were provided'}), 200
+        
+    except Exception as e:
+        print(e)
+        return jsonify({'success': False, 'message':'Error while getting subtasks'}), 400
+    return jsonify({'success': False, 'message':'Unable to get subtasks'}), 404

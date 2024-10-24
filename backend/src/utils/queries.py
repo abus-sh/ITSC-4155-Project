@@ -194,20 +194,21 @@ def set_task_duedate(task: Task, due_date: str) -> None:
         print(f"Error updating task: {e}")
         raise e
 
-def get_task_by_canvas_id(owner: User|int, canvas_id: str, dict=False) -> Task | dict | None:
+def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dict | None:
     """
     Retrieve a task by its Canvas ID, which is assigned by Canvas.
 
-    :param owner: The User or the ID of the User who owns the task.
+    :param owner: The owner of the task.
     :param canvas_id: The internal Canvas ID of a task.
     :param dict: If True, return the user as a dictionary. Defaults to False.
     :return Task or dict or None: A Task instance or a dictionary representation of the task if dict
     is True. If no task with the given Canvas ID exists, None is returned.
     """
-    if type(owner) == User:
-        owner = owner.id
 
-    task = Task.query.filter_by(owner=owner, canvas_id=canvas_id).first()
+    task = Task.query.filter(
+        Task.canvas_id == canvas_id,
+        Task.owner == owner.id
+    ).first()
     if dict and task:
         return task.to_dict()
     return task
@@ -219,14 +220,14 @@ def get_task_by_canvas_id(owner: User|int, canvas_id: str, dict=False) -> Task |
 #                                                                       #
 #########################################################################
 
-# TO BE FIXED
-def create_subtask(current_user: User, task_id: int, subtask_name: str, subtask_desc: str=None, 
+
+def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int=None, subtask_desc: str=None, 
                    subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None) -> bool:
     """
-    Creates a subtask under a specified task for the current user.
+    Creates a subtask under a specified task for the current user in the database.
 
     Args:
-        current_user (User): The user creating the subtask. Only the owner of the task can add subtasks.
+        owner (User): The user creating the subtask. Only the owner of the task can add subtasks.
         task_id (int): The ID of the task to which the subtask belongs.
         subtask_name (str): The name of the subtask (must not be empty or blank).
         subtask_desc (str, optional): A description of the subtask. Defaults to None.
@@ -236,61 +237,54 @@ def create_subtask(current_user: User, task_id: int, subtask_name: str, subtask_
     Returns:
         bool: True if the subtask was successfully created, False otherwise.
     """
-    task = Task.query.filter(
-        Task.canvas_id == task_id,
-        Task.owner == current_user.id
-    ).first()
-    
-    if task and task.owner == current_user.id and subtask_name.strip() != '':
-        try:
-            new_subtask = SubTask(owner=current_user.id, task_id=task.id, name=subtask_name, 
-                                  description=subtask_desc, status=subtask_status)
-            due_date = is_valid_date(subtask_date)
-            if due_date:
-                new_subtask.due_date = subtask_date
-            else:
-                return False
-                
-            db.session.add(new_subtask)
-            db.session.commit()
-            return True
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error setting subtask task: {e}")
+    try:
+        new_subtask = SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id, name=subtask_name, 
+                                description=subtask_desc, status=subtask_status, due_date=subtask_date)
+        db.session.add(new_subtask)
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error setting subtask task: {e}")
     return False
 
 
-def get_subtasks_for_tasks(current_user: User, task_ids: list[int], format: bool=True) -> list[SubTask]:
+def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bool=True) -> list[tuple] | dict:
     """
     Retrieve all subtasks for a series of tasks for the current_user.
 
     :param current_user: The current user who owns the subtask.
     :type current_user: User
-    :param task_ids: A list of task IDs to retrieve subtasks for.
-    :type task_ids: list[int]
+    :param canvas_ids: A list of task IDs to retrieve subtasks for.
+    :type canvas_ids: list[str]
     :param format: Return it as a dict of subtasks mapped to each task_id.
     :type format: bool
-    :return: A list of SubTask objects associated with the specified tasks.
-    :rtype: list[SubTask]
+    :return: A list of tuple with subtasks info.
+    :rtype: list[tuple]
     """
-    subtasks = SubTask.query.filter(
-        SubTask.task_id.in_(task_ids),
+    
+    subtasks = SubTask.query.join(Task, SubTask.task_id == Task.id).filter(
+        Task.canvas_id.in_(canvas_ids), 
         SubTask.owner == current_user.id
+    ).with_entities(
+        SubTask.id,
+        SubTask.name,
+        SubTask.description,
+        SubTask.status,
+        SubTask.due_date,
+        Task.canvas_id 
     ).all()
 
     if format:
         subtasks_dict = {}
-        for subtask in subtasks:
-            
-            if subtask.task_id not in subtasks_dict:
-                subtasks_dict[subtask.task_id] = []
-                
-            subtasks_dict[subtask.task_id].append({
-                'id': subtask.id,
-                'name': subtask.name,
-                'description': subtask.description,
-                'status': subtask.status,
-                'due_date': subtask.due_date
+        for subtask_id, name, description, status, due_date, canvas_id in subtasks:
+            subtasks_dict.setdefault(canvas_id, []).append({
+                'id': subtask_id,
+                'canvas_id': canvas_id,
+                'name': name,
+                'description': description,
+                'status': status.value or 0,
+                'due_date': due_date
             })
         return subtasks_dict
     return subtasks

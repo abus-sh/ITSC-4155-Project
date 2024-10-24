@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from argon2 import PasswordHasher
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Index
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Index, orm
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import relationship, joinedload
 import string, random, enum
@@ -123,7 +123,7 @@ class Task(ModelMixin, db.Model):
     # Type of the task
     task_type = Column(Enum(TaskType), unique=False, nullable=False)
     # IDs for Canvas and Todoist
-    canvas_id = Column(String(15), unique=False, nullable=False)
+    canvas_id = Column(Integer, unique=False, nullable=False)
     todoist_id = Column(String(15), unique=False, nullable=True)
     due_date = Column(String(12), unique=False, nullable=True)
     
@@ -175,6 +175,7 @@ class SubTask(ModelMixin, db.Model):
     id = Column(Integer, primary_key=True)
     owner = Column(Integer, ForeignKey('users.id'), nullable=False)
     task_id = Column(Integer, ForeignKey('tasks.id'), nullable=False)
+    todoist_id = Column(String(15), unique=False, nullable=True)
     name = Column(String(150), nullable=False)
     description = Column(String(500), nullable=True)
     status = Column(Enum(SubStatus), nullable=False)
