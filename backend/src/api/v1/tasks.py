@@ -18,8 +18,7 @@ BASE_URL = get_canvas_url()
 def update_tasks():
     try:
         canvas_token, todoist_token = session.decrypt_api_keys()
-        with time_it("* Total time for adding Todoist Tasks: "):
-            todoist.add_update_tasks(current_user.id, canvas_token, todoist_token)
+        todoist.add_update_tasks(current_user.id, canvas_token, todoist_token)
         
         return jsonify({'success': True}), 200
     except Exception as e:
@@ -29,7 +28,7 @@ def update_tasks():
 @tasks.post('/add_subtask')
 def add_subtask_user():
     try:
-        _, todoist_token = session.decrypt_api_keys()
+        todoist_token = session.decrypt_todoist_key()
         data = request.json
         
         canvas_id = data.get('canvas_id')
@@ -60,9 +59,10 @@ def get_subtasks():
         if task_ids and isinstance(task_ids, list):
             subtasks = get_subtasks_for_tasks(current_user, task_ids)
             return jsonify(subtasks), 200
-        elif len(task_ids) == 0:
-            return jsonify({'success': True, 'message':'No IDs were provided'}), 200
         
+        elif len(task_ids) == 0:
+            return jsonify({'success': False, 'message':'No IDs were provided'}), 400
+
     except Exception as e:
         print(e)
         return jsonify({'success': False, 'message':'Error while getting subtasks'}), 400
