@@ -1,16 +1,15 @@
-#########################################################################
-#                                                                       #
-#    This is just an EXAMPLE of how we may structure it. This file      #
-#    will contain the functions for querying the database.              #
-#                                                                       #
-#########################################################################
 from utils.models import *
 from utils.crypto import decrypt_str, encrypt_str
-from utils.settings import is_valid_date
 from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
 
+
+#########################################################################
+#                                                                       #
+#                                USERS                                  #
+#                                                                       #
+#########################################################################
 
 def add_user(username: str, password: str, canvas_token: str, todoist_token: str) -> bool:
     """
@@ -131,6 +130,14 @@ def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
         return user.to_dict()
     return user
 
+
+#########################################################################
+#                                                                       #
+#                                TASKS                                  #
+#                                                                       #
+#########################################################################
+
+
 def add_or_return_task(owner: User|int, canvas_id: str, todoist_id: str|None=None, due_date: str=None) -> Task:
     """
     Add a new task to the database or return the task if it already exists.
@@ -248,7 +255,6 @@ def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int
         print(f"Error setting subtask task: {e}")
     return False
 
-
 def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bool=True) -> list[tuple] | dict:
     """
     Retrieve all subtasks for a series of tasks for the current_user.
@@ -296,7 +302,7 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
 #                                                                       #
 #########################################################################
 
-def delete_task_entries() -> None:
+def _delete_task_entries() -> None:
     """ATTENTION: Deletes every entry in the Task table."""
     Task.query.delete()
     db.session.commit()
