@@ -14,9 +14,9 @@ from todoist_api_python.api import TodoistAPI
 import gevent, requests, uuid, json
 
 from api.v1.courses import get_all_courses, get_course_assignments
-from utils.models import User
-from utils.settings import localize_date, date_passed, time_it
-from utils.queries import add_or_return_task, update_task_id, set_task_duedate
+from utils.models import User, SubStatus
+from utils.settings import localize_date, date_passed, time_it, is_valid_date
+from utils.queries import add_or_return_task, update_task_id, set_task_duedate, get_task_by_canvas_id, create_subtask
 
 
 def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
@@ -76,7 +76,6 @@ def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
                     task_id = temp_ids[temp_id]
                     update_task_id(task_id, final_id)
     
-
 def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todoist_queue: list, temp_ids: dict):
     """
     Adds tasks to the database and prepares them for synchronization with Todoist.
@@ -136,6 +135,67 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todo
         set_task_duedate(task, due_date)
 
 
+def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str, subtask_desc: str=None, 
+                   subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None) -> bool:
+    """
+    Creates a subtask under a specified task for the current user in both todoist and the database.
+
+    Args:
+        current_user (User): The user creating the subtask. Only the owner of the task can add subtasks.
+        todoist_key (str): The Todoist API key for the current user.
+        canvas_id (str): The ID of the canvas assignment to which the task of the subtask belongs.
+        subtask_name (str): The name of the subtask (must not be empty or blank).
+        subtask_desc (str, optional): A description of the subtask. Defaults to None.
+        subtask_status (SubStatus): The status of the subtask (defaults to Incomplete).
+        subtask_date (str, optional): The due date for the subtask. Defaults to None.
+
+    Returns:
+        bool: True if the subtask was successfully created, False otherwise.
+    """
+    # Check that the subtask belogs to a valid assignment that belong to the current user
+    task = get_task_by_canvas_id(current_user, canvas_id, dict=False)
+
+    if task and task.owner == current_user.id and subtask_name.strip() != '':
+        try:
+            # Get due date in valid string format
+            due_date = is_valid_date(subtask_date)
+            if not due_date:
+                print("Error")
+                return False
+            
+            header = {
+                "Authorization": f"Bearer {todoist_key}",
+                "Content-Type": "application/json"
+                }
+            body = {
+                "content": subtask_name,
+                "description": subtask_desc,
+                "due_date": due_date,
+                "parent_id": task.todoist_id,
+            }
+            
+            # Create subtask and receive the todoist id
+            response_data = send_post_todoist("https://api.todoist.com/rest/v2/tasks", json.dumps(body), header)
+            if response_data:
+                todoist_id = response_data.get('id', None)
+                if not todoist_id:
+                    return False
+                
+                # If subtask is already marked as complete, close it
+                if subtask_status == SubStatus.Completed:
+                    response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close", headers={"Authorization": f"Bearer {todoist_key}"})
+                    if response.status_code != 204: # Failure to mark subtask as complete
+                        subtask_status = SubStatus.Incomplete
+                
+                # Create subtask in database
+                new_subtask = create_subtask(current_user, task.id, subtask_name, todoist_id, subtask_desc,
+                                             subtask_status, due_date)
+                if new_subtask:
+                    return True
+        except Exception as e:
+            print(e)
+    return False
+
 def send_post_todoist(todoist_url, body, headers):
     """
     Sends a POST request to the Todoist API.
@@ -153,6 +213,7 @@ def send_post_todoist(todoist_url, body, headers):
     response_data = response.json()
     if not response.ok:
         error = response_data.get('error') 
+        print(response.text)
         print("Error sending to Todoist: ", error)
         raise Exception
     return response_data # Return response json data

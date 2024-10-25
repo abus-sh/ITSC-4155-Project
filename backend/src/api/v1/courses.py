@@ -1,9 +1,9 @@
-from canvasapi import Canvas
 from canvasapi.assignment import Assignment
 from canvasapi.course import Course
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 
+import utils.canvas as canvas_api
 from utils.session import decrypt_canvas_key
 from utils.settings import get_canvas_url, localize_date
 
@@ -55,9 +55,8 @@ def get_all_courses(canvas_key: str|None=None) -> list:
     current_semester, current_year = get_term()
 
     try:
-        canvas = Canvas(BASE_URL, canvas_key)
-        current_courses = canvas.get_courses(enrollment_state='active',
-                                             include=CUSTOM_COURSE_PARAMS)
+        current_courses = canvas_api.get_all_courses(canvas_key)
+
         courses_list = []
         for course in current_courses:
             # Some courses, like the `Training Supplement`, are never considered to be concluded,
@@ -94,14 +93,13 @@ def get_course(courseid):
     canvas_key = decrypt_canvas_key()
 
     try:
-        canvas = Canvas(BASE_URL, canvas_key)
-        course = canvas.get_course(courseid, include=CUSTOM_COURSE_PARAMS)
+        course = canvas_api.get_course(canvas_key, courseid)
         course_info = _course_to_dict(course)
             
-    except Exception as e:
-        return 'Unable to make request to Canvas API', 400
     except AttributeError as e:
         return 'Unable to get field for courses', 404
+    except Exception as e:
+        return 'Unable to make request to Canvas API', 400
     return jsonify(course_info), 200
 
 
@@ -114,10 +112,7 @@ def get_graded_assignments():
             return jsonify("Invalid course_id!"), 400
         
         canvas_key = decrypt_canvas_key()
-        canvas = Canvas(BASE_URL, canvas_key)
-        
-        # Get graded submissions for course_id
-        assignments = canvas.get_course(course_id).get_multiple_submissions(workflow_state='graded', include=['assignment'])
+        assignments = canvas_api.get_graded_assignments(canvas_key, course_id)
         
         graded_assignments = []
         for graded in assignments:
@@ -142,6 +137,7 @@ def get_graded_assignments():
         return 'Unable to get field for graded assignments', 404
     return jsonify(graded_assignments), 200
 
+
 # Get all assignments for a course
 @courses.route('/<courseid>/assignments', methods=['GET'])
 def get_course_assignments(courseid, canvas_key: str|None=None):
@@ -160,8 +156,7 @@ def get_course_assignments(courseid, canvas_key: str|None=None):
         raw_data = True
 
     try:
-        course = Canvas(BASE_URL, canvas_key).get_course(courseid)
-        course_assignments = course.get_assignments()
+        course_assignments = canvas_api.get_course_assignments(canvas_key, courseid)
         assignments = []
         for assignment in course_assignments:
             assignment_dict = _assignment_to_dict(assignment)
@@ -188,8 +183,7 @@ def get_course_assignment(courseid, assignmentid):
     canvas_key = decrypt_canvas_key()
 
     try:
-        canvas = Canvas(BASE_URL, canvas_key)
-        assignment = canvas.get_course(courseid).get_assignment(assignmentid)
+        assignment = canvas_api.get_course_assignment(canvas_key, courseid, assignmentid)
         assignment_dict = _assignment_to_dict(assignment)
 
     except Exception as e:

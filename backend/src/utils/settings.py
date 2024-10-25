@@ -81,6 +81,20 @@ def generate_random_string(length: int=15) -> str:
     return ''.join(random.choice(characters) for _ in range(length))
 
 
+def is_valid_date(date_str: str) -> str | None:
+    """
+    Check if it's a valid date and time, add the time if it's missing (default to 23:59).
+    If date_str is not a valid date, return None. Format of return is `%Y-%m-%d %H:%M`.
+    """
+    try:
+        if len(date_str.strip()) == 10: # Date without time
+            datetime.strptime(date_str, '%Y-%m-%d')
+            return date_str.strip() + ' 23:59'
+        else:  # Date with time
+            return datetime.strptime(date_str, '%Y-%m-%dT%H:%M').strftime('%Y-%m-%d %H:%M')
+    except Exception:
+        return None
+
 
 #################################################################
 #                                                               #
@@ -96,6 +110,24 @@ def get_canvas_url() -> str:
     """
     return os.environ.get('CANVAS_BASE_URL', 'https://uncc.instructure.com')
 
+
 def get_frontend_url() -> str:
     # env 'FRONTEND_URL' is for deployment, second is for local testing
     return os.environ.get('FRONTEND_URL', 'http://localhost:4200')
+
+
+def get_canvas_cache_time() -> int:
+    """
+    Get the amount of time in seconds to cache API results from Canvas for. This value may be set by
+    the CANVAS_API_CACHE_TIME environment variable.
+
+    :return int: The number of seconds to cache Canvas API results for.
+    """
+    default_cache_time = 300
+    cache_time = os.environ.get('CANVAS_API_CACHE_TIME', default_cache_time)
+    try:
+        cache_time = int(cache_time)
+    except:
+        cache_time = default_cache_time
+
+    return cache_time

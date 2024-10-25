@@ -6,10 +6,11 @@
 #########################################################################
 from utils.models import *
 from utils.crypto import decrypt_str, encrypt_str
+from utils.settings import is_valid_date
 from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
-from datetime import datetime, timedelta
+
 
 def add_user(username: str, password: str, canvas_token: str, todoist_token: str) -> bool:
     """
@@ -89,7 +90,6 @@ def get_all_users() -> list[User]:
     """
     return User.query.all()
 
-
 def get_user_by_id(user_id: int, dict=False) -> User | dict:
     """
     Retrieve a user by their ID.
@@ -102,7 +102,6 @@ def get_user_by_id(user_id: int, dict=False) -> User | dict:
     if dict and user:
         return user.to_dict()
     return user
-
 
 def get_user_by_username(username: str, dict=False) -> User | dict:
     """
@@ -131,7 +130,6 @@ def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
     if dict and user:
         return user.to_dict()
     return user
-
 
 def add_or_return_task(owner: User|int, canvas_id: str, todoist_id: str|None=None, due_date: str=None) -> Task:
     """
@@ -196,24 +194,101 @@ def set_task_duedate(task: Task, due_date: str) -> None:
         print(f"Error updating task: {e}")
         raise e
 
-
-def get_task_by_canvas_id(owner: User|int, canvas_id: str, dict=False) -> Task | dict | None:
+def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dict | None:
     """
     Retrieve a task by its Canvas ID, which is assigned by Canvas.
 
-    :param owner: The User or the ID of the User who owns the task.
+    :param owner: The owner of the task.
     :param canvas_id: The internal Canvas ID of a task.
     :param dict: If True, return the user as a dictionary. Defaults to False.
     :return Task or dict or None: A Task instance or a dictionary representation of the task if dict
     is True. If no task with the given Canvas ID exists, None is returned.
     """
-    if type(owner) == User:
-        owner = owner.id
 
-    task = Task.query.filter_by(owner=owner, canvas_id=canvas_id).first()
+    task = Task.query.filter(
+        Task.canvas_id == canvas_id,
+        Task.owner == owner.id
+    ).first()
     if dict and task:
         return task.to_dict()
     return task
+
+
+#########################################################################
+#                                                                       #
+#                             SUBTASKS                                  #
+#                                                                       #
+#########################################################################
+
+
+def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int=None, subtask_desc: str=None, 
+                   subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None) -> bool:
+    """
+    Creates a subtask under a specified task for the current user in the database.
+
+    Args:
+        owner (User): The user creating the subtask. Only the owner of the task can add subtasks.
+        task_id (int): The ID of the task to which the subtask belongs.
+        subtask_name (str): The name of the subtask (must not be empty or blank).
+        subtask_desc (str, optional): A description of the subtask. Defaults to None.
+        subtask_status (SubStatus): The status of the subtask (defaults to Incomplete).
+        subtask_date (str, optional): The due date for the subtask. Defaults to None.
+
+    Returns:
+        bool: True if the subtask was successfully created, False otherwise.
+    """
+    try:
+        new_subtask = SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id, name=subtask_name, 
+                                description=subtask_desc, status=subtask_status, due_date=subtask_date)
+        db.session.add(new_subtask)
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error setting subtask task: {e}")
+    return False
+
+
+def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bool=True) -> list[tuple] | dict:
+    """
+    Retrieve all subtasks for a series of tasks for the current_user.
+
+    :param current_user: The current user who owns the subtask.
+    :type current_user: User
+    :param canvas_ids: A list of task IDs to retrieve subtasks for.
+    :type canvas_ids: list[str]
+    :param format: Return it as a dict of subtasks mapped to each task_id.
+    :type format: bool
+    :return: A list of tuple with subtasks info.
+    :rtype: list[tuple]
+    """
+    
+    subtasks = SubTask.query.join(Task, SubTask.task_id == Task.id).filter(
+        Task.canvas_id.in_(canvas_ids), 
+        SubTask.owner == current_user.id
+    ).with_entities(
+        SubTask.id,
+        SubTask.name,
+        SubTask.description,
+        SubTask.status,
+        SubTask.due_date,
+        Task.canvas_id 
+    ).all()
+
+    if format:
+        subtasks_dict = {}
+        for subtask_id, name, description, status, due_date, canvas_id in subtasks:
+            subtasks_dict.setdefault(canvas_id, []).append({
+                'id': subtask_id,
+                'canvas_id': canvas_id,
+                'name': name,
+                'description': description,
+                'status': status.value or 0,
+                'due_date': due_date
+            })
+        return subtasks_dict
+    return subtasks
+
 
 #########################################################################
 #                                                                       #
@@ -221,8 +296,8 @@ def get_task_by_canvas_id(owner: User|int, canvas_id: str, dict=False) -> Task |
 #                                                                       #
 #########################################################################
 
-def delete_task_entries():
-    """Deletes every entry in the Task table."""
+def delete_task_entries() -> None:
+    """ATTENTION: Deletes every entry in the Task table."""
     Task.query.delete()
     db.session.commit()
     

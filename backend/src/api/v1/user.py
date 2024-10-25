@@ -98,6 +98,7 @@ def get_assignments_due_soon():
         return 'Unable to get field for courses', 404
     return jsonify(assignments_due_soon), 200
 
+
 # Get missing submissions for active courses (past the due date)
 @user.route('/missing_submissions', methods=['GET', 'POST'])
 def get_missing_submissions():

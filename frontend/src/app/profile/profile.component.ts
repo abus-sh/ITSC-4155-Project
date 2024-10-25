@@ -95,6 +95,7 @@ export class ProfileComponent implements OnInit {
     }
 
     syncTodoistManual() {
+        this.lastSyncDate = 'Started, please wait..'
         this.http.post(`${this.backendUrl}/api/v1/tasks/update`, null).subscribe({
             next: (response) => {
                 this.lastSyncDate = new Date().toLocaleString();
