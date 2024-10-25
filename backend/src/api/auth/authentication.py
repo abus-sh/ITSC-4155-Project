@@ -22,6 +22,31 @@ csrf = CSRFProtect()
 api_key_cache = LRU(50)
 
 
+class TodoistAuthInfo:
+    """
+    Create a representation of a Todoist authentication attempt, both with OAuth and with a
+    permanent API key.
+
+    :param code: The OAuth code paramter. None if a permanent key is being used.
+    :param state: The OAuth state paramter. None if a permanent key is being used.
+    :param token: The permanent API key. None if OAuth is being used.
+    :raises ValueError: If token is None and one of code or state is None.
+    """
+    def __init__(self, code: str|None=None, state: str|None=None, token: str|None=None):
+        # Determine if insufficient information was provided to construct an authenticaiton attempt
+        # If no permanent API key was provided and one of the OAuth parameteres wasn't provided,
+        # then something is wrong.
+        if token == None and (code == None or state == None):
+            raise ValueError
+
+        self.code = code
+        self.state = state
+        self.token = token
+
+        self.is_oauth = code != None and state != None
+        self.is_token = token != None
+
+
 # Retrieve the User based on the login_id stored in the session
 @login_manager.user_loader
 def user_loader(login_id):
@@ -115,7 +140,7 @@ def sign_up():
         abort(HTTPStatus.BAD_REQUEST)
         return
     
-    username, password, canvasToken, todoistCode, todoistState = parameters
+    username, password, canvasToken, todoistInfo = parameters
     
 
     # If the username is invalid, determine it to be unprocessable
@@ -132,13 +157,16 @@ def sign_up():
         abort(HTTPStatus.BAD_REQUEST)
         return
 
-    # Exchange the code and state for the Todoist Token
-    exchange_response = exchange_token(todoistCode, todoistState, session)
-    if not exchange_response:
-        print('Invalid token exchange')
-        abort(HTTPStatus.BAD_REQUEST)
-        return
-    bearer, todoistToken = exchange_response    # Bearer is not needed right now, but in case we may need it in the future
+    if todoistInfo.is_oauth:
+        # Exchange the code and state for the Todoist Token
+        exchange_response = exchange_token(todoistInfo.code, todoistInfo.state, session)
+        if not exchange_response:
+            print('Invalid token exchange')
+            abort(HTTPStatus.BAD_REQUEST)
+            return
+        bearer, todoistToken = exchange_response    # Bearer is not needed right now, but in case we may need it in the future
+    else:
+        todoistToken = todoistInfo.token
 
     # Create the user, tokens are encrypted and password is hashed
     if not add_user(username, password, canvasToken, todoistToken):
@@ -220,14 +248,17 @@ def auth_status():
 #                                                               #
 #################################################################
 
-def _get_authentication_params(request: Request, include_tokens: bool=False) -> tuple[str, str] | tuple[str, str, str, str, str] |None:
+def _get_authentication_params(request: Request, include_tokens: bool=False) -> tuple[str, str] | tuple[str, str, str, TodoistAuthInfo] |None:
     """
     Extracts the username and password from a request, if both exist and are valid.
 
     :param request: The Flask request to validate.
-    :param include_tokens: If to extract the tokens from the request, will return a tuple[str, str, str, str, str].
-    :return tuple[str, str]: Returns the username and password if both exist and are valid. `include_tokens` is False.
-    :return tuple[str, str, str, str]: Returns the username, password, and the tokens if they all exist and are valid.
+    :param include_tokens: If to extract the tokens from the request, will return a
+    tuple[str, str, str, TodoistAuthInfo].
+    :return tuple[str, str]: Returns the username and password if both exist and are valid and
+    `include_tokens` is False.
+    :return tuple[str, str, str, TodoistAuthInfo]: Returns the username, password, and the tokens if
+    they all exist and are valid.
     :return None: Returns None if the username, password or the tokens don't exist or are invalid.
     """
     # There is no json data in the request
@@ -241,18 +272,23 @@ def _get_authentication_params(request: Request, include_tokens: bool=False) -> 
     if include_tokens:
         canvas_token = request.json.get('canvasToken')
         
-        todoist_info = request.json.get('todoist')
-        if todoist_info:
-            todoist_code = todoist_info.get('code')
-            todoist_state = todoist_info.get('state')
+        # Handle the case where OAuth is being used as well as a long term API key
+        todoist_oauth_info = request.json.get('todoist')
+        todoist_token = request.json.get('todoistToken')
+        if todoist_oauth_info:
+            todoist_code = todoist_oauth_info.get('code')
+            todoist_state = todoist_oauth_info.get('state')
+            todoist_auth = TodoistAuthInfo(todoist_code, todoist_state)
+        elif todoist_token:
+            todoist_auth = TodoistAuthInfo(token=todoist_token)
         else:
             return None
-        params = (username, password, canvas_token, todoist_code, todoist_state)
+        params = (username, password, canvas_token, todoist_auth)
     else:
         params = (username, password)
 
-    # Check that all fields of params are string and not None
-    if any(param is None or not isinstance(param, str) for param in params):
+    # Check that all fields of params are strings or TodoistAuthInfo and not None
+    if any(param is None or not isinstance(param, str|TodoistAuthInfo) for param in params):
         return None
 
     return params
