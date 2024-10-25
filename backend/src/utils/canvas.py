@@ -29,7 +29,6 @@ def get_all_courses(canvas_key: str) -> PaginatedList:
     """
     # Call no_cache version. Due to the TTLCache, the body of the function will only be executed
     # if there is no entry in the cache or if the entry has expired.
-    print("Cache miss")
     return get_all_courses_no_cache(canvas_key)
 
 
