@@ -93,7 +93,7 @@ def get_course(courseid):
     canvas_key = decrypt_canvas_key()
 
     try:
-        course = canvas_api.get_course_no_cache(canvas_key, courseid)
+        course = canvas_api.get_course(canvas_key, courseid)
         course_info = _course_to_dict(course)
             
     except AttributeError as e:
