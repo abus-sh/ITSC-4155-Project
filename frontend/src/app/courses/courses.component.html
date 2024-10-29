@@ -7,7 +7,10 @@
                     <img [src]="course.image_download_url || 'default-image.jpg'" [alt]="course.name">
                     <h3>{{ course.name }}</h3>
                     <div class="grade-wrapper">
-                        Current Grade: {{ course.computed_current_score + '%' || 'N/A' }}
+                        <ng-container *ngIf="course.computed_current_score != null; else no_grade">
+                            Current Grade: {{ course.computed_current_score + '%'}}
+                        </ng-container>
+                        <ng-template #no_grade>No grade available</ng-template>
                     </div>
                     <!-- Toggle Button -->
                     <button class="toggle-btn" (click)="toggleAssignments(course)">
