@@ -45,6 +45,14 @@ class TodoistAuthInfo:
 
         self.is_oauth = code != None and state != None
         self.is_token = token != None
+    
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+
+        return self.code == other.code and self.state == other.state and \
+               self.token == other.token and self.is_oauth == other.is_oauth and \
+               self.is_token == other.is_token
 
 
 # Retrieve the User based on the login_id stored in the session
@@ -275,11 +283,11 @@ def _get_authentication_params(request: Request, include_tokens: bool=False) -> 
         # Handle the case where OAuth is being used as well as a long term API key
         todoist_oauth_info = request.json.get('todoist')
         todoist_token = request.json.get('todoistToken')
-        if todoist_oauth_info:
+        if type(todoist_oauth_info) == dict:
             todoist_code = todoist_oauth_info.get('code')
             todoist_state = todoist_oauth_info.get('state')
             todoist_auth = TodoistAuthInfo(todoist_code, todoist_state)
-        elif todoist_token:
+        elif type(todoist_token) == str:
             todoist_auth = TodoistAuthInfo(token=todoist_token)
         else:
             return None
