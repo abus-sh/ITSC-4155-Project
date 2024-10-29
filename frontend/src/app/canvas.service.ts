@@ -1,5 +1,5 @@
 import { Injectable, OnInit } from '@angular/core';
-import { getBackendURL } from '../config';
+import { getBackendURL, getCanvasCacheTime } from '../config';
 import { HttpClient } from '@angular/common/http';
 import { APIAssignment, APICourse, Course } from './courses/courses.component';
 import { firstValueFrom, Subject } from 'rxjs';
@@ -16,6 +16,7 @@ export class CanvasService implements OnInit {
     private courseGradedAssignments = getBackendURL() + '/api/v1/courses/graded_assignments';
 
     private courses: Course[] = [];
+    private lastUpdated = 0; // Unix timestamp
 
     constructor(private http: HttpClient) {}
 
@@ -26,11 +27,26 @@ export class CanvasService implements OnInit {
     async getCourses() {
         console.log("CanvasService fetchCourses");
 
+        // Only fetch new courses if enough time has passed
+        let now = new Date().getTime();
+        if ((now - this.lastUpdated) > getCanvasCacheTime()) {
+            // Send immediate update now w/ potentially old courses
+            this.courses$.next(this.courses);
+
+            // Get new courses
+            this.courses = await this.fetchCourses();
+
+            this.lastUpdated = now;
+        }
+
+        // Send most recently received courses
+        this.courses$.next(this.courses);
+    }
+
+    private async fetchCourses(): Promise<Course[]> {
         // Get the data from the backend, which fetches it from the Canvas API if not cached
         const data = await firstValueFrom(this.http.get<APICourse[]>(this.coursesUrl,
             { withCredentials: true}));
-        
-        console.log(data.length);
 
         const transformedCourses = data.map(course => {
             return {
@@ -42,9 +58,7 @@ export class CanvasService implements OnInit {
             } as Course;
         });
 
-        this.courses = transformedCourses;
-
-        this.courses$.next(this.courses);
+        return transformedCourses;
     }
 
     async getGradedAssignmentsForCourse(courseId: number) {

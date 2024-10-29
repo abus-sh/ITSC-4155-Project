@@ -4,7 +4,7 @@ export function getBackendURL() {
     return window.origin.replace("4200", "5000");
 }
 
-// Gets the amount of time to cache Canvas API results in seconds.
+// Gets the amount of time to cache Canvas API results in milliseconds.
 export function getCanvasCacheTime() {
-    return 30;
+    return 30 * 1000;
 }
