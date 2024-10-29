@@ -2,7 +2,7 @@ from cachetools import cached, TTLCache
 from canvasapi import Canvas
 from canvasapi.assignment import Assignment
 from canvasapi.course import Course
-from canvasapi.paginated_list import PaginatedList
+from canvasapi.submission import Submission
 
 from utils.settings import get_canvas_url, get_canvas_cache_time
 
@@ -18,33 +18,33 @@ CUSTOM_COURSE_PARAMS = [
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
-def get_all_courses(canvas_key: str) -> PaginatedList:
+def get_all_courses(canvas_key: str) -> list[Course]:
     """
     Returns a list of all active courses for a user. These results are cached for an amount of time
     determined by utils.settings.get_canvas_cache_time. If live information is needed,
     get_all_courses_no_cache should be used instead.
 
     :param canvas_key: The API key that should be used.
-    :return PaginatedList: A canvasapi PaginatedList of active courses.
+    :return list[Course]: A list of canvasapi Courses that are active.
     """
     # Call no_cache version. Due to the TTLCache, the body of the function will only be executed
     # if there is no entry in the cache or if the entry has expired.
     return get_all_courses_no_cache(canvas_key)
 
 
-def get_all_courses_no_cache(canvas_key: str):
+def get_all_courses_no_cache(canvas_key: str) -> list[Course]:
     """
     Returns a list of all active courses for a user. These results are not cached. If possible, use
     get_all_courses to improve server response times.
 
     :param canvas_key: The API key that should be used.
-    :return PaginatedList: A canvasapi PaginatedList of active courses.
+    :return list[Course]: A list of canvasapi Courses that are active.
     """
     canvas = Canvas(BASE_URL, canvas_key)
     current_courses = canvas.get_courses(enrollment_state='active',
                                          include=CUSTOM_COURSE_PARAMS)
 
-    return current_courses
+    return [course for course in current_courses]
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
 def get_course(canvas_key: str, course_id: str) -> Course:
@@ -76,7 +76,7 @@ def get_course_no_cache(canvas_key: str, course_id: str) -> Course:
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
-def get_graded_assignments(canvas_key: str, course_id: str) -> PaginatedList:
+def get_graded_assignments(canvas_key: str, course_id: str) -> list[Submission]:
     """
     Returns all graded submissions for a course. These results are cached for an amount of time
     determined by utils.settings.get_canvas_cache_time. If live information is needed,
@@ -84,29 +84,29 @@ def get_graded_assignments(canvas_key: str, course_id: str) -> PaginatedList:
 
     :param canvas_key: The API key that should be used.
     :param course_id: The ID of the course to retrieve graded assignments for.
-    :return PaginatedList: A canvasapi PaginatedList of graded assignments.
+    :return list[Submission]: A list of canvasapi Submissions for graded assignments.
     """
     return get_graded_assignments_no_cache(canvas_key, course_id)
 
 
-def get_graded_assignments_no_cache(canvas_key: str, course_id: str) -> PaginatedList:
+def get_graded_assignments_no_cache(canvas_key: str, course_id: str) -> list[Submission]:
     """
     Returns all graded submissions for a course. These results are not cached. If possible, use
     get_graded_assignments to improve server response times.
 
     :param canvas_key: The API key that should be used.
     :param course_id: The ID of the course to retrieve graded assignments for.
-    :return PaginatedList: A canvasapi PaginatedList of graded assignments.
+    :return list[Submission]: A list of canvasapi Submissions for graded assignments.
     """
     canvas = Canvas(BASE_URL, canvas_key)
     assignments = canvas.get_course(course_id)\
         .get_multiple_submissions(workflow_state='graded', include=['assignment'])
     
-    return assignments
+    return [assignment for assignment in assignments]
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
-def get_course_assignments(canvas_key: str, course_id: str) -> PaginatedList:
+def get_course_assignments(canvas_key: str, course_id: str) -> list[Assignment]:
     """
     Returns all assignments for a course. These results are cached for an amount of time determined
     by utils.settings.get_canvas_cache_time. If live information is needed,
@@ -114,24 +114,24 @@ def get_course_assignments(canvas_key: str, course_id: str) -> PaginatedList:
 
     :param canvas_key: The API key that should be used.
     :param course_id: The ID of the course to retrieve assignments for.
-    :return PaginatedList: A canvasapi PaginatedList of assignments.
+    :return list[Assignment]: A list of canvasapi Assignments for the course.
     """
     return get_course_assignments_no_cache(canvas_key, course_id)
 
 
-def get_course_assignments_no_cache(canvas_key: str, course_id: str) -> PaginatedList:
+def get_course_assignments_no_cache(canvas_key: str, course_id: str) -> list[Assignment]:
     """
     Returns all assignments for a course. These results are not cached. If possible, use
     get_course_assignments to improve server response times.
 
     :param canvas_key: The API key that should be used.
     :param course_id: The ID of the course to retrieve assignments for.
-    :return PaginatedList: A canvasapi PaginatedList of assignments.
+    :return list[Assignment]: A list of canvasapi Assignments for the course.
     """
     course = Canvas(BASE_URL, canvas_key).get_course(course_id)
     course_assignments = course.get_assignments()
 
-    return course_assignments
+    return [assignment for assignment in course_assignments]
 
 
 def get_course_assignment(canvas_key: str, course_id: str, assignment_id: str) -> Assignment:
