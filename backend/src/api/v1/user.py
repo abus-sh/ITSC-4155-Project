@@ -1,11 +1,10 @@
-from canvasapi import Canvas
 from flask import Blueprint, jsonify, request
 from flask_login import current_user
-from datetime import datetime, timedelta
+from datetime import datetime
 
+import utils.canvas as canvas_api
 from utils.session import decrypt_canvas_key
 from utils.settings import get_canvas_url, get_date_range, localize_date, date_passed
-from api.v1.courses import get_all_courses
 
 
 user = Blueprint('user', __name__)
@@ -17,7 +16,7 @@ BASE_URL = get_canvas_url()
 def get_user_info():
     try:
         canvas_key = decrypt_canvas_key()
-        profile = Canvas(BASE_URL, canvas_key).get_current_user()
+        profile = canvas_api.get_current_user(canvas_key)
         user_profile = {
             'username': current_user.username,
             'canvas': {
@@ -44,19 +43,8 @@ def get_assignments_due_soon():
         # Get assignments that have due date between today and 1 month from now
         start_date, end_date = get_date_range(months=1)
         
-        # Get all courses for which to retrieve the assignments
-        all_courses = get_all_courses(canvas_key)
-        courses = []
-        for course in all_courses:
-            if course.get('id', None):
-                courses.append('course_' + str(course['id']))
+        assignments = canvas_api.get_calendar_events(canvas_key, start_date, end_date)
 
-        canvas = Canvas(BASE_URL, canvas_key)
-        assignments = canvas.get_calendar_events(context_codes=courses,
-                                            start_date=start_date, 
-                                            end_date=end_date,
-                                            per_page=50,
-                                            type='assignment')
         fields = [
             'title', 'description', 'type', 'submission_types', 'html_url', 'context_name',
         ]
@@ -65,7 +53,7 @@ def get_assignments_due_soon():
         ]
         assignments_due_soon = []
         for assignment in assignments:
-            
+
             # Basic fields
             one_assignment = {field: getattr(assignment, field, None) for field in fields}
             
@@ -105,7 +93,6 @@ def get_missing_submissions():
     canvas_key = decrypt_canvas_key()
 
     try:
-        canvas = Canvas(BASE_URL, canvas_key)
         # get courses ids from request json body
         if request.is_json:
             request_data = request.get_json()
@@ -115,13 +102,14 @@ def get_missing_submissions():
             courses_list = []
         # If the course_ids were not provided, fetch them from the active enrollment canvas api
         if len(courses_list) <= 0:
-            current_courses = canvas.get_courses(enrollment_state='active')
+            current_courses = canvas_api.get_all_courses()
             for course in current_courses:
                 one_course = getattr(course, 'id', None)
                 if one_course is not None:
                     courses_list.append(one_course)
 
-        missing_submissions = canvas.get_current_user().get_missing_submissions(course_ids=courses_list)
+        missing_submissions = canvas_api.get_missing_submissions(canvas_key,
+                                                                 frozenset(courses_list))
         miss_assignments_list = []
         fields = [
             'id', 'name', 'description', 'due_at','course_id', 'html_url', 
