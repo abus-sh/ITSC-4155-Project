@@ -318,19 +318,21 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
         SubTask.description,
         SubTask.status,
         SubTask.due_date,
-        Task.canvas_id 
+        Task.canvas_id,
+        SubTask.todoist_id
     ).all()
 
     if format:
         subtasks_dict = {}
-        for subtask_id, name, description, status, due_date, canvas_id in subtasks:
+        for subtask_id, name, description, status, due_date, canvas_id, todoist_id in subtasks:
             subtasks_dict.setdefault(canvas_id, []).append({
                 'id': subtask_id,
                 'canvas_id': canvas_id,
                 'name': name,
                 'description': description,
                 'status': status.value or 0,
-                'due_date': due_date
+                'due_date': due_date,
+                'todoist_id': todoist_id
             })
         return subtasks_dict
     return subtasks
