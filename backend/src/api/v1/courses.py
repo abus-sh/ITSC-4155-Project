@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request
 
 import utils.canvas as canvas_api
 from utils.session import decrypt_canvas_key
-from utils.settings import get_canvas_url, localize_date
+from utils.settings import get_canvas_url
 
 
 courses = Blueprint('courses', __name__)
@@ -70,7 +70,7 @@ def get_all_courses(canvas_key: str|None=None) -> list:
                 semester, year = term[-2:], term[:-2]
                 if year != current_year or semester != current_semester:
                     continue
-            one_course = _course_to_dict(course)
+            one_course = canvas_api.course_to_dict(course)
             courses_list.append(one_course)
 
     except AttributeError as e:
@@ -94,7 +94,7 @@ def get_course(courseid):
 
     try:
         course = canvas_api.get_course(canvas_key, courseid)
-        course_info = _course_to_dict(course)
+        course_info = canvas_api.course_to_dict(course)
             
     except AttributeError as e:
         return 'Unable to get field for courses', 404
@@ -159,7 +159,7 @@ def get_course_assignments(courseid, canvas_key: str|None=None):
         course_assignments = canvas_api.get_course_assignments(canvas_key, courseid)
         assignments = []
         for assignment in course_assignments:
-            assignment_dict = _assignment_to_dict(assignment)
+            assignment_dict = canvas_api.assignment_to_dict(assignment)
             assignments.append(assignment_dict)
 
     except AttributeError as e:
@@ -184,7 +184,7 @@ def get_course_assignment(courseid, assignmentid):
 
     try:
         assignment = canvas_api.get_course_assignment(canvas_key, courseid, assignmentid)
-        assignment_dict = _assignment_to_dict(assignment)
+        assignment_dict = canvas_api.assignment_to_dict(assignment)
 
     except Exception as e:
         return 'Unable to make request to Canvas API', 400
@@ -196,44 +196,3 @@ def get_course_assignment(courseid, assignmentid):
 # GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions (List assignment submissions)
 # GET /api/v1/courses/:course_id/students/submissions (List submissions for multiple assignments)
 # GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id (Get a single submission)
-
-def _course_to_dict(course: Course, fields: list[str]|None=None) -> dict[str, str|None]:
-    """
-    Converts a course into a dict, taking only the fields specified in fields. If fields is None,
-    then a default set of fields are used.
-
-    :param course: The course to convert to a dict.
-    :param fields: The fields to extract from the course. If fields is not specified, a default list
-    of fields are used instead.
-    :return dict[str, str|None]: Returns a dict with each key. If no value was present for the key,
-    None is returned instead.
-    """
-    if fields == None:
-        fields = [
-            'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments', 'term', 'concluded',
-            'image_download_url'
-        ]
-
-    return {field: getattr(course, field, None) for field in fields}
-
-def _assignment_to_dict(assignment: Assignment, fields: list[str]|None=None) -> dict[str, str|None]:
-    """
-    Converts an assignment into a dict, taking only the fields specified in fields. If fields is
-    None, then a default set of fields are used.
-
-    :param assignment: The assignment to convert to a dict.
-    :param fields: The fields to extract from the assignment. If fields is not specified, a default
-    list of fields are used instead.
-    :return dict[str, str|None]: Returns a dict with each key. If no value was present for the key,
-    None is returned instead.
-    """
-    if fields == None:
-        fields = [
-            'id', 'name', 'description', 'due_at', 'lock_at', 'course_id', 'html_url', 
-            'submissions_download_url', 'allowed_extensions', 'turnitin_enabled', 
-            'grade_group_students_individually', 'group_category_id', 'points_possible', 
-            'submission_types', 'published', 'quiz_id', 'omit_from_final_grade', 
-            'allowed_attempts', 'can_submit', 'is_quiz_assignment', 'workflow_state'
-        ]
-        
-    return {field: getattr(assignment, field, None) for field in fields}

@@ -136,7 +136,7 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todo
 
 
 def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str, subtask_desc: str=None, 
-                   subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None) -> bool:
+                   subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None) -> int|bool:
     """
     Creates a subtask under a specified task for the current user in both todoist and the database.
 
@@ -150,7 +150,7 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
         subtask_date (str, optional): The due date for the subtask. Defaults to None.
 
     Returns:
-        bool: True if the subtask was successfully created, False otherwise.
+        int|False: The ID of the subtask if the subtask was successfully created, False otherwise.
     """
     # Check that the subtask belogs to a valid assignment that belong to the current user
     task = get_task_by_canvas_id(current_user, canvas_id, dict=False)
@@ -162,7 +162,7 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
             if not due_date:
                 print("Error")
                 return False
-            
+
             header = {
                 "Authorization": f"Bearer {todoist_key}",
                 "Content-Type": "application/json"
@@ -188,10 +188,9 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
                         subtask_status = SubStatus.Incomplete
                 
                 # Create subtask in database
-                new_subtask = create_subtask(current_user, task.id, subtask_name, todoist_id, subtask_desc,
+                new_subtask_id = create_subtask(current_user, task.id, subtask_name, todoist_id, subtask_desc,
                                              subtask_status, due_date)
-                if new_subtask:
-                    return True
+                return new_subtask_id
         except Exception as e:
             print(e)
     return False
