@@ -3,20 +3,16 @@ This file provides utilities for adding tasks to Todoist.
 """
 
 
-from ctypes import c_bool
 from datetime import datetime
-from multiprocessing import Manager, Pool
-from multiprocessing.managers import ValueProxy
-from queue import Queue
-from threading import Lock
-from time import sleep
 from todoist_api_python.api import TodoistAPI
 import gevent, requests, uuid, json
 
 from api.v1.courses import get_all_courses, get_course_assignments
-from utils.models import User, SubStatus
+from utils.models import User, TaskStatus, Task, SubTask
 from utils.settings import localize_date, date_passed, time_it, is_valid_date
-from utils.queries import add_or_return_task, update_task_id, set_task_duedate, get_task_by_canvas_id, create_subtask
+from utils.queries import add_or_return_task, update_task_id, set_task_duedate, \
+    get_task_by_canvas_id, create_subtask, get_task_or_subtask_by_todoist_id,\
+    update_task_or_subtask_status
 
 
 def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
@@ -75,7 +71,8 @@ def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
                 for temp_id, final_id in temp_id_mapping.items():
                     task_id = temp_ids[temp_id]
                     update_task_id(task_id, final_id)
-    
+
+
 def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todoist_queue: list, temp_ids: dict):
     """
     Adds tasks to the database and prepares them for synchronization with Todoist.
@@ -136,7 +133,7 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todo
 
 
 def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str, subtask_desc: str=None, 
-                   subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None) -> int|bool:
+                   subtask_status: TaskStatus=TaskStatus.Incomplete, subtask_date: str=None) -> int|bool:
     """
     Creates a subtask under a specified task for the current user in both todoist and the database.
 
@@ -182,10 +179,10 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
                     return False
                 
                 # If subtask is already marked as complete, close it
-                if subtask_status == SubStatus.Completed:
+                if subtask_status == TaskStatus.Completed:
                     response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close", headers={"Authorization": f"Bearer {todoist_key}"})
                     if response.status_code != 204: # Failure to mark subtask as complete
-                        subtask_status = SubStatus.Incomplete
+                        subtask_status = TaskStatus.Incomplete
                 
                 # Create subtask in database
                 new_subtask_id = create_subtask(current_user, task.id, subtask_name, todoist_id, subtask_desc,
@@ -194,6 +191,38 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
         except Exception as e:
             print(e)
     return False
+
+
+def complete_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
+    """
+    Marks a task or subtask as complete for the current user.
+
+    Args:
+        current_user (User): The user that owns the task or subtask.
+        todoist_key (str): The Todoist API key for the current user.
+        todoist_task_id (str): The ID of the task or subtask in Todoist.
+    
+    Returns:
+        bool: True if the subtask was completed, False otherwise.
+    """
+    # Get the task in the database
+    task: Task|SubTask|None = get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
+    if task == None:
+        return False
+
+    # Mark task as complete in Todoist
+    response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_task_id}/close",\
+                             headers={"Authorization": f"Bearer {todoist_key}"})
+    
+    # Per documation, 204 indicates success
+    if response.status_code == 204:
+        # Complete task in database
+        update_task_or_subtask_status(current_user, task, TaskStatus.Completed)
+
+        return True
+
+    return False
+
 
 def send_post_todoist(todoist_url, body, headers):
     """

@@ -3,9 +3,9 @@ from flask_login import current_user
 
 import utils.session as session
 import utils.todoist as todoist
-from utils.settings import get_canvas_url, time_it
+from utils.settings import get_canvas_url
 
-from utils.queries import get_subtasks_for_tasks, SubStatus
+from utils.queries import get_subtasks_for_tasks, TaskStatus
 
 
 tasks = Blueprint('tasks', __name__)
@@ -34,7 +34,7 @@ def add_subtask_user():
         canvas_id = data.get('canvas_id')
         subtask_name = data.get('name').strip()
         subtask_desc = data.get('description')
-        subtask_status = SubStatus.from_integer(data.get('status'))
+        subtask_status = TaskStatus.from_integer(data.get('status'))
         subtask_date = data.get('due_date')
         
         if not canvas_id or not subtask_name or not subtask_status:
@@ -67,3 +67,11 @@ def get_subtasks():
         print(e)
         return jsonify({'success': False, 'message':'Error while getting subtasks'}), 400
     return jsonify({'success': False, 'message':'Unable to get subtasks'}), 404
+
+@tasks.post('/<task_id>/complete')
+def complete_subtask(task_id: str):
+    todoist_token = session.decrypt_todoist_key()
+    result = todoist.complete_task(current_user, todoist_token, task_id)
+    if result:
+        return jsonify({'success': True, 'message': f'{task_id} completed'})
+    return jsonify({'success': False, 'message': f'Unable to complete {task_id}'})

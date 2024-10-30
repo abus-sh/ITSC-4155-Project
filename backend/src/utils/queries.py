@@ -221,6 +221,45 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
     return task
 
 
+def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
+    -> Task | SubTask | dict | None:
+    """
+    Retrieve a task or subtask by its Todoist ID.
+
+    :param owner: The owner of the task.
+    :param canvas_id: The internal Todoist ID of a task or subtask.
+    :param dict: If True, return the task or subtask as a dictionary. Defaults to False.
+    :return Task|SubTask: The task or subtask that was retrieved, assuming dict is False.
+    :return dict: The task or subtask that was retrieved, assuming dict is True.
+    :return None: Indicates that no task or subtask with the given ID was found.
+    """
+    
+    # Check for a matching task first
+    task = Task.query.filter(
+        Task.todoist_id == todoist_id,
+        Task.owner == owner.id
+    ).first()
+    if task:
+        if dict:
+            return dict(task)
+        else:
+            return task
+    
+    # Check for a matching subtask
+    subtask = SubTask.query.filter(
+        SubTask.todoist_id == todoist_id,
+        SubTask.owner == owner.id
+    ).first()
+    if subtask:
+        if dict:
+            return dict(subtask)
+        else:
+            return subtask
+    
+    # If neither were found, return None
+    return None
+
+
 #########################################################################
 #                                                                       #
 #                             SUBTASKS                                  #
@@ -229,7 +268,7 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
 
 
 def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int=None, subtask_desc: str=None, 
-                   subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None)\
+                   subtask_status: TaskStatus=TaskStatus.Incomplete, subtask_date: str=None)\
                    -> int|bool:
     """
     Creates a subtask under a specified task for the current user in the database.
@@ -295,6 +334,23 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
             })
         return subtasks_dict
     return subtasks
+
+
+def update_task_or_subtask_status(owner: User, task: Task|SubTask, status: TaskStatus) -> bool:
+    """
+    Change the status of a task or subtask to a new value.
+    
+    Args:
+        owner (User): The User who owns the task or subtask.
+        task (Task|SubTask): The Task or Subtask to 
+    """
+    try:
+        task.status = status
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating task status: {e}")
+    return False
 
 
 #########################################################################
