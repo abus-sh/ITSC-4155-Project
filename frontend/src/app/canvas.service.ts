@@ -1,42 +1,49 @@
-import { Injectable, OnInit } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { getBackendURL, getCanvasCacheTime } from '../config';
 import { HttpClient } from '@angular/common/http';
 import { APIAssignment, APICourse, Course } from './courses/courses.component';
 import { firstValueFrom, Subject } from 'rxjs';
+import { AddSubtaskBody, Assignment, Subtask, SubtasksDict } from './dashboard/dashboard.component';
 
+
+type AddSubtaskResponse = {
+    success: boolean,
+    message?: string,
+    id?: number
+}
 
 
 @Injectable({
   providedIn: 'root'
 })
-export class CanvasService implements OnInit {
-    courses$ = new Subject<Course[]>();
-
+export class CanvasService {
     private coursesUrl = getBackendURL() + '/api/v1/courses/all';
-    private courseGradedAssignments = getBackendURL() + '/api/v1/courses/graded_assignments';
+    private courseGradedAssignmentsUrl = getBackendURL() + '/api/v1/courses/graded_assignments';
+    private dueSoonUrl = getBackendURL() + '/api/v1/user/due_soon';
+    private getSubTasksUrl = getBackendURL() + '/api/v1/tasks/get_subtasks';
+    private addSubTaskUrl = getBackendURL() + '/api/v1/tasks/add_subtask';
 
+    courses$ = new Subject<Course[]>();
     private courses: Course[] = [];
-    private lastUpdated = 0; // Unix timestamp
+    private coursesLastUpdated = 0; // Unix timestamp
+
+    dueAssignments$ = new Subject<Assignment[]>();
+    private dueAssignments: Assignment[] = [];
+    private dueAssignmentsLastUpdated = 0;
 
     constructor(private http: HttpClient) {}
 
-    ngOnInit(): void {
-        console.log("CanvasService init");
-    }
-
     async getCourses() {
-        console.log("CanvasService fetchCourses");
-
         // Only fetch new courses if enough time has passed
         let now = new Date().getTime();
-        if ((now - this.lastUpdated) > getCanvasCacheTime()) {
+        if ((now - this.coursesLastUpdated) > getCanvasCacheTime()) {
             // Send immediate update now w/ potentially old courses
             this.courses$.next(this.courses);
 
             // Get new courses
             this.courses = await this.fetchCourses();
 
-            this.lastUpdated = now;
+            this.coursesLastUpdated = now;
         }
 
         // Send most recently received courses
@@ -78,7 +85,7 @@ export class CanvasService implements OnInit {
 
         const body = { course_id: courseId };
         let assignments = await firstValueFrom(this.http
-            .post<APIAssignment[]>(this.courseGradedAssignments, body,
+            .post<APIAssignment[]>(this.courseGradedAssignmentsUrl, body,
             { withCredentials: true }));
         
         this.courses[courseIndex].assignments = assignments;
@@ -90,11 +97,79 @@ export class CanvasService implements OnInit {
         for (let course of this.courses) {
             const body = { course_id: course.id };
             let assignments = await firstValueFrom(this.http
-                .post<APIAssignment[]>(this.courseGradedAssignments, body,
+                .post<APIAssignment[]>(this.courseGradedAssignmentsUrl, body,
                 { withCredentials: true }));
 
             course.assignments = assignments;
         }
         this.courses$.next(this.courses);
+    }
+
+    async getDueAssignments() {
+        let now = new Date().getTime();
+        if ((now - this.dueAssignmentsLastUpdated) > getCanvasCacheTime()) {
+            // Send immediate update now w/ potentially old assignments
+            this.courses$.next(this.courses);
+
+            // Get new courses
+            this.dueAssignments = await this.fetchDueAssignments();
+
+            this.dueAssignmentsLastUpdated = now;
+        }
+
+        // Send most recently received assignments
+        this.dueAssignments$.next(this.dueAssignments);
+    }
+
+    private async fetchDueAssignments(): Promise<Assignment[]> {
+        let assignments = await firstValueFrom(this.http.get<Assignment[]>(this.dueSoonUrl,
+            { withCredentials: true }));
+        
+        return assignments;
+    }
+
+    async getSubTasks(assignments: Assignment[]) {
+        const assignmentIds = assignments.map(assignment => Number(assignment.id))
+            .filter(id => !isNaN(id));
+        
+        let subtasks = await firstValueFrom(this.http.post<SubtasksDict>(this.getSubTasksUrl,
+            { task_ids: assignmentIds }, { withCredentials: true }));
+        
+        this.dueAssignments = this.dueAssignments.map(assignment => ({
+            ...assignment,
+            subtasks: subtasks[assignment.id] || []
+        }));
+
+        console.log('b', this.dueAssignments[0].subtasks[0]);
+
+        this.dueAssignments$.next(this.dueAssignments);
+    }
+
+    async addSubtask(subtaskData: AddSubtaskBody) {
+        let resp = await firstValueFrom(this.http.post<AddSubtaskResponse>(this.addSubTaskUrl,
+            subtaskData, { withCredentials: true }));
+        console.log(resp);
+        console.log(subtaskData);
+
+        if (resp.id == undefined) {
+            return;
+        }
+
+        let subtask: Subtask = {
+            canvas_id: subtaskData.canvas_id,
+            name: subtaskData.name,
+            description: subtaskData.description,
+            status: subtaskData.status,
+            due_date: subtaskData.due_date,
+            id: resp.id
+        }
+
+        // TODO: update this.dueAssignments and push update via observer with new subtask
+        this.dueAssignments.filter(assignment => {
+            return assignment.id == (subtaskData as any).canvas_id;
+        }).forEach(assignment => {
+            assignment.subtasks.push(subtask);
+        });
+        this.dueAssignments$.next(this.dueAssignments);
     }
 }
