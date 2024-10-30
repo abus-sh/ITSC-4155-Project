@@ -12,6 +12,11 @@ interface AddSubtaskResponse {
     id?: number
 }
 
+interface ToggleSubtaskResponse {
+    success: boolean,
+    message: string
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +27,7 @@ export class CanvasService {
     private dueSoonUrl = getBackendURL() + '/api/v1/user/due_soon';
     private getSubTasksUrl = getBackendURL() + '/api/v1/tasks/get_subtasks';
     private addSubTaskUrl = getBackendURL() + '/api/v1/tasks/add_subtask';
+    private subTaskUrl = getBackendURL() + '/api/v1/tasks';
 
     courses$ = new Subject<Course[]>();
     private courses: Course[] = [];
@@ -164,12 +170,23 @@ export class CanvasService {
             id: resp.id
         }
 
-        // TODO: update this.dueAssignments and push update via observer with new subtask
         this.dueAssignments.filter(assignment => {
             return assignment.id == subtaskData.canvas_id;
         }).forEach(assignment => {
             assignment.subtasks.push(subtask);
         });
         this.dueAssignments$.next(this.dueAssignments);
+    }
+
+    async toggleSubtaskStatus(subtask: Subtask) {
+        const resp = await firstValueFrom(this.http.post<ToggleSubtaskResponse>(this.subTaskUrl +
+            `/${subtask.todoist_id}/toggle`, {}, { withCredentials: true }));
+        
+        if (!resp.success) {
+            return;
+        }
+
+        let target = this.dueAssignments.filter(assignment => assignment.subtasks.includes(subtask));
+        console.log(target);
     }
 }

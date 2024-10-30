@@ -11,6 +11,7 @@ export interface Subtask {
     description: string;
     due_date: string;
     status: number;
+    todoist_id?: string;
 }
 
 export interface Assignment {
@@ -148,6 +149,14 @@ export class DashboardComponent implements OnInit {
             this.renderer.addClass(card, 'show-dropdown');
             this.previousDropdown = dropdown;
         }
+    }
+
+    // Toggle whether a subtask is completed
+    toggleSubtaskStatus(subtask: Subtask) {
+        // Lie to the user and cause the visuals to update automatically
+        subtask.status = subtask.status ? 0 : 1;
+
+        this.canvasService.toggleSubtaskStatus(subtask);
     }
 
     // Open the creation subtask form

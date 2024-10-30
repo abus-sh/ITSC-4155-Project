@@ -28,7 +28,7 @@
                     <div *ngFor="let subtask of assignment.subtasks | orderBy: 'due_date'" class="subtask-list">
                         <div class="subtask-card" title="{{ subtask.description }}">
                             <span class="subtask-name">{{ subtask.name }}</span>
-                            <span class="subtask-status {{ subtask.status ? 'complete' : 'incomplete' }}">
+                            <span class="subtask-status {{ subtask.status ? 'complete' : 'incomplete' }}" (click)="toggleSubtaskStatus(subtask)" ((keypress))="toggleSubtaskStatus(subtask)" tabindex="0">
                                 {{ subtask.status ? 'Complete' : 'Incomplete' }}
                             </span>
                             <span class="subtask-due-date">{{ subtask.due_date }}</span>
