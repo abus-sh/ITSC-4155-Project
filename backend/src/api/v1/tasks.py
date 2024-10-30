@@ -29,7 +29,7 @@ def update_tasks():
 @tasks.post('/add_subtask')
 def add_subtask_user():
     try:
-        _, todoist_token = session.decrypt_api_keys()
+        todoist_token = session.decrypt_todoist_key()
         data = request.json
         
         canvas_id = data.get('canvas_id')
@@ -44,7 +44,7 @@ def add_subtask_user():
         result = todoist.add_subtask(current_user, todoist_token, canvas_id, subtask_name, subtask_desc, 
                                 subtask_status, subtask_date)
         if result:
-            return jsonify({'success': True}), 200
+            return jsonify({'success': True, 'id': result}), 200
         else:
             return jsonify({'success': False, 'message':'Failed to create subtask'}), 400 
     except Exception as e:

@@ -222,7 +222,8 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
 
 
 def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int=None, subtask_desc: str=None, 
-                   subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None) -> bool:
+                   subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None)\
+                   -> int|bool:
     """
     Creates a subtask under a specified task for the current user in the database.
 
@@ -235,14 +236,14 @@ def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int
         subtask_date (str, optional): The due date for the subtask. Defaults to None.
 
     Returns:
-        bool: True if the subtask was successfully created, False otherwise.
+        int|False: The ID of the subtask if the subtask was successfully created, False otherwise.
     """
     try:
         new_subtask = SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id, name=subtask_name, 
                                 description=subtask_desc, status=subtask_status, due_date=subtask_date)
         db.session.add(new_subtask)
         db.session.commit()
-        return True
+        return new_subtask.id
     except Exception as e:
         db.session.rollback()
         print(f"Error setting subtask task: {e}")
