@@ -193,7 +193,7 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
     return False
 
 
-def complete_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
+def close_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
     """
     Marks a task or subtask as complete for the current user.
 
@@ -203,7 +203,7 @@ def complete_task(current_user: User, todoist_key: str, todoist_task_id: str) ->
         todoist_task_id (str): The ID of the task or subtask in Todoist.
     
     Returns:
-        bool: True if the subtask was completed, False otherwise.
+        bool: True if the task or subtask was completed, False otherwise.
     """
     # Get the task in the database
     task: Task|SubTask|None = get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
@@ -221,6 +221,61 @@ def complete_task(current_user: User, todoist_key: str, todoist_task_id: str) ->
 
         return True
 
+    return False
+
+
+def open_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
+    """
+    Marks a task or subtask as in progress for the current user.
+
+    Args:
+        current_user (User): The user that owns the task or subtask.
+        todoist_key (str): The Todoist API key for the current user.
+        todoist_task_id (str): The ID of the task or subtask in Todoist.
+    
+    Returns:
+        bool: True if the task or subtask was marked as in progress, False otherwise.
+    """
+
+    # Get the task in the database
+    task: Task|SubTask|None = get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
+    if task == None:
+        return False
+    
+    # Mark task as in progress in Todoist
+    response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_task_id}/reopen",\
+                             headers={"Authorization": f"Bearer {todoist_key}"})
+    if response.status_code == 204:
+        update_task_or_subtask_status(current_user, task, TaskStatus.Incomplete)
+
+        return True
+    
+    return False
+
+
+def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
+    """
+    Toggles a task's or subtask's status for the current user.
+
+    Args:
+        current_user (User): The user that owns the task or subtask.
+        todoist_key (str): The Todoist API key for the current user.
+        todoist_task_id (str): The ID of the task or subtask in Todoist.
+    
+    Returns:
+        bool: True if the task's or subtask's status was toggled, False otherwise.
+    """
+    # Get the task in the database
+    task: Task|SubTask|None = get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
+    if task == None:
+        return False
+    
+    # Handle each enum seperately in case more states happen in the future
+    if task.status == TaskStatus.Completed:
+        return open_task(current_user, todoist_key, todoist_task_id)
+    elif task.status == TaskStatus.Incomplete:
+        return close_task(current_user, todoist_key, todoist_task_id)
+    
     return False
 
 

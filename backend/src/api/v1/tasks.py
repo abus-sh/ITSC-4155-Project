@@ -68,10 +68,28 @@ def get_subtasks():
         return jsonify({'success': False, 'message':'Error while getting subtasks'}), 400
     return jsonify({'success': False, 'message':'Unable to get subtasks'}), 404
 
-@tasks.post('/<task_id>/complete')
-def complete_subtask(task_id: str):
+@tasks.post('/<task_id>/close')
+def close_task(task_id: str):
     todoist_token = session.decrypt_todoist_key()
-    result = todoist.complete_task(current_user, todoist_token, task_id)
+    result = todoist.close_task(current_user, todoist_token, task_id)
     if result:
-        return jsonify({'success': True, 'message': f'{task_id} completed'})
-    return jsonify({'success': False, 'message': f'Unable to complete {task_id}'})
+        return jsonify({'success': True, 'message': f'{task_id} closed'})
+    return jsonify({'success': False, 'message': f'Unable to close {task_id}'}), 400
+
+
+@tasks.post('/<task_id>/open')
+def open_task(task_id: str):
+    todoist_token = session.decrypt_todoist_key()
+    result = todoist.open_task(current_user, todoist_token, task_id)
+    if result:
+        return jsonify({'success': True, 'message': f'{task_id} opened'})
+    return jsonify({'success': False, 'message': f'Unable to open {task_id}'}), 400
+
+
+@tasks.post('/<task_id>/toggle')
+def toggle_task(task_id: str):
+    todoist_token = session.decrypt_todoist_key()
+    result = todoist.toggle_task(current_user, todoist_token, task_id)
+    if result:
+        return jsonify({'success': True, 'message': f'{task_id} toggled'})
+    return jsonify({'success': False, 'message': f'Unable to open {task_id}'}), 400
