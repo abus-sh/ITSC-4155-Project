@@ -1,20 +1,20 @@
-import { Component, OnInit, Renderer2 } from '@angular/core';
+import { assertInInjectionContext, Component, OnInit, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { getBackendURL } from '../../config';
-import { HttpClient } from '@angular/common/http';
 import { OrderByPipe } from '../pipes/date.pipe';
+import { CanvasService } from '../canvas.service';
 
-interface Subtask {
+export interface Subtask {
     id: number,
     canvas_id: number;
     name: string;
     description: string;
     due_date: string;
-    status: boolean;
+    status: number;
 }
 
-interface Assignment {
+export interface Assignment {
     title: string;
     description: string;
     type: string;
@@ -28,6 +28,18 @@ interface Assignment {
     subtasks: Subtask[];
 }
 
+export type SubtasksDict = {
+    [canvas_id: number]: Subtask[]
+};
+
+export type AddSubtaskBody = {
+    name: string,
+    description: string,
+    due_date: string,
+    status: number,
+    canvas_id: number
+}
+
 @Component({
     selector: 'app-dashboard',
     standalone: true,
@@ -36,8 +48,6 @@ interface Assignment {
     styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
-    private dueSoonUrl = getBackendURL() + '/api/v1/user/due_soon';
-    private subTasks = getBackendURL() + '/api/v1/tasks/get_subtasks';
     private previousDropdown: HTMLElement | null = null;
 
     subtaskFormDisplay = false;
@@ -48,7 +58,9 @@ export class DashboardComponent implements OnInit {
     sectionCollapseComplete = false;
     assignments: Assignment[] = [];
 
-    constructor(private fb: FormBuilder, private http: HttpClient, private renderer: Renderer2) {
+    constructor(private fb: FormBuilder, private canvasService: CanvasService,
+        private renderer: Renderer2) {
+        
         this.addSubtaskForm = this.fb.group({
             name: ['', Validators.required],
             description: [''],
@@ -58,7 +70,13 @@ export class DashboardComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.dueSoonAssignments();
+        this.canvasService.dueAssignments$.subscribe(assignments => {
+            this.assignments = assignments;
+        });
+
+        this.canvasService.getDueAssignments().then(() => {
+            this.canvasService.getSubTasks(this.assignments);
+        });
     }
 
 
@@ -68,44 +86,12 @@ export class DashboardComponent implements OnInit {
     *   
     *********************************************/
 
-    // GET ASSIGNMENTS FOR DASHBOARD
-    dueSoonAssignments(): void {
-        this.http.get<Assignment[]>(this.dueSoonUrl, { withCredentials: true }).subscribe(
-            (data: Assignment[]) => {
-                this.assignments = data;
-                this.getSubTasks(data);
-            },
-            (error) => {
-                console.error('Error fetching courses:', error);
-            }
-        );
-    }
-
-    // GET SUBTASKS FOR ASSIGNMENTS IN DASHBOARD
-    getSubTasks(data: Assignment[]) {
-        const assignmentIds = data.map((assignment: Assignment) => Number(assignment.id)).filter(id => !isNaN(id))
-        type SubtasksDict = { [canvas_id: number]: Subtask[] };
-
-        this.http.post<SubtasksDict>(this.subTasks, { task_ids: assignmentIds }, { withCredentials: true }).subscribe(
-            (subtasksDict: SubtasksDict) => {
-
-                this.assignments = this.assignments.map(assignment => ({
-                    ...assignment,
-                    subtasks: subtasksDict[assignment.id] || []
-                }));
-            },
-            (error) => {
-                console.error('Error fetching subtasks:', error);
-            }
-        );
-    }
-
     // SEND POST REQUEST for creating a new Subtask
     addSubtask(assignment: Assignment | null) {
         if (this.addSubtaskForm.valid && assignment != null) {
             console.log(assignment.id);
 
-            const formData = {
+            const formData: AddSubtaskBody = {
                 ...this.addSubtaskForm.value,
                 name: this.addSubtaskForm.value.name || '',
                 description: this.addSubtaskForm.value.description || '',
@@ -114,14 +100,7 @@ export class DashboardComponent implements OnInit {
                 canvas_id: assignment.id
             };
 
-            this.http.post(getBackendURL() + '/api/v1/tasks/add_subtask', formData, { withCredentials: true }).subscribe({
-                next: (response) => {
-                    console.log(" * Subtask added to Assignment: ", assignment.id)
-                },
-                error: (error) => {
-                    console.error('Error:', error);
-                }
-            });
+            this.canvasService.addSubtask(formData);
 
             this.addSubtaskForm.reset({
                 name: '',
