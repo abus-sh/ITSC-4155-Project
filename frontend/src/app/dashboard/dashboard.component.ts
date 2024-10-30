@@ -1,7 +1,6 @@
-import { assertInInjectionContext, Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { getBackendURL } from '../../config';
 import { OrderByPipe } from '../pipes/date.pipe';
 import { CanvasService } from '../canvas.service';
 
@@ -28,11 +27,9 @@ export interface Assignment {
     subtasks: Subtask[];
 }
 
-export type SubtasksDict = {
-    [canvas_id: number]: Subtask[]
-};
+export type SubtasksDict = Record<number, Subtask[]>;
 
-export type AddSubtaskBody = {
+export interface AddSubtaskBody {
     name: string,
     description: string,
     due_date: string,

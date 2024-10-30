@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { getBackendURL } from '../../config';
 import { CommonModule } from '@angular/common';
 import { CanvasService } from '../canvas.service';
 

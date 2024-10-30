@@ -1,6 +1,7 @@
 <div class="dashboard-container">
-    <h2 class="collapsible-title" (click)="toggleSection(0)">{{ sectionCollapseUpcoming ? '&#9662;' : '&#9652;' }}
-        Upcoming Assignments</h2>
+    <h2 class="collapsible-title" (click)="toggleSection(0)" (keypress)="toggleSection(0)" tabindex="0">
+        {{ sectionCollapseUpcoming ? '&#9662;' : '&#9652;' }} Upcoming Assignments
+    </h2>
     <hr>
     <div class="assignments-container" *ngIf="!sectionCollapseUpcoming">
         <!-- ASSIGNMENT LIST -->
@@ -42,8 +43,9 @@
         </div>
     </div>
     <br>
-    <h2 class="collapsible-title" (click)="toggleSection(1)">{{ sectionCollapseComplete ? '&#9662;' : '&#9652;' }}
-        Completed Assignments</h2>
+    <h2 class="collapsible-title" (click)="toggleSection(1)" (keypress)="toggleSection(1)" tabindex="0">
+        {{ sectionCollapseComplete ? '&#9662;' : '&#9652;' }} Completed Assignments
+    </h2>
     <hr>
 
     <!-- Add a Subtask to an Assignment/Task FORM -->
