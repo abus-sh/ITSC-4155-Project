@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { OrderByPipe } from '../pipes/date.pipe';
 import { CanvasService } from '../canvas.service';
+import { AddtaskComponent } from "../addtask/addtask.component";
 
 export interface Subtask {
-    id: number,
+    id: number;
     canvas_id: number;
     name: string;
     description: string;
@@ -19,10 +20,10 @@ export interface Assignment {
     description: string;
     type: string;
     submission_types: string[];
-    html_url: string;
-    context_name: string;
-    id: number;
-    points_possible: number;
+    html_url?: string;
+    context_name?: string;
+    id?: number;
+    points_possible?: number;
     graded_submissions_exist: boolean;
     due_at: string;
     subtasks: Subtask[];
@@ -41,7 +42,7 @@ export interface AddSubtaskBody {
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, OrderByPipe],
+    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })
@@ -52,6 +53,8 @@ export class DashboardComponent implements OnInit {
     subtaskAssignment: Assignment | null = null;
     addSubtaskForm: FormGroup;
     private cantToggle = false;
+
+    assignmentFormDisplay = false;
 
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
@@ -182,6 +185,14 @@ export class DashboardComponent implements OnInit {
     closeForm() {
         this.subtaskFormDisplay = false;
         this.subtaskAssignment = null;
+    }
+
+    openAssignmentForm() {
+        this.assignmentFormDisplay = true;
+    }
+
+    closeAssignmentForm() {
+        this.assignmentFormDisplay = false;
     }
 
     // Get end of current day date

@@ -141,13 +141,23 @@ export class CanvasService {
         const assignmentIds = assignments.map(assignment => Number(assignment.id))
             .filter(id => !isNaN(id));
         
-        const subtasks = await firstValueFrom(this.http.post<SubtasksDict>(this.getSubTasksUrl,
-            { task_ids: assignmentIds }, { withCredentials: true }));
-        
-        this.dueAssignments = this.dueAssignments.map(assignment => ({
-            ...assignment,
-            subtasks: subtasks[assignment.id] || []
-        }));
+        if (assignmentIds.length !== 0) {
+            const subtasks = await firstValueFrom(this.http.post<SubtasksDict>(this.getSubTasksUrl,
+                { task_ids: assignmentIds }, { withCredentials: true }));
+            
+            this.dueAssignments = this.dueAssignments.map(assignment => {
+                if (assignment.id) {
+                    return {
+                        ...assignment,
+                        subtasks: subtasks[assignment.id]
+                    };
+                }
+                return {
+                    ...assignment,
+                    subtasks: []
+                };
+            });
+        }
 
         this.dueAssignments$.next(this.dueAssignments);
     }
