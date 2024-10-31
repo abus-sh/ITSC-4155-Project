@@ -31,6 +31,35 @@ def update_tasks():
 
     return jsonify({'success': True}), 200
 
+@tasks.post('/add_task')
+def add_task_user():
+    data = request.json
+
+    if 'name' not in data or type(data['name']) != str:
+        return jsonify({'success': False, 'message': 'Missing name'}), 400
+    
+    if 'due_at' not in data or type(data['due_at']) != str:
+        return jsonify({'success': False, 'message': 'Missing due_at'}), 400
+
+    name = data['name']
+    due_at = data['due_at']
+
+    if len(name) == 0 or len(name) > 100:
+        return jsonify({'success': False, 'message': 'Invalid name'}), 400
+    
+    desc = data.get('description', None)
+    if type(desc) != str:
+        desc = None
+    if type(desc) == str and len(desc) > 500:
+        return jsonify({'success': False, 'message': 'Invalid description'}), 400
+
+    todoist_key = session.decrypt_todoist_key()
+
+    if not todoist.add_task(current_user, todoist_key, name, due_at, desc):
+        return jsonify({'success': False, 'message': 'Error calling Todoist API'}), 500
+
+    return jsonify({'success': True})
+
 @tasks.post('/add_subtask')
 def add_subtask_user():
     try:

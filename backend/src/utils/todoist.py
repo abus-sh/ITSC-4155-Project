@@ -130,10 +130,48 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todo
         queries.set_task_duedate(task, due_date)
 
 
+def add_task(current_user: User, todoist_key: str, task_name: str,  due_date: str,
+             task_desc: str|None=None, canvas_id: int|None=None) -> bool:
+    """
+    Creates a task for the current user in both Todoist and the database. This may be associated
+    with a Canvas task.
+
+    Args:
+        current_user (User): The user creating the task.
+        todoist_key (str): The Todoist API key for the current user.
+        task_name (str): The name of the task.
+        due_date (str): The due date of the assignment.
+        task_desc (str|None): The description for the assignment, optional.
+        canvas_id (str|None): The ID of the assignment in Canvas, optional.
+    
+    Returns:
+        bool: True if the task was added and False otherwise
+    """
+    body = {'content': task_name, 'due_string': due_date, 'labels': ['assignment']}
+
+    # Set the description if one was provided
+    if task_desc:
+        body['description'] = task_desc
+
+    headers = {
+        "Authorization": f"Bearer {todoist_key}",
+        "Content-Type": "application/json"
+    }
+
+    resp = requests.post('https://api.todoist.com/rest/v2/tasks', json=body, headers=headers)
+
+    if resp.status_code != 200:
+        print(resp.text)
+        return False
+    
+    print("task added")
+    return True
+
+
 def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str, subtask_desc: str=None, 
                    subtask_status: TaskStatus=TaskStatus.Incomplete, subtask_date: str=None) -> int|bool:
     """
-    Creates a subtask under a specified task for the current user in both todoist and the database.
+    Creates a subtask under a specified task for the current user in both Todoist and the database.
 
     Args:
         current_user (User): The user creating the subtask. Only the owner of the task can add subtasks.
@@ -304,6 +342,7 @@ def sync_task_status(current_user: User, todoist_key: str):
             open_tasks.add(task['id'])
     
     queries.sync_task_status(current_user, open_tasks)
+
 
 def _send_post_todoist(todoist_url, body, headers):
     """
