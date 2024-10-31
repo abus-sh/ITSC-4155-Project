@@ -26,8 +26,7 @@ def update_tasks():
     try:
         todoist.sync_task_status(current_user, todoist_token)
     except Exception as e:
-        """ print('Error updating task completion') """
-        raise e
+        print('Error updating task completion:', e)
         return jsonify({'success': False}), 400
 
     return jsonify({'success': True}), 200
