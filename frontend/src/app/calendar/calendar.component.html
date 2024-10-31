@@ -1,1 +1,22 @@
-<p>calendar works!</p>
+<div class="calendar">
+    <div class="calendar-header">
+        <button (click)="prevMonth()" class="nav-button">Previous</button>
+        <h2>{{ monthName }} {{ year }}</h2>
+        <button (click)="nextMonth()" class="nav-button">Next</button>
+    </div>
+    <div class="weekdays">
+        <div class="weekday" *ngFor="let day of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']">{{ day }}</div>
+    </div>
+    <div class="days">
+        <div class="day" *ngFor="let day of days" [ngClass]="{
+                'prev-month': !day.isCurrentMonth, 
+                'current-month': day.isCurrentMonth,
+                'today': day.isToday
+            }">
+            <div class="date">{{ day.date.getDate() }}</div>
+            <div class="items">
+                <div *ngFor="let item of day.items" class="item">{{ item }}</div>
+            </div>
+        </div>
+    </div>
+</div>
