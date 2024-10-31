@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { getBackendURL, getCanvasCacheTime } from '../config';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { APIAssignment, APICourse, Course } from './courses/courses.component';
 import { firstValueFrom, Subject } from 'rxjs';
 import { AddSubtaskBody, Assignment, Subtask, SubtasksDict } from './dashboard/dashboard.component';
+import { CalendarEvent } from './calendar/calendar.component';
 
 
 type AddSubtaskResponse = {
@@ -14,12 +15,13 @@ type AddSubtaskResponse = {
 
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class CanvasService {
     private coursesUrl = getBackendURL() + '/api/v1/courses/all';
     private courseGradedAssignmentsUrl = getBackendURL() + '/api/v1/courses/graded_assignments';
     private dueSoonUrl = getBackendURL() + '/api/v1/user/due_soon';
+    private calendarEventsUrl = getBackendURL() + '/api/v1/user/calendar_events';
     private getSubTasksUrl = getBackendURL() + '/api/v1/tasks/get_subtasks';
     private addSubTaskUrl = getBackendURL() + '/api/v1/tasks/add_subtask';
 
@@ -31,7 +33,7 @@ export class CanvasService {
     private dueAssignments: Assignment[] = [];
     private dueAssignmentsLastUpdated = 0;
 
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient) { }
 
     async getCourses() {
         // Only fetch new courses if enough time has passed
@@ -53,7 +55,7 @@ export class CanvasService {
     private async fetchCourses(): Promise<Course[]> {
         // Get the data from the backend, which fetches it from the Canvas API if not cached
         const data = await firstValueFrom(this.http.get<APICourse[]>(this.coursesUrl,
-            { withCredentials: true}));
+            { withCredentials: true }));
 
         const transformedCourses = data.map(course => {
             return {
@@ -86,8 +88,8 @@ export class CanvasService {
         const body = { course_id: courseId };
         let assignments = await firstValueFrom(this.http
             .post<APIAssignment[]>(this.courseGradedAssignmentsUrl, body,
-            { withCredentials: true }));
-        
+                { withCredentials: true }));
+
         this.courses[courseIndex].assignments = assignments;
 
         this.courses$.next(this.courses);
@@ -98,7 +100,7 @@ export class CanvasService {
             const body = { course_id: course.id };
             let assignments = await firstValueFrom(this.http
                 .post<APIAssignment[]>(this.courseGradedAssignmentsUrl, body,
-                { withCredentials: true }));
+                    { withCredentials: true }));
 
             course.assignments = assignments;
         }
@@ -124,17 +126,30 @@ export class CanvasService {
     private async fetchDueAssignments(): Promise<Assignment[]> {
         let assignments = await firstValueFrom(this.http.get<Assignment[]>(this.dueSoonUrl,
             { withCredentials: true }));
-        
+
         return assignments;
     }
+
+    // This may be better to not cache it, but I will leave it here if we change our mind
+    async getCalendarEvents(start_date: string, end_date: string): Promise<CalendarEvent[]> {
+        const params = new HttpParams().set('start_date', start_date).set('end_date', end_date);
+    
+        let events = await firstValueFrom(this.http.get<CalendarEvent[]>(this.calendarEventsUrl, {
+            params: params,
+            withCredentials: true
+        }));
+        
+        return events;
+    }
+
 
     async getSubTasks(assignments: Assignment[]) {
         const assignmentIds = assignments.map(assignment => Number(assignment.id))
             .filter(id => !isNaN(id));
-        
+
         let subtasks = await firstValueFrom(this.http.post<SubtasksDict>(this.getSubTasksUrl,
             { task_ids: assignmentIds }, { withCredentials: true }));
-        
+
         this.dueAssignments = this.dueAssignments.map(assignment => ({
             ...assignment,
             subtasks: subtasks[assignment.id] || []

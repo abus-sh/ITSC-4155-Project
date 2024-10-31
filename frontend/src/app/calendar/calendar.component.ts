@@ -4,19 +4,25 @@ import { CommonModule } from '@angular/common';
 
 
 
-// Not just assignment and subtasks, but zoom meeting and other calendar events
-export interface Events {
-    name: string;
-    date: string;
-    url: string;
+// Not just assignment, but zoom meeting and other calendar events
+export interface CalendarEvent {
+    title: string;
+    description: string;
+    type: string;
+    html_url: string;
+    context_name: string;
+    start_at: Date;
+    end_at: Date;
+    user_submitted?: boolean;
 }
 
 interface CalendarDay {
     date: Date;
-    items: Events[];
+    items: CalendarEvent[];
     isCurrentMonth: boolean;
     isToday: boolean;
 }
+
 
 @Component({
     selector: 'app-calendar',
@@ -40,11 +46,37 @@ export class CalendarComponent {
         this.updateCalendar();
     }
 
+    /***********************************      
+    * 
+    *       Calendar Set Events
+    * 
+    ***********************************/
+
+    loadEvents(start_date: string, end_date: string) {
+        this.canvasService.getCalendarEvents(start_date, end_date).then((events: CalendarEvent[]) => {
+            console.log(events);
+        });
+    }
+
+
+    /***********************************      
+    * 
+    *       Calendar Set up
+    * 
+    ***********************************/
+
     // Updates the month name, year, and days for the current calendar
     updateCalendar() {
+        // Load CalendarDays
         this.monthName = this.monthView.toLocaleString('default', { month: 'long' });
         this.year = this.monthView.getFullYear();
         this.days = this.generateDaysInMonth(this.monthView.getFullYear(), this.monthView.getMonth());
+
+        const firstDate = this.formatDate(this.days[0].date); 
+        const lastDate = this.formatDate(this.days[this.days.length - 1].date);
+
+        // Load CalendarEvents
+        this.loadEvents(firstDate, lastDate);
     }
 
     // Creates an array of days for the current month, with days from the previous month if needed
@@ -81,5 +113,12 @@ export class CalendarComponent {
     nextMonth() {
         this.monthView.setMonth(this.monthView.getMonth() + 1);
         this.updateCalendar();
+    }
+
+    formatDate(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 }

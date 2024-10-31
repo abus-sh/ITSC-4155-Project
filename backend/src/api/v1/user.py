@@ -126,21 +126,23 @@ def get_missing_submissions():
     return jsonify(miss_assignments_list), 200
 
 
+# Get calendar event for 1 month
 @user.route('/calendar_events', methods=['GET'])
 def get_calendar_events():
     try:
         canvas_key = decrypt_canvas_key()
         
-        # Get assignments that have due date between today and 1 month + 1 day from now
-        start_date, end_date = get_date_range(months=1, days=1)
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        if start_date is None or end_date is None:
+            return 'Invalid dates argument', 400
+        
         # type event returns all the events, not just assignment
         events = canvas_api.get_calendar_events(canvas_key, start_date, end_date, limit=75, type='event')
 
         fields = [
-            'title', 'description', 'type', 'submission_types', 'html_url', 'context_name', 'start_at', 'end_at'
-        ]
-        assignment_fields = [
-            'id', 'user_submitted'
+            'id', 'title', 'description', 'type', 'submission_types', 'html_url', 'context_name', 'start_at', 'end_at'
         ]
         calendar_events = []
         for event in events:
@@ -150,11 +152,10 @@ def get_calendar_events():
             if single_event['start_at'] is None:
                 continue
             
-            # Extra fields for an assignment event
+            # If assignment was submitted
             assignment_details = getattr(event, 'assignment', None)
             if assignment_details:           
-                for extra_field in assignment_fields:
-                    single_event[extra_field] = assignment_details.get(extra_field, None)
+                single_event['user_submitted'] = assignment_details.get('user_submitted', False)
                     
             calendar_events.append(single_event)
 
