@@ -17,10 +17,11 @@
                 </span>
             </p>
             <p class="assignment-course">{{ assignment.context_name }}</p>
-            <a class="assignment-link" [href]="assignment.html_url" target="_blank">View Assignment</a>
+            <a class="assignment-link" [href]="assignment.html_url" target="_blank" *ngIf="assignment.html_url">View Assignment</a>
 
             <!-- DROPDOWN SUBTASKS -->
-            <button class="dropdown-toggle" (click)="toggleDropdown(assignment.canvas_id, $event)">Sub Tasks</button>
+            <!-- TODO: allow non-Canvas tasks to have subtasks -->
+            <button class="dropdown-toggle" (click)="toggleDropdown(assignment.canvas_id, $event)" *ngIf="assignment.canvas_id">Sub Tasks</button>
             <div class="dropdown-content {{ assignment.canvas_id }}">
 
                 <button class="add-form-button" (click)="openForm(assignment)">+ Add</button>
