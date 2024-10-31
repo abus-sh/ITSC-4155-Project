@@ -16,14 +16,21 @@ BASE_URL = get_canvas_url()
 # Fetches assignments from Canvas and adds them to Todoist
 @tasks.post('/update')
 def update_tasks():
+    canvas_token, todoist_token = session.decrypt_api_keys()
     try:
-        canvas_token, todoist_token = session.decrypt_api_keys()
         todoist.add_update_tasks(current_user.id, canvas_token, todoist_token)
-        
-        return jsonify({'success': True}), 200
     except Exception as e:
         print('Error synching assignments to Todoist from Canvas: ', e)
         return jsonify({'success': False}), 400
+
+    try:
+        todoist.sync_task_status(current_user, todoist_token)
+    except Exception as e:
+        """ print('Error updating task completion') """
+        raise e
+        return jsonify({'success': False}), 400
+
+    return jsonify({'success': True}), 200
 
 @tasks.post('/add_subtask')
 def add_subtask_user():
