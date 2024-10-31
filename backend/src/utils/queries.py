@@ -217,7 +217,7 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
 
     :param owner: The owner of the task.
     :param canvas_id: The internal Canvas ID of a task.
-    :param dict: If True, return the user as a dictionary. Defaults to False.
+    :param dict: If True, return the task as a dictionary. Defaults to False.
     :return Task or dict or None: A Task instance or a dictionary representation of the task if dict
     is True. If no task with the given Canvas ID exists, None is returned.
     """
@@ -229,6 +229,25 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
     if dict and task:
         return task.to_dict()
     return task
+
+def get_non_canvas_tasks(owner: User, dict=False) -> list[Task] | list[dict]:
+    """
+    Retrieves all tasks that do not have a Canvas ID.
+
+    :param owner: The owner of the tasks.
+    :param dict: If True, return the tasks as a list of dictionaries. Defaults to False.
+    :return list[Task] or list[dict]: A list of Tasks that have no Canvas ID or a list of the Tasks
+    as dicts if dict is True.
+    """
+
+    tasks = Task.query.filter(
+        Task.owner == owner.id,
+        Task.canvas_id == None
+    ).all()
+    if dict:
+        return [dict(task) for task in tasks]
+    return tasks
+    
 
 def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
     -> Task | SubTask | dict | None:

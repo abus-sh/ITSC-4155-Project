@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, jsonify, request
 from flask_login import current_user
 
@@ -43,6 +44,9 @@ def add_task_user():
 
     name = data['name']
     due_at = data['due_at']
+
+    # Convert due_at to be a standard time
+    due_at = datetime.strptime(due_at, '%Y-%m-%dT%H:%M').strftime('%Y-%m-%d %H:%M:%S')
 
     if len(name) == 0 or len(name) > 100:
         return jsonify({'success': False, 'message': 'Invalid name'}), 400
