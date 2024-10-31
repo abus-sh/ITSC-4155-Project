@@ -195,7 +195,7 @@ def get_current_user_no_cache(canvas_key: str) -> CurrentUser:
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
-def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int=50)\
+def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int=50, type='assignment')\
     -> list[CalendarEvent]:
     """
     Returns the calendar events within the given date range, up to a limited number. These results
@@ -205,12 +205,13 @@ def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: 
     :param canvas_key: The API key that should be used.
     :param start_date: The earliest date to retrieve events for. Must be of the form YYYY-MM-DD.
     :param end_date: The latest date to retrieve events for. Must be of the form YYYY-MM-DD.
+    :param type: The type of event to get, between: event, assignment, sub_assignment.
     :return list[CalendarEvent]: A list of canvasapi CalendarEvents within the given date range.
     """
-    return get_calendar_events_no_cache(canvas_key, start_date, end_date, limit)
+    return get_calendar_events_no_cache(canvas_key, start_date, end_date, limit, type)
 
 
-def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str, limit: int=50)\
+def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str, limit: int=50, type='assignment')\
     -> list[CalendarEvent]:
     """
     Returns the calendar events within the given date range, up to a limited number. These results
@@ -219,6 +220,7 @@ def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str
     :param canvas_key: The API key that should be used.
     :param start_date: The earliest date to retrieve events for. Must be of the form YYYY-MM-DD.
     :param end_date: The latest date to retrieve events for. Must be of the form YYYY-MM-DD.
+    :param type: The type of event to get, between: event, assignment, sub_assignment.
     :return list[CalendarEvent]: A list of canvasapi CalendarEvents within the given date range.
     """
     courses = get_all_courses(canvas_key)
@@ -231,7 +233,7 @@ def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str
         start_date=start_date, 
         end_date=end_date,
         per_page=limit,
-        type='assignment')
+        type=type)
     
     return assignments
 

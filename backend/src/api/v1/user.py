@@ -125,5 +125,22 @@ def get_missing_submissions():
         return 'Unable to get field for courses', 404
     return jsonify(miss_assignments_list), 200
 
-# TO DO:
-# GET /api/v1/users/:id/graded_submissions (Get a users most recently graded submissions)
+
+@user.route('/calendar_events', methods=['GET'])
+def get_calendar_events():
+    try:
+        canvas_key = decrypt_canvas_key()
+        
+        # Get assignments that have due date between today and 1 month from now
+        start_date, end_date = get_date_range(months=1, days=1)
+        
+        events = canvas_api.get_calendar_events(canvas_key, start_date, end_date, limit=75, type='event')
+
+
+    except Exception as e:
+        print(e)
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError as e:
+        print(e)
+        return 'Unable to get field for courses', 404
+    return jsonify(''), 200
