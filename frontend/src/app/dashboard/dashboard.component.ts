@@ -51,6 +51,7 @@ export class DashboardComponent implements OnInit {
     subtaskFormDisplay = false;
     subtaskAssignment: Assignment | null = null;
     addSubtaskForm: FormGroup;
+    private cantToggle = false;
 
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
@@ -152,11 +153,23 @@ export class DashboardComponent implements OnInit {
     }
 
     // Toggle whether a subtask is completed
-    toggleSubtaskStatus(subtask: Subtask) {
-        // Lie to the user and cause the visuals to update automatically
-        subtask.status = subtask.status ? 0 : 1;
+    async toggleSubtaskStatus(subtask: Subtask) {
+        // If you send multiple toggle status rapidly to Todoist, 
+        // they won't be processed in exact order, causing some to be ignored
+        if (this.cantToggle) { 
+            return;
+        }
+        this.cantToggle = true;
 
-        this.canvasService.toggleSubtaskStatus(subtask);
+        subtask.status = subtask.status ? 0 : 1;
+        // Lie to the user and cause the visuals to update automatically
+        const statusChanged = await this.canvasService.toggleSubtaskStatus(subtask);
+        // If changing the status to todoist failed, turn the subtask.status back to before
+        if (!statusChanged) {
+            subtask.status = subtask.status ? 0 : 1;
+        }
+
+        setTimeout(() => this.cantToggle = false, 1000); // Unlock status toggle
     }
 
     // Open the creation subtask form

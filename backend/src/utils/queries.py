@@ -220,7 +220,6 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
         return task.to_dict()
     return task
 
-
 def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
     -> Task | SubTask | dict | None:
     """
@@ -336,7 +335,6 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
             })
         return subtasks_dict
     return subtasks
-
 
 def update_task_or_subtask_status(owner: User, task: Task|SubTask, status: TaskStatus) -> bool:
     """

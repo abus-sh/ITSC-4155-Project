@@ -182,11 +182,13 @@ export class CanvasService {
         const resp = await firstValueFrom(this.http.post<ToggleSubtaskResponse>(this.subTaskUrl +
             `/${subtask.todoist_id}/toggle`, {}, { withCredentials: true }));
         
+        // Return true or false to check that the status was successfully changed on todoist
         if (!resp.success) {
-            return;
+            return false;
         }
 
         let target = this.dueAssignments.filter(assignment => assignment.subtasks.includes(subtask));
         console.log(target);
+        return true;
     }
 }
