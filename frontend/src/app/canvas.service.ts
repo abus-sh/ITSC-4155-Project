@@ -127,9 +127,19 @@ export class CanvasService {
     }
 
     private async fetchDueAssignments(): Promise<Assignment[]> {
-        const assignments = await firstValueFrom(this.http.get<Assignment[]>(this.dueSoonUrl,
+        let assignments = await firstValueFrom(this.http.get<Assignment[]>(this.dueSoonUrl,
             { withCredentials: true }));
         
+        assignments = assignments.map(assignment => {
+            if (assignment.subtasks === undefined) {
+                return {
+                    ...assignment,
+                    subtasks: []
+                };
+            }
+            return assignment;
+        });
+
         return assignments;
     }
 
@@ -184,6 +194,10 @@ export class CanvasService {
         this.dueAssignments.filter(assignment => {
             return assignment.id == subtaskData.canvas_id;
         }).forEach(assignment => {
+            if (assignment.subtasks === undefined) {
+                assignment.subtasks = [];
+            }
+
             assignment.subtasks.push(subtask);
         });
         this.dueAssignments$.next(this.dueAssignments);
@@ -198,8 +212,6 @@ export class CanvasService {
             return false;
         }
 
-        let target = this.dueAssignments.filter(assignment => assignment.subtasks.includes(subtask));
-        console.log(target);
         return true;
     }
 }
