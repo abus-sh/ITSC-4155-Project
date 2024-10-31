@@ -54,7 +54,6 @@ export class CalendarComponent {
 
     loadEvents(start_date: string, end_date: string) {
         this.canvasService.getCalendarEvents(start_date, end_date).then((events: CalendarEvent[]) => {
-            console.log(events)
             const dayMap = new Map<string, CalendarDay>();
 
             this.days.forEach(day => {
@@ -91,9 +90,6 @@ export class CalendarComponent {
         const firstDate = this.formatDate(this.days[0].date); 
         const lastDate = this.formatDate(this.days[this.days.length - 1].date);
 
-        console.log(firstDate)
-        console.log(lastDate)
-
         // Load CalendarEvents
         this.loadEvents(firstDate, lastDate);
     }
@@ -107,7 +103,7 @@ export class CalendarComponent {
         const firstDay = firstDateOfMonth.getDay();
 
         // Days that overflow into this month from the previous
-        for (let i = firstDay; i > 0; i--) {
+        for (let i = firstDay - 1; i >= 0; i--) {
             const date = new Date(year, month, 0);
             date.setDate(date.getDate() - i);
             days.push({ date, items: [], isCurrentMonth: false, isToday: date.toDateString() === this.todayString });
@@ -124,13 +120,13 @@ export class CalendarComponent {
 
     // Go to the previous month and update the calendar
     prevMonth() {
-        this.monthView.setMonth(this.monthView.getMonth() - 1);
+        this.monthView.setMonth(this.monthView.getMonth() - 1, 1);
         this.updateCalendar();
     }
 
     // Go to the next month and update the calendar
     nextMonth() {
-        this.monthView.setMonth(this.monthView.getMonth() + 1);
+        this.monthView.setMonth(this.monthView.getMonth() + 1, 1);
         this.updateCalendar();
     }
 

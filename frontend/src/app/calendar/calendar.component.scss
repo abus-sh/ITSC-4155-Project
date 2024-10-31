@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    padding: 20px;
+    padding: 0 20px 20px 20px;
     box-sizing: border-box;
     align-items: flex-start;
 }
@@ -90,7 +90,7 @@
 }
 
 .item {
-    background-color: #007bff;
+    background-color: #e6e7e7;
     color: white;
     padding: 5px;
     border-radius: 3px;
@@ -98,6 +98,15 @@
     text-align: center;
     max-height: 50px;
     overflow: hidden;
+    font-size: .85em;
+}
+
+.item.event {
+    background-color: #1c89ff;
+}
+
+.item.assignment {
+    background-color: #e62d40;
 }
 
 .today {

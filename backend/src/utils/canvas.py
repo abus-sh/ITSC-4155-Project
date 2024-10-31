@@ -7,6 +7,7 @@ from canvasapi.current_user import CurrentUser
 from canvasapi.submission import Submission
 
 from utils.settings import get_canvas_url, get_canvas_cache_time
+import gevent
 
 
 BASE_URL = get_canvas_url()
@@ -192,6 +193,27 @@ def get_current_user_no_cache(canvas_key: str) -> CurrentUser:
     profile = canvas.get_current_user()
 
     return profile
+
+
+def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int, event_types: list[str]) -> list[CalendarEvent]:
+    """
+    Retrieves all calendar events of certain types with a specified date range for the given event types 
+    using gevent.
+
+    :param canvas_key: The API key that should be used.
+    :param start_date: The earliest date to retrieve events for, formatted as YYYY-MM-DD.
+    :param end_date: The latest date to retrieve events for, formatted as YYYY-MM-DD.
+    :param limit: The limit of events for each event_type provided.
+    :param event_types: A list of event types to retrieve, such as 'assignment', 'event', etc.
+    :return: A list of merged calendar events from the specified event types within the date range.
+    """
+    greenlets = [gevent.spawn(get_calendar_events, canvas_key, start_date, end_date, limit, event_type) for event_type in event_types]
+    gevent.joinall(greenlets)
+
+    merged_events = []
+    for greenlet in greenlets:
+        merged_events.extend(greenlet.get())
+    return merged_events
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))

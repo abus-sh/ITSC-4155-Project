@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_login import current_user
 from datetime import datetime
+import gevent
 
 import utils.canvas as canvas_api
 from utils.session import decrypt_canvas_key
@@ -139,13 +140,13 @@ def get_calendar_events():
             return 'Invalid dates argument', 400
         
         # type event returns all the events, not just assignment
-        events = canvas_api.get_calendar_events(canvas_key, start_date, end_date, limit=75, type='event')
+        all_events = canvas_api.get_all_calendar_events(canvas_key, start_date, end_date, limit=60, event_types=['event','assignment'])
 
         fields = [
             'id', 'title', 'description', 'type', 'submission_types', 'html_url', 'context_name', 'start_at', 'end_at'
         ]
         calendar_events = []
-        for event in events:
+        for event in all_events:
             # Basic fields
             single_event = {field: getattr(event, field, None) for field in fields}
             
@@ -163,6 +164,5 @@ def get_calendar_events():
         print(e)
         return 'Unable to make request to Canvas API', 400
     except AttributeError as e:
-        print(e)
         return 'Unable to get field for calendar event', 404
     return jsonify(calendar_events), 200
