@@ -5,7 +5,7 @@ import utils.session as session
 import utils.todoist as todoist
 from utils.settings import get_canvas_url
 
-from utils.queries import get_subtasks_for_tasks, TaskStatus
+import utils.queries as queries
 
 
 tasks = Blueprint('tasks', __name__)
@@ -55,7 +55,9 @@ def add_task_user():
 
     todoist_key = session.decrypt_todoist_key()
 
-    if not todoist.add_task(current_user, todoist_key, name, due_at, desc):
+    task_id = todoist.add_task(current_user, todoist_key, name, due_at, desc)
+
+    if not task_id:
         return jsonify({'success': False, 'message': 'Error calling Todoist API'}), 500
 
     return jsonify({'success': True})
@@ -69,7 +71,7 @@ def add_subtask_user():
         canvas_id = data.get('canvas_id')
         subtask_name = data.get('name').strip()
         subtask_desc = data.get('description')
-        subtask_status = TaskStatus.from_integer(data.get('status'))
+        subtask_status = queries.TaskStatus.from_integer(data.get('status'))
         subtask_date = data.get('due_date')
         
         if not canvas_id or not subtask_name or not subtask_status:
@@ -92,7 +94,7 @@ def get_subtasks():
         task_ids = data.get('task_ids')
         
         if task_ids and isinstance(task_ids, list):
-            subtasks = get_subtasks_for_tasks(current_user, task_ids)
+            subtasks = queries.get_subtasks_for_tasks(current_user, task_ids)
             return jsonify(subtasks), 200
         
         elif len(task_ids) == 0:

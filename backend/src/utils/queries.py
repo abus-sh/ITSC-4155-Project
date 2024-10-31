@@ -144,29 +144,33 @@ def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
 #########################################################################
 
 
-def add_or_return_task(owner: User|int, canvas_id: str, todoist_id: str|None=None, due_date: str=None) -> Task:
+def add_or_return_task(owner: User|int, canvas_id: str|None, todoist_id: str|None=None,
+                       due_date: str=None, name: str|None=None, desc: str|None=None) -> Task:
     """
     Add a new task to the database or return the task if it already exists.
 
     :param owner: The User or the ID of the User who owns the task.
-    :param canvas_id: The ID of the task in Canvas. This can be found with the Canvas API.
+    :param canvas_id: The ID of the task in Canvas, optionally. This can be found with the Canvas
+    API.
     :param todoist_id: The ID of the task in Todoist, if a task exists. If no ID is provided, no
     Todoist task is linked to the Canvas task at this time.
     :return Task: The Task that was added.
     :raises Exception: If the Task could not be added to the database.
     """
     # TODO: make :rasies Exception: more specific.
-    if type(owner) == User:
-        owner = owner.id
+    user_id = getattr(owner, 'id', None)
+    if user_id:
+        owner = user_id
 
     # Prevent exact duplicates from being registered.
-    current_task = Task.query.filter_by(owner=owner, canvas_id=canvas_id).first()
-    if current_task:
-        return current_task
+    if canvas_id:
+        current_task = Task.query.filter_by(owner=owner, canvas_id=canvas_id).first()
+        if current_task:
+            return current_task
 
     try:
         new_task = Task(owner=owner, task_type=TaskType.assignment, canvas_id=canvas_id,
-                        todoist_id=todoist_id, due_date=due_date)
+                        todoist_id=todoist_id, due_date=due_date, name=name, description=desc)
         db.session.add(new_task)
         db.session.commit()
         return new_task

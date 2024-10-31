@@ -6,6 +6,7 @@ This file provides utilities for adding tasks to Todoist.
 from datetime import datetime
 from todoist_api_python.api import TodoistAPI
 import gevent, requests, uuid, json
+from typing import Literal
 
 from api.v1.courses import get_all_courses, get_course_assignments
 from utils.models import User, TaskStatus, Task, SubTask
@@ -131,7 +132,7 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todo
 
 
 def add_task(current_user: User, todoist_key: str, task_name: str,  due_date: str,
-             task_desc: str|None=None, canvas_id: int|None=None) -> bool:
+             task_desc: str|None=None, canvas_id: int|None=None) -> int|Literal[False]:
     """
     Creates a task for the current user in both Todoist and the database. This may be associated
     with a Canvas task.
@@ -145,7 +146,7 @@ def add_task(current_user: User, todoist_key: str, task_name: str,  due_date: st
         canvas_id (str|None): The ID of the assignment in Canvas, optional.
     
     Returns:
-        bool: True if the task was added and False otherwise
+        int|Literal[False]: The Todoist ID if the task was added and False otherwise.
     """
     body = {'content': task_name, 'due_string': due_date, 'labels': ['assignment']}
 
@@ -164,8 +165,11 @@ def add_task(current_user: User, todoist_key: str, task_name: str,  due_date: st
         print(resp.text)
         return False
     
-    print("task added")
-    return True
+    task_id = resp.json()['id']
+
+    queries.add_or_return_task(current_user, None, task_id, due_date, task_name, task_desc)
+
+    return task_id
 
 
 def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str, subtask_desc: str=None, 
