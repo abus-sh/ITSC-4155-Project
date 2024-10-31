@@ -46,10 +46,10 @@ def get_assignments_due_soon():
         assignments = canvas_api.get_calendar_events(canvas_key, start_date, end_date)
 
         fields = [
-            'title', 'description', 'type', 'submission_types', 'html_url', 'context_name',
+            'title', 'description', 'type', 'submission_types', 'html_url', 'context_name', 
         ]
         extra_fields = [
-            'id', 'points_possible', 'graded_submissions_exist'
+            'id', 'points_possible', 'graded_submissions_exist', 'user_submitted'
         ]
         assignments_due_soon = []
         for assignment in assignments:
@@ -131,16 +131,37 @@ def get_calendar_events():
     try:
         canvas_key = decrypt_canvas_key()
         
-        # Get assignments that have due date between today and 1 month from now
+        # Get assignments that have due date between today and 1 month + 1 day from now
         start_date, end_date = get_date_range(months=1, days=1)
-        
+        # type event returns all the events, not just assignment
         events = canvas_api.get_calendar_events(canvas_key, start_date, end_date, limit=75, type='event')
 
+        fields = [
+            'title', 'description', 'type', 'submission_types', 'html_url', 'context_name', 'start_at', 'end_at'
+        ]
+        assignment_fields = [
+            'id', 'user_submitted'
+        ]
+        calendar_events = []
+        for event in events:
+            # Basic fields
+            single_event = {field: getattr(event, field, None) for field in fields}
+            
+            if single_event['start_at'] is None:
+                continue
+            
+            # Extra fields for an assignment event
+            assignment_details = getattr(event, 'assignment', None)
+            if assignment_details:           
+                for extra_field in assignment_fields:
+                    single_event[extra_field] = assignment_details.get(extra_field, None)
+                    
+            calendar_events.append(single_event)
 
     except Exception as e:
         print(e)
         return 'Unable to make request to Canvas API', 400
     except AttributeError as e:
         print(e)
-        return 'Unable to get field for courses', 404
-    return jsonify(''), 200
+        return 'Unable to get field for calendar event', 404
+    return jsonify(calendar_events), 200
