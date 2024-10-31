@@ -21,6 +21,8 @@ h2 {
 
 .upcoming-header-container .dropdown-toggle {
     margin-top: 0px;
+    margin-bottom: 10px;
+    padding: 8px 25px;
 }
 
 /* ASSIGNMENTS / TASKS */
@@ -87,16 +89,29 @@ h2 {
     color: #333;
 }
 
+.assignment-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    justify-content: space-evenly;
+    align-items: center;
+}
+ 
+.assignment-buttons .assignment-link, 
+.assignment-buttons .dropdown-toggle {
+    flex-grow: 1;
+    text-align: center;
+}
+
 .assignment-link {
-    margin-top: auto;
     display: inline-block;
-    max-width: fit-content;
-    padding: 8px 35px;
+    padding: 8px 5px;
     background-color: #007bff;
     color: #fff;
     text-decoration: none;
     border-radius: 4px;
     transition: background-color 0.2s ease;
+    font-size: 1rem;
 }
 
 .assignment-link:hover {
@@ -107,12 +122,13 @@ h2 {
 /* SUBTASKS */
 
 .dropdown-toggle {
-    margin-top: 10px;
+    display: inline-block;
     background-color: #007bff;
     color: white;
     border: none;
-    padding: 8px 12px;
+    padding: 8px 5px;
     cursor: pointer;
+    font-size: 1rem;
     border-radius: 4px;
     transition: background-color 0.2s ease;
 }
