@@ -17,7 +17,6 @@ interface ToggleSubtaskResponse {
     message: string
 }
 
-
 @Injectable({
   providedIn: 'root'
 })

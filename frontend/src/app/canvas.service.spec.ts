@@ -10,6 +10,7 @@ describe('CanvasService', () => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient()]
     });
+    TestBed.configureTestingModule({});
     service = TestBed.inject(CanvasService);
   });
 
