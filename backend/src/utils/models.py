@@ -142,11 +142,15 @@ class Task(ModelMixin, db.Model):
     # Type of the task
     task_type = Column(Enum(TaskType), unique=False, nullable=False)
     # IDs for Canvas and Todoist
-    canvas_id = Column(Integer, unique=False, nullable=False)
+    canvas_id = Column(Integer, unique=False, nullable=True)
     todoist_id = Column(String(15), unique=False, nullable=True)
     due_date = Column(String(12), unique=False, nullable=True)
     # If it's complete
     status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.Incomplete)
+
+    # Name and description for if the task is not associated with a Canvas assignment
+    name = Column(String(100), unique=False, nullable=True)
+    description = Column(String(500), unique=False, nullable=True)
     
     user = relationship('User', back_populates='tasks')
     subtasks = relationship('SubTask', back_populates='task', cascade="all, delete-orphan")

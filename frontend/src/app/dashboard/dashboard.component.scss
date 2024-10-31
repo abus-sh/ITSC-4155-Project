@@ -13,6 +13,16 @@ h2 {
     -webkit-user-select: none;
 }
 
+.upcoming-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.upcoming-header-container .dropdown-toggle {
+    margin-top: 0px;
+}
+
 /* ASSIGNMENTS / TASKS */
 
 .assignments-container {

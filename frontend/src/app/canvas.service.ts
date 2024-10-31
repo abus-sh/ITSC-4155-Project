@@ -127,9 +127,19 @@ export class CanvasService {
     }
 
     private async fetchDueAssignments(): Promise<Assignment[]> {
-        const assignments = await firstValueFrom(this.http.get<Assignment[]>(this.dueSoonUrl,
+        let assignments = await firstValueFrom(this.http.get<Assignment[]>(this.dueSoonUrl,
             { withCredentials: true }));
         
+        assignments = assignments.map(assignment => {
+            if (assignment.subtasks === undefined) {
+                return {
+                    ...assignment,
+                    subtasks: []
+                };
+            }
+            return assignment;
+        });
+
         return assignments;
     }
 
@@ -141,13 +151,23 @@ export class CanvasService {
         const assignmentIds = assignments.map(assignment => Number(assignment.id))
             .filter(id => !isNaN(id));
         
-        const subtasks = await firstValueFrom(this.http.post<SubtasksDict>(this.getSubTasksUrl,
-            { task_ids: assignmentIds }, { withCredentials: true }));
-        
-        this.dueAssignments = this.dueAssignments.map(assignment => ({
-            ...assignment,
-            subtasks: subtasks[assignment.id] || []
-        }));
+        if (assignmentIds.length !== 0) {
+            const subtasks = await firstValueFrom(this.http.post<SubtasksDict>(this.getSubTasksUrl,
+                { task_ids: assignmentIds }, { withCredentials: true }));
+            
+            this.dueAssignments = this.dueAssignments.map(assignment => {
+                if (assignment.id) {
+                    return {
+                        ...assignment,
+                        subtasks: subtasks[assignment.id]
+                    };
+                }
+                return {
+                    ...assignment,
+                    subtasks: []
+                };
+            });
+        }
 
         this.dueAssignments$.next(this.dueAssignments);
     }
@@ -174,6 +194,10 @@ export class CanvasService {
         this.dueAssignments.filter(assignment => {
             return assignment.id == subtaskData.canvas_id;
         }).forEach(assignment => {
+            if (assignment.subtasks === undefined) {
+                assignment.subtasks = [];
+            }
+
             assignment.subtasks.push(subtask);
         });
         this.dueAssignments$.next(this.dueAssignments);
@@ -188,8 +212,6 @@ export class CanvasService {
             return false;
         }
 
-        let target = this.dueAssignments.filter(assignment => assignment.subtasks.includes(subtask));
-        console.log(target);
         return true;
     }
 }

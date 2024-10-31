@@ -45,6 +45,8 @@ def get_assignments_due_soon():
         
         assignments = canvas_api.get_calendar_events(canvas_key, start_date, end_date)
 
+        # TODO: also get non-Canvas events here
+
         fields = [
             'title', 'description', 'type', 'submission_types', 'html_url', 'context_name',
         ]

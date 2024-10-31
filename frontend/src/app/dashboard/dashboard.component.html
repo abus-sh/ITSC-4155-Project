@@ -1,7 +1,10 @@
 <div class="dashboard-container">
-    <h2 class="collapsible-title" (click)="toggleSection(0)" (keypress)="toggleSection(0)" tabindex="0">
-        {{ sectionCollapseUpcoming ? '&#9662;' : '&#9652;' }} Upcoming Assignments
-    </h2>
+    <div class="upcoming-header-container">
+        <h2 class="collapsible-title" (click)="toggleSection(0)" (keypress)="toggleSection(0)" tabindex="0">
+            {{ sectionCollapseUpcoming ? '&#9662;' : '&#9652;' }} Upcoming Assignments
+        </h2>
+        <button class="dropdown-toggle" (click)="openAssignmentForm()">Add Assignment</button>
+    </div>
     <hr>
     <div class="assignments-container" *ngIf="!sectionCollapseUpcoming">
         <!-- ASSIGNMENT LIST -->
@@ -24,11 +27,11 @@
 
                 <h4>List of Subtasks:</h4>
                 <!-- SUBTASKS LIST -->
-                <div *ngIf="assignment.subtasks.length > 0; else emptyState">
+                <div *ngIf="assignment.subtasks && assignment.subtasks.length > 0; else emptyState">
                     <div *ngFor="let subtask of assignment.subtasks | orderBy: 'due_date'" class="subtask-list">
                         <div class="subtask-card" title="{{ subtask.description }}">
                             <span class="subtask-name">{{ subtask.name }}</span>
-                            <span class="subtask-status {{ subtask.status ? 'complete' : 'incomplete' }}" (click)="toggleSubtaskStatus(subtask)" ((keypress))="toggleSubtaskStatus(subtask)" tabindex="0">
+                            <span class="subtask-status {{ subtask.status ? 'complete' : 'incomplete' }}" (click)="toggleSubtaskStatus(subtask)" (keypress)="toggleSubtaskStatus(subtask)" tabindex="0">
                                 {{ subtask.status ? 'Complete' : 'Incomplete' }}
                             </span>
                             <span class="subtask-due-date">{{ subtask.due_date }}</span>
@@ -79,4 +82,7 @@
             </form>
         </div>
     </div>
+
+    <!-- Add an assignment not in Canvas -->
+    <app-addtask class="modal" *ngIf="assignmentFormDisplay" (closeFormAction)="closeAssignmentForm()"></app-addtask>
 </div>
