@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { getBackendURL } from '../config';
+import { CanvasService } from './canvas.service';
 
 export interface AuthStatus {
     authenticated: boolean;
@@ -35,7 +36,9 @@ export class AuthService {
 
     private backend = getBackendURL();
 
-    constructor(private http: HttpClient, private router: Router) {
+    constructor(private http: HttpClient, private router: Router,
+        private canvasService: CanvasService) {
+        
         console.log('Auth Service - Launched')
         this.isLoggedIn().subscribe(isAuthenticated => {
             if (isAuthenticated) {
@@ -95,6 +98,7 @@ export class AuthService {
         this.http.post(`${this.backend}/api/v1/tasks/update`, null).subscribe({
             next: () => {
                 console.log(' * Synched with Todoist: Done!');
+                this.canvasService.getDueAssignments().then(() => this.canvasService.getSubTasks());
             },
             error: (err) => {
                 console.error(' * TODOIST: FAILED TO SYNC', err);
