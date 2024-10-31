@@ -54,7 +54,23 @@ export class CalendarComponent {
 
     loadEvents(start_date: string, end_date: string) {
         this.canvasService.getCalendarEvents(start_date, end_date).then((events: CalendarEvent[]) => {
-            console.log(events);
+            console.log(events)
+            const dayMap = new Map<string, CalendarDay>();
+
+            this.days.forEach(day => {
+                dayMap.set(day.date.toDateString(), day);
+            });
+
+            events.forEach(event => {
+                const eventDateString = new Date(event.start_at).toDateString()
+
+                const correspondingDay = dayMap.get(eventDateString);
+
+                // If a corresponding day is found, add the event to its CalendarEvent list
+                if (correspondingDay) {
+                    correspondingDay.items.push(event);
+                }
+            });
         });
     }
 
@@ -74,6 +90,9 @@ export class CalendarComponent {
 
         const firstDate = this.formatDate(this.days[0].date); 
         const lastDate = this.formatDate(this.days[this.days.length - 1].date);
+
+        console.log(firstDate)
+        console.log(lastDate)
 
         // Load CalendarEvents
         this.loadEvents(firstDate, lastDate);
