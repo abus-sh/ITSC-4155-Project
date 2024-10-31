@@ -4,34 +4,45 @@
     width: 100%;
     padding: 20px;
     box-sizing: border-box;
-    background-color: #f0f0f0;
+    align-items: flex-start;
 }
 
-h2 {
-    margin: 0 15px 0 15px;
-    text-align: center;
-}
+
+/*     Calendar Header     */
 
 .calendar-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    justify-content: center;
+    background-color: red;
+    border-radius: 15px;
+    padding: 10px;
+    margin: 10px auto 10px auto;
+    color: white;
+    width: fit-content;
+}
+
+.calendar-header h2 {
+    margin: 0 20px;
 }
 
 .nav-button {
-    padding: 10px 20px;
+    background: transparent;
     border: none;
-    background-color: #007bff;
     color: white;
+    font-size: 16px;
     cursor: pointer;
-    border-radius: 5px;
+    padding: 5px 10px;
     transition: background-color 0.3s;
 
     &:hover {
-        background-color: #0056b3;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 5px;
     }
 }
+
+
+/*     Calendar Body     */
 
 .weekdays {
     display: grid;
@@ -63,7 +74,7 @@ h2 {
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 10px;
-    min-height: 110px; 
+    min-height: 110px;
     position: relative;
 }
 
@@ -87,13 +98,13 @@ h2 {
 }
 
 .today {
-    border: 2px solid red; 
+    border: 2px solid red;
     box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
     position: relative;
 }
 
 .prev-month {
-    background-color: #d3d3d3; 
+    background-color: #d3d3d3;
 }
 
 .current-month {

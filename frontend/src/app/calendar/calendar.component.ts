@@ -1,13 +1,19 @@
 import { Component } from '@angular/core';
 import { CanvasService } from '../canvas.service';
 import { CommonModule } from '@angular/common';
-import { Assignment } from '../dashboard/dashboard.component';
 
 
+
+// Not just assignment and subtasks, but zoom meeting and other calendar events
+export interface Events {
+    name: string;
+    date: string;
+    url: string;
+}
 
 interface CalendarDay {
     date: Date;
-    items: Assignment[];
+    items: Events[];
     isCurrentMonth: boolean;
     isToday: boolean;
 }
@@ -23,6 +29,7 @@ export class CalendarComponent {
     monthName: string = '';
     year: number = 0;
     days: CalendarDay[] = [];
+
 
     private todayString: string;
     private monthView: Date;
