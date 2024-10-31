@@ -132,7 +132,7 @@ export class DashboardComponent implements OnInit {
     }
 
     // Toggle for the subtasks dropdown
-    toggleDropdown(id: number, event: Event): void {
+    toggleDropdown(event: Event): void {
         const button = event.target as HTMLElement;
         const card = button.parentElement as HTMLElement;
         const dropdown = button.nextElementSibling as HTMLElement;

@@ -21,8 +21,8 @@
 
             <!-- DROPDOWN SUBTASKS -->
             <!-- TODO: allow non-Canvas tasks to have subtasks -->
-            <button class="dropdown-toggle" (click)="toggleDropdown(assignment.canvas_id, $event)" *ngIf="assignment.canvas_id">Sub Tasks</button>
-            <div class="dropdown-content {{ assignment.canvas_id }}">
+            <button class="dropdown-toggle" (click)="toggleDropdown($event)">Sub Tasks</button>
+            <div class="dropdown-content">
 
                 <button class="add-form-button" (click)="openForm(assignment)">+ Add</button>
 
