@@ -1,7 +1,16 @@
 import { Component } from '@angular/core';
 import { CanvasService } from '../canvas.service';
 import { CommonModule } from '@angular/common';
+import { Assignment } from '../dashboard/dashboard.component';
 
+
+
+interface CalendarDay {
+    date: Date;
+    items: Assignment[];
+    isCurrentMonth: boolean;
+    isToday: boolean;
+}
 
 @Component({
     selector: 'app-calendar',
@@ -13,14 +22,14 @@ import { CommonModule } from '@angular/common';
 export class CalendarComponent {
     monthName: string = '';
     year: number = 0;
-    days: { date: Date; items: string[]; isCurrentMonth: boolean; isToday: boolean }[] = [];
+    days: CalendarDay[] = [];
 
     private todayString: string;
     private monthView: Date;
 
     constructor(private canvasService: CanvasService) {
         this.monthView = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
-        this.todayString = this.monthView.toDateString()
+        this.todayString = this.monthView.toDateString();
         this.updateCalendar();
     }
 
@@ -32,9 +41,9 @@ export class CalendarComponent {
     }
 
     // Creates an array of days for the current month, with days from the previous month if needed
-    generateDaysInMonth(year: number, month: number): { date: Date; items: string[]; isCurrentMonth: boolean; isToday: boolean }[] {
+    generateDaysInMonth(year: number, month: number): CalendarDay[] {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const days: { date: Date; items: string[]; isCurrentMonth: boolean; isToday: boolean }[] = [];
+        const days: CalendarDay[] = [];
 
         const firstDateOfMonth = new Date(year, month, 1);
         const firstDay = firstDateOfMonth.getDay();
@@ -49,7 +58,6 @@ export class CalendarComponent {
         // This month's days
         for (let i = 1; i <= daysInMonth; i++) {
             const date = new Date(year, month, i);
-
             days.push({ date, items: [], isCurrentMonth: true, isToday: date.toDateString() === this.todayString });
         }
 
