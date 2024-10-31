@@ -43,6 +43,35 @@
 }
 
 
+/*     Calendar Filter     */
+
+.filters {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.filters label {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #333;
+    cursor: pointer;
+}
+
+.filters input[type="checkbox"] {
+    accent-color: #e46673;
+    margin-right: 5px;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    transition: border-color 0.3s ease;
+}
+
+
 /*     Calendar Body     */
 
 .weekdays {
@@ -90,15 +119,23 @@
 }
 
 .item {
-    background-color: #e6e7e7;
+    display: block;
+    unicode-bidi: isolate;
+    background-color: #768080;
     color: white;
     padding: 5px;
     border-radius: 3px;
     margin: 2px 0;
     text-align: center;
     max-height: 50px;
-    overflow: hidden;
+    overflow-y: auto;  
+    scrollbar-width: none;
     font-size: .85em;
+    text-decoration: none;
+}
+
+.item::-webkit-scrollbar {
+    display: none;
 }
 
 .item.event {
@@ -107,6 +144,11 @@
 
 .item.assignment {
     background-color: #e62d40;
+}
+
+.item.assignment.submitted {
+    background-color: #e46673;
+    text-decoration: line-through;
 }
 
 .today {

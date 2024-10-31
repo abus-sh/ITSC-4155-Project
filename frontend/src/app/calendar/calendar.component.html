@@ -27,11 +27,14 @@
             <div class="date">{{ day.date.getDate() }}</div>
             <div class="items">
                 <ng-container *ngFor="let item of day.items">
-                    <div *ngIf="(item.type === 'event' && showEvents) || (item.type === 'assignment' && showAssignments)"
-                         [ngClass]="item.type" 
-                         class="item">
+                    <a *ngIf="(item.type === 'event' && showEvents) || (item.type === 'assignment' && showAssignments)"
+                       [ngClass]="getClass(item)" 
+                       class="item" 
+                       [href]="item.html_url" 
+                       target="_blank"
+                       title="{{ item.html_url }}">
                         {{ item.title }}
-                    </div>
+                    </a>
                 </ng-container>
             </div>
         </div>

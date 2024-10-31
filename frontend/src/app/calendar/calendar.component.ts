@@ -141,4 +141,8 @@ export class CalendarComponent {
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     }
+
+    getClass(item: CalendarEvent) {
+        return item.type + (item.user_submitted ? ' submitted' : '')
+    }
 }
