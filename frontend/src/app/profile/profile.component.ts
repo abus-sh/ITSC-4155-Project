@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService, AuthStatus } from '../auth.service';
 import { Observable } from 'rxjs';
 import { getBackendURL } from '../../config';
+import { CanvasService } from '../canvas.service';
 
 export interface UserProfile {
     username?: string;
@@ -40,7 +41,9 @@ export class ProfileComponent implements OnInit {
 
     lastSyncDate = '~'
 
-    constructor(private authService: AuthService, private http: HttpClient) { 
+    constructor(private authService: AuthService, private http: HttpClient,
+        private canvasService: CanvasService) { 
+        
         this.authStatus$ = this.authService.authStatus$;
     }
 
@@ -97,10 +100,11 @@ export class ProfileComponent implements OnInit {
     syncTodoistManual() {
         this.lastSyncDate = 'Started, please wait..'
         this.http.post(`${this.backendUrl}/api/v1/tasks/update`, null).subscribe({
-            next: (response) => {
+            next: () => {
                 this.lastSyncDate = new Date().toLocaleString();
+                this.canvasService.getDueAssignments().then(() => this.canvasService.getSubTasks());
             },
-            error: (err) => {
+            error: () => {
                 this.lastSyncDate = 'error'
             }
         });

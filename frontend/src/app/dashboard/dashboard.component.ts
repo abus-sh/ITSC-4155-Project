@@ -1,7 +1,6 @@
 import { assertInInjectionContext, Component, OnInit, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { getBackendURL } from '../../config';
 import { OrderByPipe } from '../pipes/date.pipe';
 import { CanvasService } from '../canvas.service';
 
@@ -12,6 +11,7 @@ export interface Subtask {
     description: string;
     due_date: string;
     status: number;
+    todoist_id?: string;
 }
 
 export interface Assignment {
@@ -28,11 +28,9 @@ export interface Assignment {
     subtasks: Subtask[];
 }
 
-export type SubtasksDict = {
-    [canvas_id: number]: Subtask[]
-};
+export type SubtasksDict = Record<number, Subtask[]>;
 
-export type AddSubtaskBody = {
+export interface AddSubtaskBody {
     name: string,
     description: string,
     due_date: string,
@@ -53,6 +51,7 @@ export class DashboardComponent implements OnInit {
     subtaskFormDisplay = false;
     subtaskAssignment: Assignment | null = null;
     addSubtaskForm: FormGroup;
+    private cantToggle = false;
 
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
@@ -151,6 +150,26 @@ export class DashboardComponent implements OnInit {
             this.renderer.addClass(card, 'show-dropdown');
             this.previousDropdown = dropdown;
         }
+    }
+
+    // Toggle whether a subtask is completed
+    async toggleSubtaskStatus(subtask: Subtask) {
+        // If you send multiple toggle status rapidly to Todoist, 
+        // they won't be processed in exact order, causing some to be ignored
+        if (this.cantToggle) { 
+            return;
+        }
+        this.cantToggle = true;
+
+        subtask.status = subtask.status ? 0 : 1;
+        // Lie to the user and cause the visuals to update automatically
+        const statusChanged = await this.canvasService.toggleSubtaskStatus(subtask);
+        // If changing the status to todoist failed, turn the subtask.status back to before
+        if (!statusChanged) {
+            subtask.status = subtask.status ? 0 : 1;
+        }
+
+        setTimeout(() => this.cantToggle = false, 1000); // Unlock status toggle
     }
 
     // Open the creation subtask form
