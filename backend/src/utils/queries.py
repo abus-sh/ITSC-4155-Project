@@ -3,7 +3,7 @@ from utils.crypto import decrypt_str, encrypt_str
 from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
-
+from sqlalchemy import select
 
 #########################################################################
 #                                                                       #
@@ -259,6 +259,43 @@ def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
     # If neither were found, return None
     return None
 
+
+def sync_task_status(owner: User, open_task_ids: list[int]):
+    """
+    Sets the status for all tasks. Any task ID in completed_task_ids will be set to incomplete and
+    all others will be set to completed.
+
+    :param owner: The owner of the tasks.
+    :param open_task_ids: The IDs of the tasks that should be in progress.
+    """
+    # Handle tasks
+    try:
+        tasks: list[tuple[Task]] = db.session.execute(select(Task).where(Task.owner == owner.id))
+        for (task,) in tasks:
+            if task.todoist_id in open_task_ids:
+                task.status = TaskStatus.Incomplete
+            else:
+                print(f'Marking task {task.todoist_id} as done')
+                task.status = TaskStatus.Completed
+        db.session.commit()
+    except Exception as e:
+        print("Task rollback", e)
+        db.session.rollback()
+    
+    # Handle subtasks
+    try:
+        tasks: list[tuple[SubTask]] = db.session\
+            .execute(select(SubTask).where(SubTask.owner == owner.id))
+        for (task,) in tasks:
+            if task.todoist_id in open_task_ids:
+                task.status = TaskStatus.Incomplete
+            else:
+                print(f'Marking task {task.todoist_id} as done')
+                task.status = TaskStatus.Completed
+        db.session.commit()
+    except Exception as e:
+        print("Subtask rollback", e)
+        db.session.rollback()
 
 #########################################################################
 #                                                                       #
