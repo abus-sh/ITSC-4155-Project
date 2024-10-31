@@ -17,6 +17,12 @@ from sqlalchemy import select
 #                                                                       #
 #########################################################################
 
+#########################################################################
+#                                                                       #
+#                                USERS                                  #
+#                                                                       #
+#########################################################################
+
 def add_user(username: str, password: str, canvas_token: str, todoist_token: str) -> bool:
     """
     Add a new user to the database. Encrypt the tokens and then hash the password with argon2.

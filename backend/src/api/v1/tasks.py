@@ -19,6 +19,7 @@ BASE_URL = get_canvas_url()
 def update_tasks():
     canvas_token, todoist_token = session.decrypt_api_keys()
     try:
+
         todoist.add_update_tasks(current_user.id, canvas_token, todoist_token)
     except Exception as e:
         print('Error synching assignments to Todoist from Canvas: ', e)

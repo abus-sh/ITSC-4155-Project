@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
 import { getBackendURL, getCanvasCacheTime } from '../config';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { APIAssignment, APICourse, Course } from './courses/courses.component';
 import { firstValueFrom, Subject } from 'rxjs';
 import { AddSubtaskBody, Assignment, Subtask, SubtasksDict } from './dashboard/dashboard.component';
-
+import { CalendarEvent } from './calendar/calendar.component';
 
 interface AddSubtaskResponse {
     success: boolean,
     message?: string,
     id?: number
 }
+
 
 interface ToggleSubtaskResponse {
     success: boolean,
@@ -24,6 +25,7 @@ export class CanvasService {
     private coursesUrl = getBackendURL() + '/api/v1/courses/all';
     private courseGradedAssignmentsUrl = getBackendURL() + '/api/v1/courses/graded_assignments';
     private dueSoonUrl = getBackendURL() + '/api/v1/user/due_soon';
+    private calendarEventsUrl = getBackendURL() + '/api/v1/user/calendar_events';
     private getSubTasksUrl = getBackendURL() + '/api/v1/tasks/get_subtasks';
     private addSubTaskUrl = getBackendURL() + '/api/v1/tasks/add_subtask';
     private subTaskUrl = getBackendURL() + '/api/v1/tasks';
@@ -92,7 +94,6 @@ export class CanvasService {
         const assignments = await firstValueFrom(this.http
             .post<APIAssignment[]>(this.courseGradedAssignmentsUrl, body,
             { withCredentials: true }));
-        
         this.courses[courseIndex].assignments = assignments;
 
         this.courses$.next(this.courses);
@@ -141,6 +142,18 @@ export class CanvasService {
         });
 
         return assignments;
+    }
+
+    // This may be better to not cache it, but I will leave it here if we change our mind
+    async getCalendarEvents(start_date: string, end_date: string): Promise<CalendarEvent[]> {
+        const params = new HttpParams().set('start_date', start_date).set('end_date', end_date);
+    
+        let events = await firstValueFrom(this.http.get<CalendarEvent[]>(this.calendarEventsUrl, {
+            params: params,
+            withCredentials: true
+        }));
+        
+        return events;
     }
 
     async getSubTasks(assignments: Assignment[]|undefined = undefined) {

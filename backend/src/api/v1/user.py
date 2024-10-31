@@ -1,10 +1,13 @@
 from flask import Blueprint, jsonify, request
 from flask_login import current_user
 from datetime import datetime
+import gevent
+
 
 import utils.canvas as canvas_api
 from utils.session import decrypt_canvas_key
 from utils.settings import get_canvas_url, get_date_range, localize_date, date_passed
+
 import utils.queries as queries
 import utils.models as models
 
@@ -44,6 +47,7 @@ def get_assignments_due_soon():
         # Get assignments that have due date between today and 1 month from now
         start_date, end_date = get_date_range(months=1)
         
+
         assignments_due_soon = []
 
         # Get non-Canvas tasks
@@ -63,10 +67,10 @@ def get_assignments_due_soon():
         assignments = canvas_api.get_calendar_events(canvas_key, start_date, end_date)
 
         fields = [
-            'title', 'description', 'type', 'submission_types', 'html_url', 'context_name',
+            'title', 'description', 'type', 'submission_types', 'html_url', 'context_name', 
         ]
         extra_fields = [
-            'id', 'points_possible', 'graded_submissions_exist'
+            'id', 'points_possible', 'graded_submissions_exist', 'user_submitted'
         ]
         for assignment in assignments:
 
@@ -141,5 +145,45 @@ def get_missing_submissions():
         return 'Unable to get field for courses', 404
     return jsonify(miss_assignments_list), 200
 
-# TO DO:
-# GET /api/v1/users/:id/graded_submissions (Get a users most recently graded submissions)
+
+# Get calendar event for 1 month
+@user.route('/calendar_events', methods=['GET'])
+def get_calendar_events():
+    try:
+        canvas_key = decrypt_canvas_key()
+        
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        if start_date is None or end_date is None:
+            return 'Invalid dates argument', 400
+        
+        # type event returns all the events, not just assignment
+        all_events = canvas_api.get_all_calendar_events(canvas_key, start_date, end_date, limit=60, event_types=['event','assignment'])
+
+        fields = [
+            'id', 'title', 'description', 'type', 'submission_types', 'html_url', 'context_name', 'start_at', 'end_at'
+        ]
+        calendar_events = []
+        for event in all_events:
+            # Basic fields
+            single_event = {field: getattr(event, field, None) for field in fields}
+            
+            if single_event['start_at'] is None:
+                continue
+            
+            # If assignment was submitted
+            assignment_details = getattr(event, 'assignment', None)
+            if assignment_details:           
+                single_event['user_submitted'] = assignment_details.get('user_submitted', False)
+            else:
+                single_event['user_submitted'] = False
+                    
+            calendar_events.append(single_event)
+
+    except Exception as e:
+        print(e)
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError as e:
+        return 'Unable to get field for calendar event', 404
+    return jsonify(calendar_events), 200
