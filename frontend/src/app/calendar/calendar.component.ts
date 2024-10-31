@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CanvasService } from '../canvas.service';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 
 
@@ -13,7 +14,7 @@ export interface CalendarEvent {
     context_name: string;
     start_at: Date;
     end_at: Date;
-    user_submitted?: boolean;
+    user_submitted: boolean;
 }
 
 interface CalendarDay {
@@ -27,7 +28,7 @@ interface CalendarDay {
 @Component({
     selector: 'app-calendar',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, FormsModule],
     templateUrl: './calendar.component.html',
     styleUrls: ['./calendar.component.scss']
 })
@@ -36,9 +37,11 @@ export class CalendarComponent {
     year: number = 0;
     days: CalendarDay[] = [];
 
-
     private todayString: string;
     private monthView: Date;
+
+    showEvents: boolean = true;       
+    showAssignments: boolean = true;  
 
     constructor(private canvasService: CanvasService) {
         this.monthView = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
@@ -53,6 +56,7 @@ export class CalendarComponent {
     ***********************************/
 
     loadEvents(start_date: string, end_date: string) {
+        console.log('Getting Calendar events...')
         this.canvasService.getCalendarEvents(start_date, end_date).then((events: CalendarEvent[]) => {
             const dayMap = new Map<string, CalendarDay>();
 
@@ -71,6 +75,7 @@ export class CalendarComponent {
                 }
             });
         });
+        console.log('Loaded Calendar events!')
     }
 
 

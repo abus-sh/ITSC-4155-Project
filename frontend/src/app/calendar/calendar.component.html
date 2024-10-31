@@ -4,14 +4,14 @@
         <h2>{{ monthName }} {{ year }}</h2>
         <button (click)="nextMonth()" class="nav-button"><strong>&#9654;</strong></button>
     </div>
-    
+
     <!-- Checkboxes for filtering -->
     <div class="filters">
         <label>
-            <input type="checkbox" [(ngModel)]="showEvents" /> Show Events
+            <input type="checkbox" [(ngModel)]="showEvents"> Show Events
         </label>
         <label>
-            <input type="checkbox" [(ngModel)]="showAssignments" /> Show Assignments
+            <input type="checkbox" [(ngModel)]="showAssignments"> Show Assignments
         </label>
     </div>
 
@@ -26,7 +26,13 @@
             }">
             <div class="date">{{ day.date.getDate() }}</div>
             <div class="items">
-                <div *ngFor="let item of day.items" [ngClass]="item.type" class="item">{{ item.title }}</div>
+                <ng-container *ngFor="let item of day.items">
+                    <div *ngIf="(item.type === 'event' && showEvents) || (item.type === 'assignment' && showAssignments)"
+                         [ngClass]="item.type" 
+                         class="item">
+                        {{ item.title }}
+                    </div>
+                </ng-container>
             </div>
         </div>
     </div>

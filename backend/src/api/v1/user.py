@@ -157,6 +157,8 @@ def get_calendar_events():
             assignment_details = getattr(event, 'assignment', None)
             if assignment_details:           
                 single_event['user_submitted'] = assignment_details.get('user_submitted', False)
+            else:
+                single_event['user_submitted'] = False
                     
             calendar_events.append(single_event)
 
