@@ -92,6 +92,25 @@ class TaskType(enum.Enum):
     assignment = 0
 
 
+# A representation of the different types of tasks
+class TaskStatus(enum.Enum):
+    Incomplete = 0
+    Completed = 1
+    
+    @classmethod
+    def from_integer(cls, value):
+        """
+        Returns the corresponding SubStatus enum member based on the provided integer.
+
+        :param value: An integer representing the status (0 for Incomplete, 1 for Completed).
+        :return: The corresponding SubStatus enum member if valid; None if invalid.
+        """
+        try:
+            return cls(value)
+        except Exception:
+            raise None
+
+
 # The task table
 # A representation of a Canvas assignment and the connected Todoist task
 # This primarily exists to link tasks in Canvas and Todoist
@@ -123,31 +142,19 @@ class Task(ModelMixin, db.Model):
     # Type of the task
     task_type = Column(Enum(TaskType), unique=False, nullable=False)
     # IDs for Canvas and Todoist
-    canvas_id = Column(Integer, unique=False, nullable=False)
+    canvas_id = Column(Integer, unique=False, nullable=True)
     todoist_id = Column(String(15), unique=False, nullable=True)
     due_date = Column(String(12), unique=False, nullable=True)
+    # If it's complete
+    status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.Incomplete)
+
+    # Name and description for if the task is not associated with a Canvas assignment
+    name = Column(String(100), unique=False, nullable=True)
+    description = Column(String(500), unique=False, nullable=True)
     
     user = relationship('User', back_populates='tasks')
     subtasks = relationship('SubTask', back_populates='task', cascade="all, delete-orphan")
 
-
-# A representation of the different types of tasks
-class SubStatus(enum.Enum):
-    Incomplete = 0
-    Completed = 1
-    
-    @classmethod
-    def from_integer(cls, value):
-        """
-        Returns the corresponding SubStatus enum member based on the provided integer.
-
-        :param value: An integer representing the status (0 for Incomplete, 1 for Completed).
-        :return: The corresponding SubStatus enum member if valid; None if invalid.
-        """
-        try:
-            return cls(value)
-        except Exception:
-            raise None
 
 class SubTask(ModelMixin, db.Model):
     """
@@ -178,7 +185,7 @@ class SubTask(ModelMixin, db.Model):
     todoist_id = Column(String(15), unique=False, nullable=True)
     name = Column(String(150), nullable=False)
     description = Column(String(500), nullable=True)
-    status = Column(Enum(SubStatus), nullable=False)
+    status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.Incomplete)
     due_date = Column(String(12), nullable=True)
 
     task = relationship('Task', back_populates='subtasks')

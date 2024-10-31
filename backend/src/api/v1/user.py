@@ -3,10 +3,13 @@ from flask_login import current_user
 from datetime import datetime
 import gevent
 
+
 import utils.canvas as canvas_api
 from utils.session import decrypt_canvas_key
 from utils.settings import get_canvas_url, get_date_range, localize_date, date_passed
 
+import utils.queries as queries
+import utils.models as models
 
 user = Blueprint('user', __name__)
 BASE_URL = get_canvas_url()
@@ -44,6 +47,23 @@ def get_assignments_due_soon():
         # Get assignments that have due date between today and 1 month from now
         start_date, end_date = get_date_range(months=1)
         
+
+        assignments_due_soon = []
+
+        # Get non-Canvas tasks
+        tasks: list[models.Task] = queries.get_non_canvas_tasks(current_user)
+        for task in tasks:
+            data = {
+                'title': task.name,
+                'description': task.description,
+                'type': 'assignment',
+                'submission_types': [],
+                'graded_submissions_exist': False,
+                'due_at': task.due_date,
+                'subtasks': []
+            }
+            assignments_due_soon.append(data)
+
         assignments = canvas_api.get_calendar_events(canvas_key, start_date, end_date)
 
         fields = [
@@ -52,7 +72,6 @@ def get_assignments_due_soon():
         extra_fields = [
             'id', 'points_possible', 'graded_submissions_exist', 'user_submitted'
         ]
-        assignments_due_soon = []
         for assignment in assignments:
 
             # Basic fields

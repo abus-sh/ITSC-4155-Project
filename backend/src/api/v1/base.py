@@ -5,9 +5,6 @@ from api.v1.courses import courses
 from api.v1.tasks import tasks
 from api.v1.user import user
 
-from utils.queries import create_subtask, get_subtasks_for_tasks
-from utils.models import SubStatus
-
 
 api_v1 = Blueprint('api_v1', __name__)
 api_v1.register_blueprint(courses, url_prefix='/courses')

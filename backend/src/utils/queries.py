@@ -3,7 +3,19 @@ from utils.crypto import decrypt_str, encrypt_str
 from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
+from sqlalchemy import select
 
+#########################################################################
+#                                                                       #
+#                                USERS                                  #
+#                                                                       #
+#########################################################################
+
+#########################################################################
+#                                                                       #
+#                                USERS                                  #
+#                                                                       #
+#########################################################################
 
 #########################################################################
 #                                                                       #
@@ -138,29 +150,33 @@ def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
 #########################################################################
 
 
-def add_or_return_task(owner: User|int, canvas_id: str, todoist_id: str|None=None, due_date: str=None) -> Task:
+def add_or_return_task(owner: User|int, canvas_id: str|None, todoist_id: str|None=None,
+                       due_date: str=None, name: str|None=None, desc: str|None=None) -> Task:
     """
     Add a new task to the database or return the task if it already exists.
 
     :param owner: The User or the ID of the User who owns the task.
-    :param canvas_id: The ID of the task in Canvas. This can be found with the Canvas API.
+    :param canvas_id: The ID of the task in Canvas, optionally. This can be found with the Canvas
+    API.
     :param todoist_id: The ID of the task in Todoist, if a task exists. If no ID is provided, no
     Todoist task is linked to the Canvas task at this time.
     :return Task: The Task that was added.
     :raises Exception: If the Task could not be added to the database.
     """
     # TODO: make :rasies Exception: more specific.
-    if type(owner) == User:
-        owner = owner.id
+    user_id = getattr(owner, 'id', None)
+    if user_id:
+        owner = user_id
 
     # Prevent exact duplicates from being registered.
-    current_task = Task.query.filter_by(owner=owner, canvas_id=canvas_id).first()
-    if current_task:
-        return current_task
+    if canvas_id:
+        current_task = Task.query.filter_by(owner=owner, canvas_id=canvas_id).first()
+        if current_task:
+            return current_task
 
     try:
         new_task = Task(owner=owner, task_type=TaskType.assignment, canvas_id=canvas_id,
-                        todoist_id=todoist_id, due_date=due_date)
+                        todoist_id=todoist_id, due_date=due_date, name=name, description=desc)
         db.session.add(new_task)
         db.session.commit()
         return new_task
@@ -207,7 +223,7 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
 
     :param owner: The owner of the task.
     :param canvas_id: The internal Canvas ID of a task.
-    :param dict: If True, return the user as a dictionary. Defaults to False.
+    :param dict: If True, return the task as a dictionary. Defaults to False.
     :return Task or dict or None: A Task instance or a dictionary representation of the task if dict
     is True. If no task with the given Canvas ID exists, None is returned.
     """
@@ -220,6 +236,100 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
         return task.to_dict()
     return task
 
+def get_non_canvas_tasks(owner: User, dict=False) -> list[Task] | list[dict]:
+    """
+    Retrieves all tasks that do not have a Canvas ID.
+
+    :param owner: The owner of the tasks.
+    :param dict: If True, return the tasks as a list of dictionaries. Defaults to False.
+    :return list[Task] or list[dict]: A list of Tasks that have no Canvas ID or a list of the Tasks
+    as dicts if dict is True.
+    """
+
+    tasks = Task.query.filter(
+        Task.owner == owner.id,
+        Task.canvas_id == None
+    ).all()
+    if dict:
+        return [dict(task) for task in tasks]
+    return tasks
+    
+
+def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
+    -> Task | SubTask | dict | None:
+    """
+    Retrieve a task or subtask by its Todoist ID.
+
+    :param owner: The owner of the task.
+    :param canvas_id: The internal Todoist ID of a task or subtask.
+    :param dict: If True, return the task or subtask as a dictionary. Defaults to False.
+    :return Task|SubTask: The task or subtask that was retrieved, assuming dict is False.
+    :return dict: The task or subtask that was retrieved, assuming dict is True.
+    :return None: Indicates that no task or subtask with the given ID was found.
+    """
+    
+    # Check for a matching task first
+    task = Task.query.filter(
+        Task.todoist_id == todoist_id,
+        Task.owner == owner.id
+    ).first()
+    if task:
+        if dict:
+            return dict(task)
+        else:
+            return task
+    
+    # Check for a matching subtask
+    subtask = SubTask.query.filter(
+        SubTask.todoist_id == todoist_id,
+        SubTask.owner == owner.id
+    ).first()
+    if subtask:
+        if dict:
+            return dict(subtask)
+        else:
+            return subtask
+    
+    # If neither were found, return None
+    return None
+
+
+def sync_task_status(owner: User, open_task_ids: list[int]):
+    """
+    Sets the status for all tasks. Any task ID in completed_task_ids will be set to incomplete and
+    all others will be set to completed.
+
+    :param owner: The owner of the tasks.
+    :param open_task_ids: The IDs of the tasks that should be in progress.
+    """
+    # Handle tasks
+    try:
+        tasks: list[tuple[Task]] = db.session.execute(select(Task).where(Task.owner == owner.id))
+        for (task,) in tasks:
+            if task.todoist_id in open_task_ids:
+                task.status = TaskStatus.Incomplete
+            else:
+                print(f'Marking task {task.todoist_id} as done')
+                task.status = TaskStatus.Completed
+        db.session.commit()
+    except Exception as e:
+        print("Task rollback", e)
+        db.session.rollback()
+    
+    # Handle subtasks
+    try:
+        tasks: list[tuple[SubTask]] = db.session\
+            .execute(select(SubTask).where(SubTask.owner == owner.id))
+        for (task,) in tasks:
+            if task.todoist_id in open_task_ids:
+                task.status = TaskStatus.Incomplete
+            else:
+                print(f'Marking task {task.todoist_id} as done')
+                task.status = TaskStatus.Completed
+        db.session.commit()
+    except Exception as e:
+        print("Subtask rollback", e)
+        db.session.rollback()
 
 #########################################################################
 #                                                                       #
@@ -229,7 +339,7 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
 
 
 def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int=None, subtask_desc: str=None, 
-                   subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None)\
+                   subtask_status: TaskStatus=TaskStatus.Incomplete, subtask_date: str=None)\
                    -> int|bool:
     """
     Creates a subtask under a specified task for the current user in the database.
@@ -279,22 +389,40 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
         SubTask.description,
         SubTask.status,
         SubTask.due_date,
-        Task.canvas_id 
+        Task.canvas_id,
+        SubTask.todoist_id
     ).all()
 
     if format:
         subtasks_dict = {}
-        for subtask_id, name, description, status, due_date, canvas_id in subtasks:
+        for subtask_id, name, description, status, due_date, canvas_id, todoist_id in subtasks:
             subtasks_dict.setdefault(canvas_id, []).append({
                 'id': subtask_id,
                 'canvas_id': canvas_id,
                 'name': name,
                 'description': description,
                 'status': status.value or 0,
-                'due_date': due_date
+                'due_date': due_date,
+                'todoist_id': todoist_id
             })
         return subtasks_dict
     return subtasks
+
+def update_task_or_subtask_status(owner: User, task: Task|SubTask, status: TaskStatus) -> bool:
+    """
+    Change the status of a task or subtask to a new value.
+    
+    Args:
+        owner (User): The User who owns the task or subtask.
+        task (Task|SubTask): The Task or Subtask to 
+    """
+    try:
+        task.status = status
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating task status: {e}")
+    return False
 
 
 #########################################################################

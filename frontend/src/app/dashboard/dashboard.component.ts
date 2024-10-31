@@ -1,17 +1,18 @@
 import { assertInInjectionContext, Component, OnInit, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { getBackendURL } from '../../config';
 import { OrderByPipe } from '../pipes/date.pipe';
 import { CanvasService } from '../canvas.service';
+import { AddtaskComponent } from "../addtask/addtask.component";
 
 export interface Subtask {
-    id: number,
+    id: number;
     canvas_id: number;
     name: string;
     description: string;
     due_date: string;
     status: number;
+    todoist_id?: string;
 }
 
 export interface Assignment {
@@ -19,20 +20,18 @@ export interface Assignment {
     description: string;
     type: string;
     submission_types: string[];
-    html_url: string;
-    context_name: string;
-    id: number;
-    points_possible: number;
+    html_url?: string;
+    context_name?: string;
+    id?: number;
+    points_possible?: number;
     graded_submissions_exist: boolean;
     due_at: string;
     subtasks: Subtask[];
 }
 
-export type SubtasksDict = {
-    [canvas_id: number]: Subtask[]
-};
+export type SubtasksDict = Record<number, Subtask[]>;
 
-export type AddSubtaskBody = {
+export interface AddSubtaskBody {
     name: string,
     description: string,
     due_date: string,
@@ -43,7 +42,7 @@ export type AddSubtaskBody = {
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, OrderByPipe],
+    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })
@@ -53,6 +52,9 @@ export class DashboardComponent implements OnInit {
     subtaskFormDisplay = false;
     subtaskAssignment: Assignment | null = null;
     addSubtaskForm: FormGroup;
+    private cantToggle = false;
+
+    assignmentFormDisplay = false;
 
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
@@ -153,6 +155,26 @@ export class DashboardComponent implements OnInit {
         }
     }
 
+    // Toggle whether a subtask is completed
+    async toggleSubtaskStatus(subtask: Subtask) {
+        // If you send multiple toggle status rapidly to Todoist, 
+        // they won't be processed in exact order, causing some to be ignored
+        if (this.cantToggle) { 
+            return;
+        }
+        this.cantToggle = true;
+
+        subtask.status = subtask.status ? 0 : 1;
+        // Lie to the user and cause the visuals to update automatically
+        const statusChanged = await this.canvasService.toggleSubtaskStatus(subtask);
+        // If changing the status to todoist failed, turn the subtask.status back to before
+        if (!statusChanged) {
+            subtask.status = subtask.status ? 0 : 1;
+        }
+
+        setTimeout(() => this.cantToggle = false, 1000); // Unlock status toggle
+    }
+
     // Open the creation subtask form
     openForm(assignment: Assignment) {
         this.subtaskFormDisplay = true;
@@ -163,6 +185,14 @@ export class DashboardComponent implements OnInit {
     closeForm() {
         this.subtaskFormDisplay = false;
         this.subtaskAssignment = null;
+    }
+
+    openAssignmentForm() {
+        this.assignmentFormDisplay = true;
+    }
+
+    closeAssignmentForm() {
+        this.assignmentFormDisplay = false;
     }
 
     // Get end of current day date

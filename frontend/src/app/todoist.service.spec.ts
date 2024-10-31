@@ -1,17 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 
-import { CanvasService } from './canvas.service';
+import { TodoistService } from './todoist.service';
 import { provideHttpClient } from '@angular/common/http';
 
-describe('CanvasService', () => {
-  let service: CanvasService;
+describe('TodoistService', () => {
+  let service: TodoistService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient()]
     });
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(CanvasService);
+    service = TestBed.inject(TodoistService);
   });
 
   it('should be created', () => {

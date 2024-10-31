@@ -3,20 +3,15 @@ This file provides utilities for adding tasks to Todoist.
 """
 
 
-from ctypes import c_bool
 from datetime import datetime
-from multiprocessing import Manager, Pool
-from multiprocessing.managers import ValueProxy
-from queue import Queue
-from threading import Lock
-from time import sleep
 from todoist_api_python.api import TodoistAPI
 import gevent, requests, uuid, json
+from typing import Literal
 
 from api.v1.courses import get_all_courses, get_course_assignments
-from utils.models import User, SubStatus
+from utils.models import User, TaskStatus, Task, SubTask
 from utils.settings import localize_date, date_passed, time_it, is_valid_date
-from utils.queries import add_or_return_task, update_task_id, set_task_duedate, get_task_by_canvas_id, create_subtask
+import utils.queries as queries
 
 
 def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
@@ -66,7 +61,7 @@ def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
             'commands': json.dumps(todoist_queue), # Todoist command queue
         }
         # Send the todoist queue request
-        response_data = send_post_todoist(todoist_url, body, headers)
+        response_data = _send_post_todoist(todoist_url, body, headers)
         
         # Update the tasks in the database with their final todoist_id
         with time_it("      Updating IDs of assignments: "):
@@ -74,8 +69,9 @@ def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
             if temp_id_mapping:
                 for temp_id, final_id in temp_id_mapping.items():
                     task_id = temp_ids[temp_id]
-                    update_task_id(task_id, final_id)
-    
+                    queries.update_task_id(task_id, final_id)
+
+
 def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todoist_queue: list, temp_ids: dict):
     """
     Adds tasks to the database and prepares them for synchronization with Todoist.
@@ -100,7 +96,7 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todo
     temp_id = str(uuid.uuid4())     # Todoist wants a unique uuid for every command
     
     # Get task from database or add it if it doesnt exists
-    task = add_or_return_task(owner, assignment['id'], due_date=due_date)
+    task = queries.add_or_return_task(owner, assignment['id'], due_date=due_date)
     
     # If the task doesn't have a todoist it, create the command for adding it to todoist
     if not task.todoist_id:
@@ -132,13 +128,54 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User|int, todo
         # Put the command in the queue that will be sent to Todoist
         todoist_queue.append(update_task_todoist)
         # Update the task due date in the database
-        set_task_duedate(task, due_date)
+        queries.set_task_duedate(task, due_date)
+
+
+def add_task(current_user: User, todoist_key: str, task_name: str,  due_date: str,
+             task_desc: str|None=None, canvas_id: int|None=None) -> int|Literal[False]:
+    """
+    Creates a task for the current user in both Todoist and the database. This may be associated
+    with a Canvas task.
+
+    Args:
+        current_user (User): The user creating the task.
+        todoist_key (str): The Todoist API key for the current user.
+        task_name (str): The name of the task.
+        due_date (str): The due date of the assignment.
+        task_desc (str|None): The description for the assignment, optional.
+        canvas_id (str|None): The ID of the assignment in Canvas, optional.
+    
+    Returns:
+        int|Literal[False]: The Todoist ID if the task was added and False otherwise.
+    """
+    body = {'content': task_name, 'due_string': due_date, 'labels': ['assignment']}
+
+    # Set the description if one was provided
+    if task_desc:
+        body['description'] = task_desc
+
+    headers = {
+        "Authorization": f"Bearer {todoist_key}",
+        "Content-Type": "application/json"
+    }
+
+    resp = requests.post('https://api.todoist.com/rest/v2/tasks', json=body, headers=headers)
+
+    if resp.status_code != 200:
+        print(resp.text)
+        return False
+    
+    task_id = resp.json()['id']
+
+    queries.add_or_return_task(current_user, None, task_id, due_date, task_name, task_desc)
+
+    return task_id
 
 
 def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str, subtask_desc: str=None, 
-                   subtask_status: SubStatus=SubStatus.Incomplete, subtask_date: str=None) -> int|bool:
+                   subtask_status: TaskStatus=TaskStatus.Incomplete, subtask_date: str=None) -> int|bool:
     """
-    Creates a subtask under a specified task for the current user in both todoist and the database.
+    Creates a subtask under a specified task for the current user in both Todoist and the database.
 
     Args:
         current_user (User): The user creating the subtask. Only the owner of the task can add subtasks.
@@ -153,7 +190,7 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
         int|False: The ID of the subtask if the subtask was successfully created, False otherwise.
     """
     # Check that the subtask belogs to a valid assignment that belong to the current user
-    task = get_task_by_canvas_id(current_user, canvas_id, dict=False)
+    task = queries.get_task_by_canvas_id(current_user, canvas_id, dict=False)
 
     if task and task.owner == current_user.id and subtask_name.strip() != '':
         try:
@@ -175,27 +212,143 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
             }
             
             # Create subtask and receive the todoist id
-            response_data = send_post_todoist("https://api.todoist.com/rest/v2/tasks", json.dumps(body), header)
+            response_data = _send_post_todoist("https://api.todoist.com/rest/v2/tasks", json.dumps(body), header)
             if response_data:
                 todoist_id = response_data.get('id', None)
                 if not todoist_id:
                     return False
                 
                 # If subtask is already marked as complete, close it
-                if subtask_status == SubStatus.Completed:
-                    response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close", headers={"Authorization": f"Bearer {todoist_key}"})
+                if subtask_status == TaskStatus.Completed:
+                    response = requests.post(
+                        f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close",
+                        headers={"Authorization": f"Bearer {todoist_key}"}
+                    )
                     if response.status_code != 204: # Failure to mark subtask as complete
-                        subtask_status = SubStatus.Incomplete
+                        subtask_status = TaskStatus.Incomplete
                 
                 # Create subtask in database
-                new_subtask_id = create_subtask(current_user, task.id, subtask_name, todoist_id, subtask_desc,
-                                             subtask_status, due_date)
+                new_subtask_id = queries.create_subtask(current_user, task.id, subtask_name,
+                                                        todoist_id, subtask_desc, subtask_status,
+                                                        due_date)
                 return new_subtask_id
         except Exception as e:
             print(e)
     return False
 
-def send_post_todoist(todoist_url, body, headers):
+
+def close_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
+    """
+    Marks a task or subtask as complete for the current user.
+
+    Args:
+        current_user (User): The user that owns the task or subtask.
+        todoist_key (str): The Todoist API key for the current user.
+        todoist_task_id (str): The ID of the task or subtask in Todoist.
+    
+    Returns:
+        bool: True if the task or subtask was completed, False otherwise.
+    """
+    # Get the task in the database
+    task: Task|SubTask|None = queries.get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
+    if task == None:
+        return False
+
+    # Mark task as complete in Todoist
+    response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_task_id}/close",\
+                             headers={"Authorization": f"Bearer {todoist_key}"})
+    
+    # Per documation, 204 indicates success
+    if response.status_code == 204:
+        # Complete task in database
+        queries.update_task_or_subtask_status(current_user, task, TaskStatus.Completed)
+
+        return True
+
+    return False
+
+
+def open_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
+    """
+    Marks a task or subtask as in progress for the current user.
+
+    Args:
+        current_user (User): The user that owns the task or subtask.
+        todoist_key (str): The Todoist API key for the current user.
+        todoist_task_id (str): The ID of the task or subtask in Todoist.
+    
+    Returns:
+        bool: True if the task or subtask was marked as in progress, False otherwise.
+    """
+
+    # Get the task in the database
+    task: Task|SubTask|None = queries.get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
+    if task == None:
+        return False
+    
+    # Mark task as in progress in Todoist
+    response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_task_id}/reopen",\
+                             headers={"Authorization": f"Bearer {todoist_key}"})
+    if response.status_code == 204:
+        queries.update_task_or_subtask_status(current_user, task, TaskStatus.Incomplete)
+
+        return True
+    
+    return False
+
+
+def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
+    """
+    Toggles a task's or subtask's status for the current user.
+
+    Args:
+        current_user (User): The user that owns the task or subtask.
+        todoist_key (str): The Todoist API key for the current user.
+        todoist_task_id (str): The ID of the task or subtask in Todoist.
+    
+    Returns:
+        bool: True if the task's or subtask's status was toggled, False otherwise.
+    """
+    # Get the task in the database
+    task: Task|SubTask|None = queries.get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
+    if task == None:
+        return False
+    
+    # Handle each enum seperately in case more states happen in the future
+    if task.status == TaskStatus.Completed:
+        return open_task(current_user, todoist_key, todoist_task_id)
+    elif task.status == TaskStatus.Incomplete:
+        return close_task(current_user, todoist_key, todoist_task_id)
+    
+    return False
+
+
+def sync_task_status(current_user: User, todoist_key: str):
+    """
+    Syncs the status of tasks and subtasks in the database with Todoist. The Todoist status will
+    override the database status.
+    """
+    # TODO: allow non-* sync token to decrase overhead
+    # Sync token will return completed tasks
+    response = requests.post('https://api.todoist.com/sync/v9/sync',\
+                              data={'sync_token':'*', 'resource_types': '["items"]'},\
+                              headers={'Authorization': f'Bearer {todoist_key}'})
+    
+    if not response.ok:
+        print("exiting due to non ok response")
+        return
+
+    # When updating this to properly sync, create two sets of open_tasks and closed_tasks
+    # Anything not in the sets will remain unchanged
+    open_tasks = set()
+    for task in response.json()['items']:
+        if not task['checked']:
+            open_tasks.add(task['id'])
+    
+    queries.sync_task_status(current_user, open_tasks)
+
+
+def _send_post_todoist(todoist_url, body, headers):
     """
     Sends a POST request to the Todoist API.
 
@@ -231,140 +384,3 @@ def _get_assignment_date_or_default(assignment: dict, default:str='~') -> str:
         return due_date
     else:
         return default
-
-
-# TODO: this breaks in very strange ways. Ex. sometimes functions will stop executing if specific
-# attributes are accessed on a variable. I suspect this is related to some really screwy stuff with
-# pointers, but I'm not sure. This is probably impossible to do in a reasonable amount of time
-# without using something like Celery w/ Redis.
-class FuncQueue():
-    """
-    A queue of functions that will be asynchronously executed by processes.
-    """
-
-    FUNC_IDS = dict([
-        ('ADD_TASK', None)
-    ])
-
-    def __init__(self, num_processes: int=3):
-        """
-        Initialize a FuncQueue.
-
-        :param num_processes: The number of processes to create. Defaults to 3 if not specified.
-        """
-
-        # This is currently broken, don't allow it to be contstructed.
-        raise ValueError
-
-        self._pool = Pool(processes=num_processes)
-        self._manager = Manager()
-        self._queue_lock = self._manager.Lock()
-        self._queue = self._manager.Queue()
-        self._should_run = self._manager.Value(c_bool, True)
-        
-        self._workers = [
-            self._pool.apply_async(FuncQueue._worker,
-                                   (self._queue_lock, self._queue, self._should_run))
-            for _ in range(num_processes)
-        ]
-
-
-    def add_func(self, func_id: str, *args, **kwargs) -> bool:
-        """
-        Add a function to the queue to execute. This will block until the StoredFunc can be added.
-        Functions will not be added if `graceful_shutdown` has been called.
-
-        :param func_id: The ID of the function to call. Must be a valid key in FuncQueue.FUNC_IDS.
-        :param *args: The positional arguments to func.
-        :param **kwargs: The named arguments to func.
-        :return bool: Whether the function was added. Returns False if a shutdown has been
-        initiated.
-        :raises ValueError: If func_id is not a valid key in FuncQueue.FUNC_IDS.
-        """
-        # Validate that func_id is a valid ID
-        if func_id not in FuncQueue.FUNC_IDS:
-            raise ValueError
-
-        # Don't accept jobs if the queue should be shutting down
-        if not self._should_run.get():
-            return False
-        
-        # Add the job to the queue
-        with self._queue_lock:
-            self._queue.put((func_id, args, kwargs))
-
-        return True
-
-
-    def graceful_shutdown(self):
-        """
-        Begin a graceful shutdown of the queue. All functions currently in the queue will be
-        finished before exiting, but no new functions will be accepted.
-        """
-        self._should_run.set(False)
-    
-
-    def wait(self):
-        """
-        Begin a graceful shutdown and wait for all functinos in the queue to finish. Blocks until
-        all functions are finished.
-        """
-        self.graceful_shutdown()
-        [w.wait() for w in self._workers]
-    
-
-    def add_task_queued(self, todoist_api_key, canvas_task_id: str, task_name: str, class_name: str,
-                        due_date: str, owner: User|int):
-        """
-        Queue a task to be added asynchronously.
-
-        :param todoist_api_key: The user's Todoist API key.
-        :param canvas_task_id: The ID of the task in Canvas.
-        :param task_name: The name of the task to add.
-        :param class_name: The name of the class that the assignment is for.
-        :param due_date: The date that the assignment is due in YYYY-MM-DD format.
-        :param owner: Either the User who will own the task or their ID.
-        """
-        self.add_func(
-            'ADD_TASK',
-            todoist_api_key, canvas_task_id, task_name, class_name, due_date, owner
-        )
-
-
-    @staticmethod
-    def _worker(queue_lock: Lock, queue: Queue,
-           should_run: ValueProxy[bool]):
-            while True:
-                # Lock the queue to prevent multiple threads from trying to get items at the same time
-                queue_lock.acquire()
-
-                # If no items are availble...
-                if queue.empty():
-                    # Immediately release the queue lock, it won't be used
-                    queue_lock.release()
-
-                    # If the worker shouldn't be running, end it
-                    if not should_run.get():
-                        return
-
-                    # If it should still be running, wait 1 second for a new item
-                    sleep(1)
-                    continue
-                # If items are available...
-                else:
-                    # Get the func information and release the lock
-                    func_id, args, kwargs = queue.get()
-                    queue_lock.release()
-
-                    # Convert the function id to a function and execute it
-                    func = FuncQueue.FUNC_IDS[func_id]
-                    print(f"Got {func_id} -> {func}")
-                    print(f"args: {args}, kwargs: {kwargs}")
-                    func(*args, **kwargs)
-    
-
-
-    # TODO: see if custom registerable methods will screw anything up. Also test if lambda/local
-    # functions are still broken w/ this method.
-
-#todoist_queue = FuncQueue()
