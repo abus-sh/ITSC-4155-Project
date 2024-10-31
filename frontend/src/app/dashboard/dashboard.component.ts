@@ -134,8 +134,9 @@ export class DashboardComponent implements OnInit {
     // Toggle for the subtasks dropdown
     toggleDropdown(event: Event): void {
         const button = event.target as HTMLElement;
-        const card = button.parentElement as HTMLElement;
-        const dropdown = button.nextElementSibling as HTMLElement;
+        const card = button.parentElement?.parentElement as HTMLElement;
+        const dropdown = button.parentElement?.nextElementSibling as HTMLElement;
+        console.log
     
         // Hide the previously opened dropdown, if any
         if (this.previousDropdown && this.previousDropdown !== dropdown) {
