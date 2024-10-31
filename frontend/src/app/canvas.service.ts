@@ -134,7 +134,11 @@ export class CanvasService {
         return assignments;
     }
 
-    async getSubTasks(assignments: Assignment[]) {
+    async getSubTasks(assignments: Assignment[]|undefined = undefined) {
+        if (assignments === undefined) {
+            assignments = this.dueAssignments;
+        }
+
         const assignmentIds = assignments.map(assignment => Number(assignment.id))
             .filter(id => !isNaN(id));
         
@@ -145,8 +149,6 @@ export class CanvasService {
             ...assignment,
             subtasks: subtasks[assignment.id] || []
         }));
-
-        console.log('b', this.dueAssignments[0].subtasks[0]);
 
         this.dueAssignments$.next(this.dueAssignments);
     }
