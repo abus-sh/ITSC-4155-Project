@@ -172,7 +172,7 @@ def add_task(current_user: User, todoist_key: str, task_name: str,  due_date: st
 
 
 def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str, subtask_desc: str=None,
-                   subtask_status: TaskStatus=TaskStatus.Incomplete, subtask_date: str=None) -> int|bool:
+                subtask_status: TaskStatus=TaskStatus.Incomplete, subtask_date: str=None) -> int|bool:
     """
     Creates a subtask under a specified task for the current user in both Todoist and the database.
 
@@ -330,8 +330,8 @@ def sync_task_status(current_user: User, todoist_key: str):
     # TODO: allow non-* sync token to decrase overhead
     # Sync token will return completed tasks
     response = requests.post('https://api.todoist.com/sync/v9/sync',\
-                              data={'sync_token':'*', 'resource_types': '["items"]'},\
-                              headers={'Authorization': f'Bearer {todoist_key}'})
+                             data={'sync_token':'*', 'resource_types': '["items"]'},\
+                             headers={'Authorization': f'Bearer {todoist_key}'})
 
     if not response.ok:
         print("exiting due to non ok response")

@@ -51,8 +51,8 @@ class TodoistAuthInfo:
             return False
 
         return self.code == other.code and self.state == other.state and \
-               self.token == other.token and self.is_oauth == other.is_oauth and \
-               self.is_token == other.is_token
+            self.token == other.token and self.is_oauth == other.is_oauth and \
+            self.is_token == other.is_token
 
 
 # Retrieve the User based on the login_id stored in the session

@@ -56,9 +56,9 @@ class Ciphertext:
             return False
 
         return self.tag == other.tag and \
-               self.nonce == other.nonce and \
-               self.salt == other.salt and \
-               self.ciphertext == other.ciphertext
+            self.nonce == other.nonce and \
+            self.salt == other.salt and \
+            self.ciphertext == other.ciphertext
 
     @staticmethod
     def from_bytes(data: bytes) -> Self:

@@ -154,7 +154,7 @@ def get_course_assignment(canvas_key: str, course_id: str, assignment_id: str) -
 
 
 def get_course_assignment_no_cache(canvas_key: str, course_id: str, assignment_id: str)\
-    -> Assignment:
+        -> Assignment:
     """
     Returns the assignment with the given ID from the given course. These results are not cached. If
     possible, use get_course_assignment to improve server response times.
@@ -220,7 +220,7 @@ def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, lim
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
 def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int=50, type='assignment')\
-    -> list[CalendarEvent]:
+        -> list[CalendarEvent]:
     """
     Returns the calendar events within the given date range, up to a limited number. These results
     are cached for an amount of time determined by utils.settings.get_canvas_cache_time. If live
@@ -236,7 +236,7 @@ def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: 
 
 
 def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str, limit: int=50, type='assignment')\
-    -> list[CalendarEvent]:
+        -> list[CalendarEvent]:
     """
     Returns the calendar events within the given date range, up to a limited number. These results
     are not cached. If possible, use get_calendar_events to improve server response times.
@@ -253,11 +253,13 @@ def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str
     courses = [f'course_{course.id}' for course in courses]
 
     canvas = Canvas(BASE_URL, canvas_key)
-    assignments = canvas.get_calendar_events(context_codes=courses,
+    assignments = canvas.get_calendar_events(
+        context_codes=courses,
         start_date=start_date,
         end_date=end_date,
         per_page=limit,
-        type=type)
+        type=type
+    )
 
     return assignments
 
@@ -278,7 +280,7 @@ def get_missing_submissions(canvas_key: str, course_ids: frozenset[int]):
 
 
 def get_missing_submissions_no_cache(canvas_key: str, course_ids: frozenset[int])\
-    -> list[Assignment]:
+        -> list[Assignment]:
     """
     Get missings submissions for a set of courses using the given API key. These results are not
     cached. If possible, use get_missing_submissions to improve server response times.

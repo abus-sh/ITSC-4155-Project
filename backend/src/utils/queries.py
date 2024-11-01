@@ -253,7 +253,7 @@ def get_non_canvas_tasks(owner: User, dict=False) -> list[Task] | list[dict]:
 
 
 def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
-    -> Task | SubTask | dict | None:
+        -> Task | SubTask | dict | None:
     """
     Retrieve a task or subtask by its Todoist ID.
 
@@ -354,7 +354,7 @@ def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int
     """
     try:
         new_subtask = SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id, name=subtask_name,
-                                description=subtask_desc, status=subtask_status, due_date=subtask_date)
+                              description=subtask_desc, status=subtask_status, due_date=subtask_date)
         db.session.add(new_subtask)
         db.session.commit()
         return new_subtask.id
