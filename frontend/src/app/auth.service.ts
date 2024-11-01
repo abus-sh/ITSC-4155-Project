@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { getBackendURL } from '../config';
+import { CanvasService } from './canvas.service';
 
 export interface AuthStatus {
     authenticated: boolean;
@@ -35,11 +36,16 @@ export class AuthService {
 
     private backend = getBackendURL();
 
-    constructor(private http: HttpClient, private router: Router) {
+    constructor(private http: HttpClient, private router: Router,
+        private canvasService: CanvasService) {
+        
         console.log('Auth Service - Launched')
-        this.isLoggedIn().subscribe()
-        this.getUserInfo();
-        this.syncTodoist();
+        this.isLoggedIn().subscribe(isAuthenticated => {
+            if (isAuthenticated) {
+                this.getUserInfo();
+                this.syncTodoist();
+            }
+        });
     }
 
     // Request CSRF token from backend
@@ -88,10 +94,11 @@ export class AuthService {
 
     // Sync assignments/tasks with Todoist
     syncTodoist() {
-        console.log('Syncing tasks with Todoist');
+        console.log('Syncing Tasks with Todoist...');
         this.http.post(`${this.backend}/api/v1/tasks/update`, null).subscribe({
-            next: (response) => {
-                console.log(' * Tasks synced with Todoist', response);
+            next: () => {
+                console.log(' * Synched with Todoist: Done!');
+                this.canvasService.getDueAssignments().then(() => this.canvasService.getSubTasks());
             },
             error: (err) => {
                 console.error(' * TODOIST: FAILED TO SYNC', err);

@@ -36,7 +36,6 @@
 
 main {
     height: 100%;
-    background-color: #f4f4f9;
     color: #333;
 }
 
@@ -62,11 +61,12 @@ main {
     position: absolute;
     top: 0;
     left: 0;
-    height: 100vh;
+    height: 100%;
     width: 80px;
     background-color: #ff3b30;
     padding: .4rem .8rem;
     transition: all 0.5s ease;
+    z-index: 50;
 }
 
 .sidebar.active~.main.content {
@@ -205,6 +205,7 @@ main {
 
 .sidebar ul li:hover .tooltip {
     opacity: 1;
+    z-index: 30
 }
 
 .sidebar ul li .tooltip:hover {
@@ -218,7 +219,6 @@ main {
 
 .main-content {
     position: relative;
-    background-color: #eee;
     min-height: 100vh;
     top: 0;
     left: 80px;

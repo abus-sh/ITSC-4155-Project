@@ -21,7 +21,8 @@
         <div>
             <div *ngIf="profileData.canvas?.canvas_name" class="valid-canvas">
                 <h2>Todoist: ✔️</h2>
-                <img src="https://static-00.iconduck.com/assets.00/apps-todoist-icon-2048x2048-638ovjjk.png" alt="Canvas Avatar">
+                <img src="https://static-00.iconduck.com/assets.00/apps-todoist-icon-2048x2048-638ovjjk.png"
+                    alt="Canvas Avatar">
                 <p><strong>Status:</strong> Working</p>
             </div>
             <div *ngIf="!profileData.canvas" class="invalid-canvas">
@@ -32,13 +33,11 @@
     </div>
 </div>
 
-<div class="settings-section">
-    <!-- <div *ngIf="profileData.username"> 
-        <h4><strong>Username:</strong> {{ profileData.username }}</h4>
-    </div> -->
-    <div>
+<div class="settings">
+    <div class="setting-section">
         <form (ngSubmit)="onSubmit()" #passwordForm="ngForm">
             <h3>Change Password</h3>
+            <hr>
             <div>
                 <label for="oldPassword">Old Password:</label>
                 <input type="password" id="oldPassword" required [(ngModel)]="oldPassword" name="oldPassword">
@@ -52,10 +51,19 @@
                 <input type="password" id="confirmPassword" required [(ngModel)]="confirmPassword"
                     name="confirmPassword">
             </div>
-            <button type="submit">Update Password</button>
+            <button class="space-top-two" type="submit">Update Password</button>
         </form>
         <div *ngIf="message" [ngClass]="['message', messageClass]">
             {{ message }}
+        </div>
+    </div>
+    <div class="setting-section">
+        <h3>Todoist</h3>
+        <hr>
+        <div class="space-top">
+            <p>Note that synching with Todoist is done automatically when visiting CanvasHub.</p>
+            <button class="space-top-one" (click)="syncTodoistManual()">Sync with Todoist</button>
+            <p class="standard-text sync">Manual sync: {{ lastSyncDate }}</p>
         </div>
     </div>
 </div>

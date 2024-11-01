@@ -23,7 +23,7 @@ def decrypt_api_keys() -> tuple[str, str]:
     session_id = session['_id']
 
     # If current user doesn't have API keys encrypted w/ session key, can't decrypt keys
-    if current_user.canvas_token_session == None or current_user.todoist_token_session == None:
+    if current_user.canvas_token_session is None or current_user.todoist_token_session is None:
         raise ValueError
 
     canvas_token = decrypt_str(current_user.canvas_token_session, session_id)
@@ -46,9 +46,9 @@ def decrypt_canvas_key() -> str:
     session_id = session['_id']
 
     # If current user doesn't have a Canvas API key encrypted w/ session key, can't decrypt key
-    if current_user.canvas_token_session == None:
+    if current_user.canvas_token_session is None:
         raise ValueError
-    
+
     return decrypt_str(current_user.canvas_token_session, session_id)
 
 
@@ -66,7 +66,7 @@ def decrypt_todoist_key() -> str:
     session_id = session['_id']
 
     # If current user doesn't have a Canvas API key encrypted w/ session key, can't decrypt key
-    if current_user.todoist_token_session == None:
+    if current_user.todoist_token_session is None:
         raise ValueError
-    
+
     return decrypt_str(current_user.todoist_token_session, session_id)

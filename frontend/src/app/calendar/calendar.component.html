@@ -1,1 +1,42 @@
-<p>calendar works!</p>
+<div class="calendar">
+    <div class="calendar-header">
+        <button (click)="prevMonth()" class="nav-button"><strong>&#9664;</strong></button>
+        <h2>{{ monthName }} {{ year }}</h2>
+        <button (click)="nextMonth()" class="nav-button"><strong>&#9654;</strong></button>
+    </div>
+
+    <!-- Checkboxes for filtering -->
+    <div class="filters">
+        <label>
+            <input type="checkbox" [(ngModel)]="showEvents"> Show Events
+        </label>
+        <label>
+            <input type="checkbox" [(ngModel)]="showAssignments"> Show Assignments
+        </label>
+    </div>
+
+    <div class="weekdays">
+        <div class="weekday" *ngFor="let day of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']">{{ day }}</div>
+    </div>
+    <div class="days">
+        <div class="day" *ngFor="let day of days" [ngClass]="{
+                'prev-month': !day.isCurrentMonth, 
+                'current-month': day.isCurrentMonth,
+                'today': day.isToday
+            }">
+            <div class="date">{{ day.date.getDate() }}</div>
+            <div class="items">
+                <ng-container *ngFor="let item of day.items">
+                    <a *ngIf="(item.type === 'event' && showEvents) || (item.type === 'assignment' && showAssignments)"
+                       [ngClass]="getClass(item)" 
+                       class="item" 
+                       [href]="item.html_url" 
+                       target="_blank"
+                       title="{{ item.html_url }}">
+                        {{ item.title }}
+                    </a>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>

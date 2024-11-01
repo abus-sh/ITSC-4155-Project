@@ -1,0 +1,20 @@
+<div class="modal-content">
+    <button class="close-button" (click)="closeForm()">&#10005;</button>
+    <h2>Add an Assignment</h2>
+    <p class="error">{{ this.errorMsg }}</p>
+    <form [formGroup]="addTaskForm" (ngSubmit)="addAssignment()">
+        <div>
+            <label for="name">Assignment name</label>
+            <input type="text" id="name" formControlName="name">
+        </div>
+        <div>
+            <label for="description">Description</label>
+            <input type="text" id="description" formControlName="description">
+        </div>
+        <div>
+            <label for="due_at">Due date</label>
+            <input type="datetime-local" id="due_at" formControlName="due_at">
+        </div>
+        <button type="submit">Add task</button>
+    </form>
+</div>

@@ -1,15 +1,90 @@
-<div class="assignments-container">
-    <div *ngFor="let assignment of assignments | orderBy: 'due_at'" class="assignment-card">
-        <h3 class="assignment-title">{{ assignment.title }}</h3>
-        <p class="assignment-duedate">
-            <strong>Due Date</strong>:
-            <span [ngStyle]="{'color': getDueDateColor(assignment.due_at)}">
-                {{ assignment.due_at }} - ({{ dayDifference(assignment.due_at) }} days)
-            </span>
-        </p>
-        <!--<p class="assignment-description">{{ assignment.description }}</p> -->
-        <p class="assignment-course">{{ assignment.context_name }}</p>
-        <!--<p class="assignment-points">Points: {{ assignment.points_possible }}</p> -->
-        <a class="assignment-link" [href]="assignment.html_url" target="_blank">View Assignment</a>
+<div class="dashboard-container">
+    <div class="upcoming-header-container">
+        <h2 class="collapsible-title" (click)="toggleSection(0)" (keypress)="toggleSection(0)" tabindex="0">
+            {{ sectionCollapseUpcoming ? '&#9662;' : '&#9652;' }} Upcoming Assignments
+        </h2>
+        <button class="dropdown-toggle" (click)="openAssignmentForm()">Add Assignment</button>
     </div>
+    <hr>
+    <div class="assignments-container" *ngIf="!sectionCollapseUpcoming">
+        <!-- ASSIGNMENT LIST -->
+        <div *ngFor="let assignment of assignments | orderBy: 'due_at'" class="assignment-card">
+            <h3 class="assignment-title">{{ assignment.title }}</h3>
+            <p class="assignment-duedate">
+                <strong>Due Date</strong>:
+                <span [ngStyle]="{'color': getDueDateColor(assignment.due_at)}">
+                    {{ assignment.due_at }} - ({{ dayDifference(assignment.due_at) }} days)
+                </span>
+            </p>
+            <p class="assignment-course">{{ assignment.context_name }}</p>
+            <div class="assignment-buttons">
+                <a class="assignment-link" [href]="assignment.html_url" target="_blank" *ngIf="assignment.html_url">View Assignment</a>
+                <!-- TODO: allow non-Canvas tasks to have subtasks -->
+                <button class="dropdown-toggle" (click)="toggleDropdown($event)" *ngIf="assignment.id">Sub Tasks</button>
+            </div>
+            <!-- DROPDOWN SUBTASKS -->
+            <div class="dropdown-content">
+
+                <button class="add-form-button" (click)="openForm(assignment)">+ Add</button>
+
+                <h4>List of Subtasks:</h4>
+                <!-- SUBTASKS LIST -->
+                <div *ngIf="assignment.subtasks && assignment.subtasks.length > 0; else emptyState">
+                    <div *ngFor="let subtask of assignment.subtasks | orderBy: 'due_date'" class="subtask-list">
+                        <div class="subtask-card" title="{{ subtask.description }}">
+                            <span class="subtask-name">{{ subtask.name }}</span>
+                            <span class="subtask-status {{ subtask.status ? 'complete' : 'incomplete' }}" (click)="toggleSubtaskStatus(subtask)" (keypress)="toggleSubtaskStatus(subtask)" tabindex="0">
+                                {{ subtask.status ? 'Complete' : 'Incomplete' }}
+                            </span>
+                            <span class="subtask-due-date">{{ subtask.due_date }}</span>
+                        </div>
+                    </div>
+                </div>
+                <ng-template #emptyState>
+                    <p style="font-style: italic;">Empty..</p>
+                </ng-template>
+            </div>
+
+        </div>
+    </div>
+    <br>
+    <h2 class="collapsible-title" (click)="toggleSection(1)" (keypress)="toggleSection(1)" tabindex="0">
+        {{ sectionCollapseComplete ? '&#9662;' : '&#9652;' }} Completed Assignments
+    </h2>
+    <hr>
+
+    <!-- Add a Subtask to an Assignment/Task FORM -->
+    <div class="modal" *ngIf="subtaskFormDisplay">
+        <div class="modal-content">
+            <button class="close-button" (click)="closeForm()">&#10005;</button>
+            <h2>Add a Subtask</h2>
+            <hr>
+            <h3>{{ subtaskAssignment?.title ?? 'None' }}</h3>
+            <form [formGroup]="addSubtaskForm" (ngSubmit)="addSubtask(subtaskAssignment)">
+                <div>
+                    <label for="name">Name</label>
+                    <input type="text" id="name" formControlName="name" required>
+                </div>
+                <div>
+                    <label for="description">Description</label>
+                    <textarea id="description" formControlName="description"></textarea>
+                </div>
+                <div>
+                    <label for="due_date">Due Date</label>
+                    <input type="datetime-local" id="due_date" formControlName="due_date">
+                </div>
+                <div>
+                    <label for="status">Status</label>
+                    <select id="status" formControlName="status">
+                        <option value="0">Incomplete</option>
+                        <option value="1">Complete</option>
+                    </select>
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add an assignment not in Canvas -->
+    <app-addtask class="modal" *ngIf="assignmentFormDisplay" (closeFormAction)="closeAssignmentForm()"></app-addtask>
 </div>

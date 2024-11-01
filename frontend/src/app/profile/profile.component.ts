@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService, AuthStatus } from '../auth.service';
 import { Observable } from 'rxjs';
 import { getBackendURL } from '../../config';
+import { CanvasService } from '../canvas.service';
 
 export interface UserProfile {
     username?: string;
@@ -25,8 +26,9 @@ export interface UserProfile {
     styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
-    private profileUrl = getBackendURL() + '/api/v1/user/profile';
-    private passwordChangeUrl = getBackendURL() + '/api/auth/change-password';
+    private backendUrl = getBackendURL();
+    private profileUrl = this.backendUrl + '/api/v1/user/profile';
+    private passwordChangeUrl = this.backendUrl + '/api/auth/change-password';
     authStatus$: Observable<AuthStatus>;
 
     profileData: UserProfile = {};
@@ -37,7 +39,11 @@ export class ProfileComponent implements OnInit {
     message: string | null = null;
     messageClass = '';
 
-    constructor(private authService: AuthService, private http: HttpClient) { 
+    lastSyncDate = '~'
+
+    constructor(private authService: AuthService, private http: HttpClient,
+        private canvasService: CanvasService) { 
+        
         this.authStatus$ = this.authService.authStatus$;
     }
 
@@ -89,6 +95,19 @@ export class ProfileComponent implements OnInit {
                 console.error('Error updating password:', error);
             }
         );
+    }
+
+    syncTodoistManual() {
+        this.lastSyncDate = 'Started, please wait..'
+        this.http.post(`${this.backendUrl}/api/v1/tasks/update`, null).subscribe({
+            next: () => {
+                this.lastSyncDate = new Date().toLocaleString();
+                this.canvasService.getDueAssignments().then(() => this.canvasService.getSubTasks());
+            },
+            error: () => {
+                this.lastSyncDate = 'error'
+            }
+        });
     }
 
     clearForm() {

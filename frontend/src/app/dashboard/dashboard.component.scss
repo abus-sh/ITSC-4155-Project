@@ -1,11 +1,42 @@
-.assignments-container {
-    display: flex;
-    flex-wrap: wrap;  /* Allow wrapping to the next row when space is insufficient */
-    gap: 15px;
+.dashboard-container {
     padding: 20px;
 }
 
+h2 {
+    margin-bottom: 5px;
+}
+
+.collapsible-title {
+    cursor: pointer;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+}
+
+.upcoming-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.upcoming-header-container .dropdown-toggle {
+    margin-top: 0px;
+    margin-bottom: 10px;
+    padding: 8px 25px;
+}
+
+/* ASSIGNMENTS / TASKS */
+
+.assignments-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 20px 5px;
+    position: relative;
+}
+
 .assignment-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     background-color: #f9f9f9;
@@ -16,6 +47,11 @@
     min-width: 250px;
     width: 350px;
     box-sizing: border-box;
+    z-index: 0;
+}
+
+.assignment-card.show-dropdown {
+    z-index: 25;
 }
 
 .assignment-card:hover {
@@ -53,18 +89,247 @@
     color: #333;
 }
 
-.assignment-link {
+.assignment-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    justify-content: space-evenly;
+    align-items: center;
     margin-top: auto;
+}
+ 
+.assignment-buttons .assignment-link, 
+.assignment-buttons .dropdown-toggle {
+    flex-grow: 1;
+    text-align: center;
+}
+
+.assignment-link {
     display: inline-block;
-    max-width: fit-content;
-    padding: 8px 35px;
+    padding: 8px 5px;
     background-color: #007bff;
     color: #fff;
     text-decoration: none;
     border-radius: 4px;
     transition: background-color 0.2s ease;
+    font-size: 1rem;
 }
 
 .assignment-link:hover {
     background-color: #0056b3;
+}
+
+
+/* SUBTASKS */
+
+.dropdown-toggle {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-toggle:hover {
+    background-color: #0056b3;
+}
+
+.dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #f1f1f1;
+    padding: 10px;
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 18px 20px 12px rgba(0, 0, 0, 0.5);
+    z-index: inherit;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.dropdown-content .add-form-button {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    border: 2px solid rgb(0, 123, 255);
+    background-color: rgba(0, 123, 255, 0.1); 
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgb(0, 123, 255);
+    cursor: pointer;
+    text-align: start;
+    padding: 3px 5px;
+    border-radius: 8px;
+}
+
+.dropdown-content .add-form-button:hover {
+    background-color: rgba(0, 123, 255, 0.2); 
+}
+
+.dropdown-content .subtask-list {
+    margin-top: 10px;
+}
+
+.dropdown-content.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.dropdown-content p {
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+/* Add SUBTASKS */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    min-width: 450px;
+    max-width: 500px;
+    min-height: 30%;
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    margin: auto;
+
+    form {
+        margin-top: 15px;
+    }
+
+    h2 {
+        margin-bottom: 10px;
+        font-size: 1.5em;
+        color: #333;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+    }
+
+    input[type="text"],
+    input[type="datetime-local"],
+    textarea,
+    select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-size: 1em;
+    }
+
+    input[type="text"]:focus,
+    input[type="datetime-local"]:focus,
+    textarea:focus,
+    select:focus {
+        border-color: #007BFF;
+        outline: none;
+    }
+
+    textarea {
+        resize: vertical;
+        max-height: 350px;
+    }
+
+    button[type="submit"] {
+        background-color: #007BFF;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.3s;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+
+    .close-button {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 20px;
+        font-weight: bold;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #000;
+    }
+
+    .close-button:hover {
+        color: #333;
+    }
+}
+
+/* SUBTASK ELEMENT */
+
+.subtask-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap; /* Ensures due date moves to next line on smaller screens */
+}
+
+.subtask-name {
+    flex-grow: 1;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.subtask-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.subtask-status.complete {
+    background-color: #28a745;
+    color: white;
+}
+
+.subtask-status.incomplete {
+    background-color: #f1372d;
+    color: white;
+}
+
+.subtask-due-date {
+    font-size: 14px;
+    color: #555;
+    margin-left: auto;
+    margin-top: 5px;
+    text-align: right;
+    flex-basis: 100%;
 }

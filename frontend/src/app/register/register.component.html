@@ -23,12 +23,18 @@
                 placeholder="Enter your Canvas API token">
         </div>
 
-        <div class="form-group">
+        <!-- <div class="form-group">
             <label for="todoistToken">Todoist API Token</label>
             <input id="todoistToken" formControlName="todoistToken" type="text" required
                 placeholder="Enter your Todoist API token">
-        </div>
+        </div> -->
 
+        <div class="form-group">
+            <label for="todoistToken">Todoist API Token</label>
+            <button type="button" class="oauth-btn" (click)="openTodoistAuth()">Authorize with Todoist</button>
+            <p>{{ todoistAuthString }}</p>
+        </div>
+        <br>
         <button type="submit" class="btn">Register</button>
     </form>
     <a class="login-link" routerLink="/login">Already have an account? Login</a>
