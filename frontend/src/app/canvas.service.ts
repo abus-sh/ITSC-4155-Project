@@ -148,7 +148,7 @@ export class CanvasService {
     async getCalendarEvents(start_date: string, end_date: string): Promise<CalendarEvent[]> {
         const params = new HttpParams().set('start_date', start_date).set('end_date', end_date);
     
-        let events = await firstValueFrom(this.http.get<CalendarEvent[]>(this.calendarEventsUrl, {
+        const events = await firstValueFrom(this.http.get<CalendarEvent[]>(this.calendarEventsUrl, {
             params: params,
             withCredentials: true
         }));

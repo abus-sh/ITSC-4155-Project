@@ -33,15 +33,15 @@ interface CalendarDay {
     styleUrls: ['./calendar.component.scss']
 })
 export class CalendarComponent {
-    monthName: string = '';
-    year: number = 0;
+    monthName = '';
+    year = 0;
     days: CalendarDay[] = [];
 
     private todayString: string;
     private monthView: Date;
 
-    showEvents: boolean = true;       
-    showAssignments: boolean = true;  
+    showEvents = true;       
+    showAssignments = true;  
 
     constructor(private canvasService: CanvasService) {
         this.monthView = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));

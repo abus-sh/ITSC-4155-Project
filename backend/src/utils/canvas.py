@@ -49,6 +49,7 @@ def get_all_courses_no_cache(canvas_key: str) -> list[Course]:
 
     return [course for course in current_courses]
 
+
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
 def get_course(canvas_key: str, course_id: str) -> Course:
     """
@@ -60,7 +61,7 @@ def get_course(canvas_key: str, course_id: str) -> Course:
     :param course_id: The ID of the course to retrieve.
     :return Course: The course with the given ID.
     """
-    return get_all_courses_no_cache(canvas_key, course_id)
+    return get_course_no_cache(canvas_key, course_id)
 
 
 def get_course_no_cache(canvas_key: str, course_id: str) -> Course:
@@ -104,7 +105,7 @@ def get_graded_assignments_no_cache(canvas_key: str, course_id: str) -> list[Sub
     canvas = Canvas(BASE_URL, canvas_key)
     assignments = canvas.get_course(course_id)\
         .get_multiple_submissions(workflow_state='graded', include=['assignment'])
-    
+
     return [assignment for assignment in assignments]
 
 
@@ -136,6 +137,7 @@ def get_course_assignments_no_cache(canvas_key: str, course_id: str) -> list[Ass
 
     return [assignment for assignment in course_assignments]
 
+
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
 def get_course_assignment(canvas_key: str, course_id: str, assignment_id: str) -> Assignment:
     """
@@ -152,7 +154,7 @@ def get_course_assignment(canvas_key: str, course_id: str, assignment_id: str) -
 
 
 def get_course_assignment_no_cache(canvas_key: str, course_id: str, assignment_id: str)\
-    -> Assignment:
+        -> Assignment:
     """
     Returns the assignment with the given ID from the given course. These results are not cached. If
     possible, use get_course_assignment to improve server response times.
@@ -195,10 +197,11 @@ def get_current_user_no_cache(canvas_key: str) -> CurrentUser:
     return profile
 
 
-def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int, event_types: list[str]) -> list[CalendarEvent]:
+def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int,
+                            event_types: list[str]) -> list[CalendarEvent]:
     """
-    Retrieves all calendar events of certain types with a specified date range for the given event types 
-    using gevent.
+    Retrieves all calendar events of certain types with a specified date range for the given event
+    types using gevent.
 
     :param canvas_key: The API key that should be used.
     :param start_date: The earliest date to retrieve events for, formatted as YYYY-MM-DD.
@@ -207,7 +210,10 @@ def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, lim
     :param event_types: A list of event types to retrieve, such as 'assignment', 'event', etc.
     :return: A list of merged calendar events from the specified event types within the date range.
     """
-    greenlets = [gevent.spawn(get_calendar_events, canvas_key, start_date, end_date, limit, event_type) for event_type in event_types]
+    greenlets = [
+        gevent.spawn(get_calendar_events, canvas_key, start_date, end_date, limit, event_type)
+        for event_type in event_types
+    ]
     gevent.joinall(greenlets)
 
     merged_events = []
@@ -217,13 +223,13 @@ def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, lim
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
-def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int=50, type='assignment')\
-    -> list[CalendarEvent]:
+def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int = 50,
+                        type='assignment') -> list[CalendarEvent]:
     """
     Returns the calendar events within the given date range, up to a limited number. These results
     are cached for an amount of time determined by utils.settings.get_canvas_cache_time. If live
     information is needed, get_calendar_events_no_cache should be used instead.
-    
+
     :param canvas_key: The API key that should be used.
     :param start_date: The earliest date to retrieve events for. Must be of the form YYYY-MM-DD.
     :param end_date: The latest date to retrieve events for. Must be of the form YYYY-MM-DD.
@@ -233,12 +239,12 @@ def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: 
     return get_calendar_events_no_cache(canvas_key, start_date, end_date, limit, type)
 
 
-def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str, limit: int=50, type='assignment')\
-    -> list[CalendarEvent]:
+def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str, limit: int = 50,
+                                 type='assignment') -> list[CalendarEvent]:
     """
     Returns the calendar events within the given date range, up to a limited number. These results
     are not cached. If possible, use get_calendar_events to improve server response times.
-    
+
     :param canvas_key: The API key that should be used.
     :param start_date: The earliest date to retrieve events for. Must be of the form YYYY-MM-DD.
     :param end_date: The latest date to retrieve events for. Must be of the form YYYY-MM-DD.
@@ -251,12 +257,14 @@ def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str
     courses = [f'course_{course.id}' for course in courses]
 
     canvas = Canvas(BASE_URL, canvas_key)
-    assignments = canvas.get_calendar_events(context_codes=courses,
-        start_date=start_date, 
+    assignments = canvas.get_calendar_events(
+        context_codes=courses,
+        start_date=start_date,
         end_date=end_date,
         per_page=limit,
-        type=type)
-    
+        type=type
+    )
+
     return assignments
 
 
@@ -276,7 +284,7 @@ def get_missing_submissions(canvas_key: str, course_ids: frozenset[int]):
 
 
 def get_missing_submissions_no_cache(canvas_key: str, course_ids: frozenset[int])\
-    -> list[Assignment]:
+        -> list[Assignment]:
     """
     Get missings submissions for a set of courses using the given API key. These results are not
     cached. If possible, use get_missing_submissions to improve server response times.
@@ -292,7 +300,7 @@ def get_missing_submissions_no_cache(canvas_key: str, course_ids: frozenset[int]
     return missing_submissions
 
 
-def course_to_dict(course: Course, fields: list[str]|None=None) -> dict[str, str|None]:
+def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:
     """
     Converts a course into a dict, taking only the fields specified in fields. If fields is None,
     then a default set of fields are used.
@@ -300,10 +308,10 @@ def course_to_dict(course: Course, fields: list[str]|None=None) -> dict[str, str
     :param course: The course to convert to a dict.
     :param fields: The fields to extract from the course. If fields is not specified, a default list
     of fields are used instead.
-    :return dict[str, str|None]: Returns a dict with each key. If no value was present for the key,
-    None is returned instead.
+    :return dict[str, str | None]: Returns a dict with each key. If no value was present for the
+    key, None is returned instead.
     """
-    if fields == None:
+    if fields is None:
         fields = [
             'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments', 'term', 'concluded',
             'image_download_url'
@@ -312,7 +320,8 @@ def course_to_dict(course: Course, fields: list[str]|None=None) -> dict[str, str
     return {field: getattr(course, field, None) for field in fields}
 
 
-def assignment_to_dict(assignment: Assignment, fields: list[str]|None=None) -> dict[str, str|None]:
+def assignment_to_dict(assignment: Assignment, fields: list[str] | None = None)\
+        -> dict[str, str | None]:
     """
     Converts an assignment into a dict, taking only the fields specified in fields. If fields is
     None, then a default set of fields are used.
@@ -320,16 +329,16 @@ def assignment_to_dict(assignment: Assignment, fields: list[str]|None=None) -> d
     :param assignment: The assignment to convert to a dict.
     :param fields: The fields to extract from the assignment. If fields is not specified, a default
     list of fields are used instead.
-    :return dict[str, str|None]: Returns a dict with each key. If no value was present for the key,
-    None is returned instead.
+    :return dict[str, str | None]: Returns a dict with each key. If no value was present for the
+    key, None is returned instead.
     """
-    if fields == None:
+    if fields is None:
         fields = [
-            'id', 'name', 'description', 'due_at', 'lock_at', 'course_id', 'html_url', 
-            'submissions_download_url', 'allowed_extensions', 'turnitin_enabled', 
-            'grade_group_students_individually', 'group_category_id', 'points_possible', 
-            'submission_types', 'published', 'quiz_id', 'omit_from_final_grade', 
+            'id', 'name', 'description', 'due_at', 'lock_at', 'course_id', 'html_url',
+            'submissions_download_url', 'allowed_extensions', 'turnitin_enabled',
+            'grade_group_students_individually', 'group_category_id', 'points_possible',
+            'submission_types', 'published', 'quiz_id', 'omit_from_final_grade',
             'allowed_attempts', 'can_submit', 'is_quiz_assignment', 'workflow_state'
         ]
-        
+
     return {field: getattr(assignment, field, None) for field in fields}
