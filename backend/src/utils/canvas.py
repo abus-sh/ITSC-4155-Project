@@ -307,7 +307,7 @@ def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str,
     :return dict[str, str | None]: Returns a dict with each key. If no value was present for the key,
     None is returned instead.
     """
-    if fields == None:
+    if fields is None:
         fields = [
             'id', 'name', 'uuid', 'course_code', 'calendar', 'enrollments', 'term', 'concluded',
             'image_download_url'
@@ -327,7 +327,7 @@ def assignment_to_dict(assignment: Assignment, fields: list[str] | None = None) 
     :return dict[str, str | None]: Returns a dict with each key. If no value was present for the key,
     None is returned instead.
     """
-    if fields == None:
+    if fields is None:
         fields = [
             'id', 'name', 'description', 'due_at', 'lock_at', 'course_id', 'html_url',
             'submissions_download_url', 'allowed_extensions', 'turnitin_enabled',

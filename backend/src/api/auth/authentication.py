@@ -36,18 +36,18 @@ class TodoistAuthInfo:
         # Determine if insufficient information was provided to construct an authenticaiton attempt
         # If no permanent API key was provided and one of the OAuth parameteres wasn't provided,
         # then something is wrong.
-        if token == None and (code == None or state == None):
+        if token is None and (code is None or state is None):
             raise ValueError
 
         self.code = code
         self.state = state
         self.token = token
 
-        self.is_oauth = code != None and state != None
-        self.is_token = token != None
+        self.is_oauth = code is not None and state is not None
+        self.is_token = token is not None
 
     def __eq__(self, other):
-        if type(self) != type(other):
+        if type(self) is not type(other):
             return False
 
         return self.code == other.code and self.state == other.state and \
@@ -60,7 +60,7 @@ class TodoistAuthInfo:
 def user_loader(login_id):
     db_user: User | None = get_user_by_login_id(login_id)
 
-    if db_user == None:
+    if db_user is None:
         return None
 
     # Try to get the re-encrypted API keys
@@ -107,7 +107,7 @@ def login():
             db_user: User | None = get_user_by_username(username)
 
             # If no user exists, consider the request unauthorized
-            if db_user == None:
+            if db_user is None:
                 abort(HTTPStatus.UNAUTHORIZED)
                 return
 
@@ -283,11 +283,11 @@ def _get_authentication_params(request: Request, include_tokens: bool = False) -
         # Handle the case where OAuth is being used as well as a long term API key
         todoist_oauth_info = request.json.get('todoist')
         todoist_token = request.json.get('todoistToken')
-        if type(todoist_oauth_info) == dict:
+        if type(todoist_oauth_info) is dict:
             todoist_code = todoist_oauth_info.get('code')
             todoist_state = todoist_oauth_info.get('state')
             todoist_auth = TodoistAuthInfo(todoist_code, todoist_state)
-        elif type(todoist_token) == str:
+        elif type(todoist_token) is str:
             todoist_auth = TodoistAuthInfo(token=todoist_token)
         else:
             return None

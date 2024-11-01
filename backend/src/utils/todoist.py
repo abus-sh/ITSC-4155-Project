@@ -89,11 +89,11 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User | int, to
     Returns:
         None
     """
-    if type(owner) == User:
+    if type(owner) is User:
         owner = owner.id
 
     # Debug info, remove later
-    if type(owner) != int:
+    if type(owner) is not int:
         print(f"Owner is {owner}, type is {type(owner)}")
 
     temp_id = str(uuid.uuid4())     # Todoist wants a unique uuid for every command
@@ -255,7 +255,7 @@ def close_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bo
     """
     # Get the task in the database
     task: Task | SubTask | None = queries.get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
-    if task == None:
+    if task is None:
         return False
 
     # Mark task as complete in Todoist
@@ -287,7 +287,7 @@ def open_task(current_user: User, todoist_key: str, todoist_task_id: str) -> boo
 
     # Get the task in the database
     task: Task | SubTask | None = queries.get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
-    if task == None:
+    if task is None:
         return False
 
     # Mark task as in progress in Todoist
@@ -315,7 +315,7 @@ def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> b
     """
     # Get the task in the database
     task: Task | SubTask | None = queries.get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
-    if task == None:
+    if task is None:
         return False
 
     # Handle each enum seperately in case more states happen in the future

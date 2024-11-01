@@ -35,11 +35,11 @@ class MockUser:
         self.username = username
         self.password = password
         self.is_active = True
-        if ctoken == None:
+        if ctoken is None:
             self.canvas_token_password = encrypt_str('a'*69, password)
         else:
             self.canvas_token_password = encrypt_str(ctoken, password)
-        if ttoken == None:
+        if ttoken is None:
             self.todoist_token_password = encrypt_str('a'*40, password)
         else:
             self.todoist_token_password = encrypt_str(ttoken, password)
@@ -89,7 +89,7 @@ def mock_get_user_by_username(username: str, dict: bool = False) -> MockUser | d
             selected_user = user
             break
 
-    if selected_user == None:
+    if selected_user is None:
         return None
 
     if dict:
@@ -135,23 +135,23 @@ def test_get_authentication_params_no_tokens():
 
     # Test empty request
     req = MockRequest({})
-    assert authentication._get_authentication_params(req, include_tokens=False) == None
+    assert authentication._get_authentication_params(req, include_tokens=False) is None
 
     # Test missing password
     req = MockRequest({"username": "user"})
-    assert authentication._get_authentication_params(req, include_tokens=False) == None
+    assert authentication._get_authentication_params(req, include_tokens=False) is None
 
     # Test missing username
     req = MockRequest({"password": "pass"})
-    assert authentication._get_authentication_params(req, include_tokens=False) == None
+    assert authentication._get_authentication_params(req, include_tokens=False) is None
 
     # Test wrong type for username
     req = MockRequest({"username": 1, "password": "pass"})
-    assert authentication._get_authentication_params(req, include_tokens=False) == None
+    assert authentication._get_authentication_params(req, include_tokens=False) is None
 
     # Test wrong type for password
     req = MockRequest({"username": "user", "password": 2})
-    assert authentication._get_authentication_params(req, include_tokens=False) == None
+    assert authentication._get_authentication_params(req, include_tokens=False) is None
 
     # Test valid username and password
     req = MockRequest({"username": "user", "password": "pass"})
@@ -170,60 +170,60 @@ def test_get_authentication_params_tokens():
 
     # Test empty request
     req = MockRequest({})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Test missing password
     req = MockRequest({"username": "user", "canvasToken": "token", "todoistToken": "token"})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Test missing username
     req = MockRequest({"password": "pass", "canvasToken": "token", "todoistToken": "token"})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Test missing Canvas token
     req = MockRequest({"username": "user", "password": "pass", "todoistToken": "token"})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Test missing todoistToken info
     req = MockRequest({"username": "user", "password": "pass", "canvasToken": "token"})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Test missing todoistToken.code
     req = MockRequest({"username": "user", "password": "pass", "canvasToken": "token",
                        "todoistToken": {"state": "state"}})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Test missing todoistToken.state
     req = MockRequest({"username": "user", "password": "pass", "canvasToken": "token",
                        "todoistToken": {"code": "code"}})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Wrong types
 
     # Test wrong type for username
     req = MockRequest({"username": 1, "password": "pass", "canvasToken": "token",
                        "todoistToken": "token"})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Test wrong type for password
     req = MockRequest({"username": "user", "password": 1, "canvasToken": "token",
                        "todoistToken": "token"})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Test wrong type for canvasToken
     req = MockRequest({"username": "user", "password": "pass", "canvasToken": 1,
                        "todoistToken": "token"})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Test wrong type for todoist (OAuth)
     req = MockRequest({"username": "user", "password": "pass", "canvasToken": "token",
                        "todoist": "not a dict"})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Test wrong type for todoistToken (permanent API key)
     req = MockRequest({"username": "user", "password": "pass", "canvasToken": "token",
                        "todoistToken": 1})
-    assert authentication._get_authentication_params(req, include_tokens=True) == None
+    assert authentication._get_authentication_params(req, include_tokens=True) is None
 
     # Valid info
 
@@ -261,35 +261,35 @@ def test_login(monkeypatch):
     monkeypatch.setattr(authentication, "request",
                         MockRequest({"password": "pass"}))
     authentication.login()
-    assert is_logged_in == False
+    assert is_logged_in is False
     assert abort_status == 400
 
     # Test missing password
     monkeypatch.setattr(authentication, "request",
                         MockRequest({"password": "user"}))
     authentication.login()
-    assert is_logged_in == False
+    assert is_logged_in is False
     assert abort_status == 400
 
     # Test invalid username
     monkeypatch.setattr(authentication, "request",
                         MockRequest({"username": "fake", "password": "user"}))
     authentication.login()
-    assert is_logged_in == False
+    assert is_logged_in is False
     assert abort_status == 401
 
     # Test invalid password
     monkeypatch.setattr(authentication, "request",
                         MockRequest({"username": "user", "password": "fake"}))
     authentication.login()
-    assert is_logged_in == False
+    assert is_logged_in is False
     assert abort_status == 401
 
     # Test valid login
     monkeypatch.setattr(authentication, "request",
                         MockRequest({"username": "user", "password": "pass"}))
     resp = authentication.login()
-    assert resp['success'] == True
+    assert resp['success'] is True
     assert resp['message'] == 'Logged in as user'
 
     # Check the user was logged in and reset the flag
@@ -300,7 +300,7 @@ def test_login(monkeypatch):
     monkeypatch.setattr(authentication, "request",
                         MockRequest({"username": "a", "password": "b"}))
     resp = authentication.login()
-    assert resp['success'] == True
+    assert resp['success'] is True
     assert resp['message'] == 'Logged in as a'
 
     # Check the user was logged in and reset the flag
@@ -331,7 +331,7 @@ def test_sign_up(monkeypatch):
                                      "canvasToken": "ctoken", "todoistToken": "ttoken"}))
     authentication.sign_up()
     assert abort_status == 400
-    assert mock_get_user_by_username("newuser") == None
+    assert mock_get_user_by_username("newuser") is None
 
     # Test sign up missing Canvas token
     monkeypatch.setattr(authentication, "request",
@@ -339,7 +339,7 @@ def test_sign_up(monkeypatch):
                                      "todoistToken": "ttoken"}))
     authentication.sign_up()
     assert abort_status == 400
-    assert mock_get_user_by_username("newuser") == None
+    assert mock_get_user_by_username("newuser") is None
 
     # Test sign up missing Todoist info
     monkeypatch.setattr(authentication, "request",
@@ -347,7 +347,7 @@ def test_sign_up(monkeypatch):
                                      "canvasToken": "ctoken"}))
     authentication.sign_up()
     assert abort_status == 400
-    assert mock_get_user_by_username("newuser") == None
+    assert mock_get_user_by_username("newuser") is None
 
     # Test sign up with invalid username
     monkeypatch.setattr(authentication, "request",
@@ -355,7 +355,7 @@ def test_sign_up(monkeypatch):
                                      "canvasToken": "ctoken", "todoistToken": "ttoken"}))
     authentication.sign_up()
     assert abort_status == 400
-    assert mock_get_user_by_username("") == None
+    assert mock_get_user_by_username("") is None
 
     # Test sign up with invalid password
     monkeypatch.setattr(authentication, "request",
@@ -363,7 +363,7 @@ def test_sign_up(monkeypatch):
                                      "canvasToken": "ctoken", "todoistToken": "ttoken"}))
     authentication.sign_up()
     assert abort_status == 400
-    assert mock_get_user_by_username("newuser") == None
+    assert mock_get_user_by_username("newuser") is None
 
     # Test sign up with invalid Canvas token
     monkeypatch.setattr(authentication, "request",
@@ -371,7 +371,7 @@ def test_sign_up(monkeypatch):
                                      "canvasToken": 3, "todoistToken": "ttoken"}))
     authentication.sign_up()
     assert abort_status == 400
-    assert mock_get_user_by_username("newuser") == None
+    assert mock_get_user_by_username("newuser") is None
 
     # Test sign up with invalid Todoist token
     monkeypatch.setattr(authentication, "request",
@@ -379,7 +379,7 @@ def test_sign_up(monkeypatch):
                                      "canvasToken": "ctoken", "todoistToken": 4}))
     authentication.sign_up()
     assert abort_status == 400
-    assert mock_get_user_by_username("newuser") == None
+    assert mock_get_user_by_username("newuser") is None
 
     # Test sign up with invalid Todoist OAuth info
     monkeypatch.setattr(authentication, "request",
@@ -387,7 +387,7 @@ def test_sign_up(monkeypatch):
                                      "canvasToken": "ctoken", "todoist": 5}))
     authentication.sign_up()
     assert abort_status == 400
-    assert mock_get_user_by_username("newuser") == None
+    assert mock_get_user_by_username("newuser") is None
 
     # Test sign up with insecure password
     monkeypatch.setattr(authentication, "request",
@@ -395,7 +395,7 @@ def test_sign_up(monkeypatch):
                                      "canvasToken": "ctoken", "todoistToken": "ttoken"}))
     authentication.sign_up()
     assert abort_status == 400
-    assert mock_get_user_by_username("newuser") == None
+    assert mock_get_user_by_username("newuser") is None
 
     # Test sign up with duplicate username
     monkeypatch.setattr(authentication, "request",
@@ -410,7 +410,7 @@ def test_sign_up(monkeypatch):
                         MockRequest({"username": "oauth", "password": "passwordpassword",
                                      "canvasToken": "ctoken", "todoist": toauth}))
     resp, status = authentication.sign_up()
-    assert resp['success'] == True
+    assert resp['success'] is True
     assert 'oauth' in resp['message']
     assert status == 200
     assert mock_get_user_by_username('oauth').username == 'oauth'
@@ -420,7 +420,7 @@ def test_sign_up(monkeypatch):
                         MockRequest({"username": "token", "password": "passwordpassword",
                                      "canvasToken": "ctoken", "todoistToken": "ttoken"}))
     resp, status = authentication.sign_up()
-    assert resp['success'] == True
+    assert resp['success'] is True
     assert 'token' in resp['message']
     assert status == 200
     assert mock_get_user_by_username('token').username == 'token'

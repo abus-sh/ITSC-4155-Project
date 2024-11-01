@@ -30,10 +30,10 @@ class Ciphertext:
         :param ciphertext: The ciphertext itself.
         :raises ValueError: If any argument is not bytes.
         """
-        if type(tag) != bytes or \
-           type(nonce) != bytes or \
-           type(salt) != bytes or \
-           type(ciphertext) != bytes:
+        if type(tag) is not bytes or \
+           type(nonce) is not bytes or \
+           type(salt) is not bytes or \
+           type(ciphertext) is not bytes:
 
             raise ValueError()
 
@@ -52,7 +52,7 @@ class Ciphertext:
         return self.tag + self.nonce + self.salt + self.ciphertext
 
     def __eq__(self, other):
-        if type(other) != Ciphertext:
+        if type(other) is not Ciphertext:
             return False
 
         return self.tag == other.tag and \
@@ -119,7 +119,7 @@ def decrypt_str(ciphertext: Ciphertext | bytes, password: str) -> str:
     Ciphertext.
     :raises ValueError: If the given password is incorrect or the ciphertext has been modified.
     """
-    if type(ciphertext) == bytes:
+    if type(ciphertext) is bytes:
         ciphertext = Ciphertext.from_bytes(ciphertext)
 
     # Generate a key from the password and salt
@@ -170,7 +170,7 @@ def _derive_key(password: str, salt: str | None = None) -> tuple[bytes, bytes]:
     generated.
     :return tuple[bytes, bytes]: The derived key as bytes and the salt used to derive it.
     """
-    if salt == None:
+    if salt is None:
         salt = get_random_bytes(16)
 
     # Values for scrypt chosen from:

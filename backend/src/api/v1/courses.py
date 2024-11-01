@@ -46,7 +46,7 @@ def get_all_courses(canvas_key: str | None = None) -> list:
     will return a tuple of the form (Flask Response, status code).
     """
 
-    if canvas_key == None:
+    if canvas_key is None:
         canvas_key = decrypt_canvas_key()
         raw_data = False
     else:
@@ -148,7 +148,7 @@ def get_course_assignments(courseid, canvas_key: str | None = None):
     course. Otherwise, it will return a tuple of the form (Flask Response, status code).
     """
 
-    if canvas_key == None:
+    if canvas_key is None:
         canvas_key = decrypt_canvas_key()
         raw_data = False
     else:

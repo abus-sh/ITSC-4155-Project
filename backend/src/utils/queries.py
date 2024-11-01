@@ -245,7 +245,7 @@ def get_non_canvas_tasks(owner: models.User, dict=False) -> list[models.Task] | 
 
     tasks = models.Task.query.filter(
         models.Task.owner == owner.id,
-        models.Task.canvas_id == None
+        models.Task.canvas_id is None
     ).all()
     if dict:
         return [dict(task) for task in tasks]

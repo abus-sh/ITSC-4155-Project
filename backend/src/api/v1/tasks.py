@@ -39,10 +39,10 @@ def update_tasks():
 def add_task_user():
     data = request.json
 
-    if 'name' not in data or type(data['name']) != str:
+    if 'name' not in data or type(data['name']) is not str:
         return jsonify({'success': False, 'message': 'Missing name'}), 400
 
-    if 'due_at' not in data or type(data['due_at']) != str:
+    if 'due_at' not in data or type(data['due_at']) is not str:
         return jsonify({'success': False, 'message': 'Missing due_at'}), 400
 
     name = data['name']
@@ -55,9 +55,9 @@ def add_task_user():
         return jsonify({'success': False, 'message': 'Invalid name'}), 400
 
     desc = data.get('description', None)
-    if type(desc) != str:
+    if type(desc) is not str:
         desc = None
-    if type(desc) == str and len(desc) > 500:
+    if type(desc) is str and len(desc) > 500:
         return jsonify({'success': False, 'message': 'Invalid description'}), 400
 
     todoist_key = session.decrypt_todoist_key()
