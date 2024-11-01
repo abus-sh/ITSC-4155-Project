@@ -1,4 +1,4 @@
-import { assertInInjectionContext, Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { OrderByPipe } from '../pipes/date.pipe';
@@ -136,7 +136,6 @@ export class DashboardComponent implements OnInit {
         const button = event.target as HTMLElement;
         const card = button.parentElement?.parentElement as HTMLElement;
         const dropdown = button.parentElement?.nextElementSibling as HTMLElement;
-        console.log
     
         // Hide the previously opened dropdown, if any
         if (this.previousDropdown && this.previousDropdown !== dropdown) {
