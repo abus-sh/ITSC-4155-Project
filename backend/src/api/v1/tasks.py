@@ -6,6 +6,7 @@ import utils.session as session
 import utils.todoist as todoist
 from utils.settings import get_canvas_url
 
+import utils.models as models
 import utils.queries as queries
 
 
@@ -79,7 +80,7 @@ def add_subtask_user():
         canvas_id = data.get('canvas_id')
         subtask_name = data.get('name').strip()
         subtask_desc = data.get('description')
-        subtask_status = queries.TaskStatus.from_integer(data.get('status'))
+        subtask_status = models.TaskStatus.from_integer(data.get('status'))
         subtask_date = data.get('due_date')
 
         if not canvas_id or not subtask_name or not subtask_status:

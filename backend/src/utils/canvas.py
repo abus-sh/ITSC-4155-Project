@@ -61,7 +61,7 @@ def get_course(canvas_key: str, course_id: str) -> Course:
     :param course_id: The ID of the course to retrieve.
     :return Course: The course with the given ID.
     """
-    return get_all_courses_no_cache(canvas_key, course_id)
+    return get_course_no_cache(canvas_key, course_id)
 
 
 def get_course_no_cache(canvas_key: str, course_id: str) -> Course:

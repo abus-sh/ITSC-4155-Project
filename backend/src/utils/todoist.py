@@ -208,6 +208,7 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
         try:
             # Get due date in valid string format
             due_date = is_valid_date(subtask_date)
+            print(subtask_date, due_date)
             if not due_date:
                 print("Error")
                 return False

@@ -130,7 +130,8 @@ def get_graded_assignments():
                     one_graded[extra_field] = assignment_details.get(extra_field, None)
 
             graded_assignments.append(one_graded)
-    except Exception:
+    except Exception as e:
+        print(e)
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to get field for graded assignments', 404

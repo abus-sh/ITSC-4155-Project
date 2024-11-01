@@ -54,7 +54,7 @@ db.init_app(app)
 login_manager.init_app(app)
 
 # Only enable CSRF protection if not in debug mode
-if not app.debug:
+if not app.debug and os.environ.get('CSRF', 'ON') == 'ON':
     csrf.init_app(app)
 
 # Cross Origin Resource sharing configuration.

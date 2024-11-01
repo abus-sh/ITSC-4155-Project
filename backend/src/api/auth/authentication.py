@@ -202,7 +202,7 @@ def change_password():
     old_password = request.json.get('oldPassword')
     new_password = request.json.get('newPassword')
 
-    if len(new_password) > 128 or len(new_password) < 15:
+    if not _is_valid_password(new_password):
         return jsonify({'success': False,
                         'message': "Password isn't between 15 and 128 characters"}), 400
 
