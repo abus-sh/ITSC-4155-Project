@@ -14,7 +14,7 @@ described by `backend/requirements-dev.txt`. From there, you can run `python3 -m
 
 You will also need to create certain secret files to test locally. To run everything without Docker,
 the following files are needed. Examples or descriptions of these files can be found in the
-`secrets.example` folder.
+`secrets.example` folder. (This is not needed for the code in the Sprint2 Branch)
 
 - connection_string.txt - the database connection string. An in-memory sqlite database (`sqlite://`)
 is sufficient.

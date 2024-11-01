@@ -17,7 +17,7 @@ app.register_blueprint(auth, url_prefix='/api/auth')    # Authentication Endpoin
 app.register_blueprint(api_v1, url_prefix='/api/v1')    # API V1 Endpoint
 
 
-# Read the connection string from a file or environment variable
+# Read the connection string from a file or environment variable if not using SQLITE
 if not USING_SQLITE:
     with open(os.environ.get('DB_CONN_FILE', '../../secrets/connection_string.txt'), 'r') as file:
         connection_string = file.readline().strip()
