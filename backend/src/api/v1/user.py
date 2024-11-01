@@ -159,10 +159,12 @@ def get_calendar_events():
             return 'Invalid dates argument', 400
 
         # type event returns all the events, not just assignment
-        all_events = canvas_api.get_all_calendar_events(canvas_key, start_date, end_date, limit=60, event_types=['event', 'assignment'])
+        all_events = canvas_api.get_all_calendar_events(canvas_key, start_date, end_date, limit=60,
+                                                        event_types=['event', 'assignment'])
 
         fields = [
-            'id', 'title', 'description', 'type', 'submission_types', 'html_url', 'context_name', 'start_at', 'end_at'
+            'id', 'title', 'description', 'type', 'submission_types', 'html_url', 'context_name',
+            'start_at', 'end_at'
         ]
         calendar_events = []
         for event in all_events:

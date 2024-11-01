@@ -41,7 +41,8 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
             if ex.response.status_code == 401:
                 return False
 
-        # This Canvas user is already associated with an existing user (prevents multiple account with different tokens)
+        # This Canvas user is already associated with an existing user (prevents multiple account
+        # with different tokens)
         if models.User.query.filter_by(canvas_id=canvas_id).first():
             return False
 
@@ -52,9 +53,10 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
         # Hash the password
         pw_hash = models.password_hasher.hash(password)
 
-        new_user = models.User(login_id=models.gen_unique_login_id(), username=username, password=pw_hash,
-                               canvas_id=canvas_id, canvas_name=canvas_name,
-                               canvas_token_password=canvas_token_password, todoist_token_password=todoist_token_password)
+        new_user = models.User(login_id=models.gen_unique_login_id(), username=username,
+                               password=pw_hash, canvas_id=canvas_id, canvas_name=canvas_name,
+                               canvas_token_password=canvas_token_password,
+                               todoist_token_password=todoist_token_password)
         models.db.session.add(new_user)
         models.db.session.commit()
         return True
@@ -98,7 +100,8 @@ def get_user_by_id(user_id: int, dict=False) -> models.User | dict:
 
     :param user_id: The id of the user to retrieve.
     :param dict: If True, return the user as a dictionary. Defaults to False.
-    :return user or dict: A user instance or a dictionary representation of the user if dict is True.
+    :return user or dict: A user instance or a dictionary representation of the user if dict is
+    True.
     """
     user = models.User.query.get(user_id)
     if dict and user:
@@ -143,8 +146,9 @@ def get_user_by_login_id(login_id: str, dict=False) -> models.User | dict | None
 #########################################################################
 
 
-def add_or_return_task(owner: models.User | int, canvas_id: str | None, todoist_id: str | None = None,
-                       due_date: str = None, name: str | None = None, desc: str | None = None) -> models.Task:
+def add_or_return_task(owner: models.User | int, canvas_id: str | None,
+                       todoist_id: str | None = None, due_date: str = None, name: str | None = None,
+                       desc: str | None = None) -> models.Task:
     """
     Add a new task to the database or return the task if it already exists.
 
@@ -168,8 +172,9 @@ def add_or_return_task(owner: models.User | int, canvas_id: str | None, todoist_
             return current_task
 
     try:
-        new_task = models.Task(owner=owner, task_type=models.TaskType.assignment, canvas_id=canvas_id,
-                               todoist_id=todoist_id, due_date=due_date, name=name, description=desc)
+        new_task = models.Task(owner=owner, task_type=models.TaskType.assignment,
+                               canvas_id=canvas_id, todoist_id=todoist_id, due_date=due_date,
+                               name=name, description=desc)
         models.db.session.add(new_task)
         models.db.session.commit()
         return new_task
@@ -213,7 +218,8 @@ def set_task_duedate(task: models.Task, due_date: str) -> None:
         raise e
 
 
-def get_task_by_canvas_id(owner: models.User, canvas_id: str, dict=False) -> models.Task | dict | None:
+def get_task_by_canvas_id(owner: models.User, canvas_id: str, dict=False)\
+        -> models.Task | dict | None:
     """
     Retrieve a task by its Canvas ID, which is assigned by Canvas.
 
@@ -301,7 +307,8 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]):
     """
     # Handle tasks
     try:
-        tasks: list[tuple[models.Task]] = models.db.session.execute(select(models.Task).where(models.Task.owner == owner.id))
+        tasks: list[tuple[models.Task]] = models.db.session\
+            .execute(select(models.Task).where(models.Task.owner == owner.id))
         for (task,) in tasks:
             if task.todoist_id in open_task_ids:
                 task.status = models.TaskStatus.Incomplete
@@ -335,9 +342,10 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]):
 #########################################################################
 
 
-def create_subtask(owner: models.User, task_id: int, subtask_name: str, todoist_id: int = None, subtask_desc: str = None,
-                   subtask_status: models.TaskStatus = models.TaskStatus.Incomplete, subtask_date: str = None)\
-                   -> int | bool:
+def create_subtask(owner: models.User, task_id: int, subtask_name: str, todoist_id: int = None,
+                   subtask_desc: str = None,
+                   subtask_status: models.TaskStatus = models.TaskStatus.Incomplete,
+                   subtask_date: str = None) -> int | bool:
     """
     Creates a subtask under a specified task for the current user in the database.
 
@@ -353,8 +361,9 @@ def create_subtask(owner: models.User, task_id: int, subtask_name: str, todoist_
         int | False: The ID of the subtask if the subtask was successfully created, False otherwise.
     """
     try:
-        new_subtask = models.SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id, name=subtask_name,
-                                     description=subtask_desc, status=subtask_status, due_date=subtask_date)
+        new_subtask = models.SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id,
+                                     name=subtask_name, description=subtask_desc,
+                                     status=subtask_status, due_date=subtask_date)
         models.db.session.add(new_subtask)
         models.db.session.commit()
         return new_subtask.id
@@ -364,7 +373,8 @@ def create_subtask(owner: models.User, task_id: int, subtask_name: str, todoist_
     return False
 
 
-def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str], format: bool = True) -> list[tuple] | dict:
+def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str],
+                           format: bool = True) -> list[tuple] | dict:
     """
     Retrieve all subtasks for a series of tasks for the current_user.
 
@@ -378,18 +388,19 @@ def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str], for
     :rtype: list[tuple]
     """
 
-    subtasks = models.SubTask.query.join(models.Task, models.SubTask.taskmodels._id == models.Task.id).filter(
-        models.Task.canvas_id.in_(canvas_ids),
-        models.SubTask.owner == current_user.id
-    ).with_entities(
-        models.SubTask.id,
-        models.SubTask.name,
-        models.SubTask.description,
-        models.SubTask.status,
-        models.SubTask.due_date,
-        models.Task.canvas_id,
-        models.SubTask.todoist_id
-    ).all()
+    subtasks = models.SubTask.query\
+        .join(models.Task, models.SubTask.taskmodels._id == models.Task.id).filter(
+            models.Task.canvas_id.in_(canvas_ids),
+            models.SubTask.owner == current_user.id
+        ).with_entities(
+            models.SubTask.id,
+            models.SubTask.name,
+            models.SubTask.description,
+            models.SubTask.status,
+            models.SubTask.due_date,
+            models.Task.canvas_id,
+            models.SubTask.todoist_id
+        ).all()
 
     if format:
         subtasks_dict = {}
@@ -407,7 +418,8 @@ def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str], for
     return subtasks
 
 
-def update_task_or_subtask_status(owner: models.User, task: models.Task | models.SubTask, status: models.TaskStatus) -> bool:
+def update_task_or_subtask_status(owner: models.User, task: models.Task | models.SubTask,
+                                  status: models.TaskStatus) -> bool:
     """
     Change the status of a task or subtask to a new value.
 

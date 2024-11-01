@@ -47,7 +47,8 @@ def exchange_token():
         session.pop('oauth_state')
         abort(400, "Couldn't get authorization arguments.")
 
-    # Session with the auth state encrypted in the cookie will delete itself when all the website tabs are closed (register page)
+    # Session with the auth state encrypted in the cookie will delete itself when all the website
+    # tabs are closed (register page)
     session.permanent = True
 
     # Close the popup window and give focus back to the register page
@@ -70,7 +71,9 @@ def exchange_token():
         <p>You can close this window. </p>
     </body>
     </html>
-    ''', auth_code=auth_code, auth_state=auth_state, frontend_register=get_frontend_url() + '/register')
+    ''',  # noqa: E501
+    auth_code=auth_code, auth_state=auth_state,  # noqa: E128
+    frontend_register=get_frontend_url() + '/register')  # noqa: E128
 
 
 #################################################################

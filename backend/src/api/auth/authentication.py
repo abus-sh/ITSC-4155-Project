@@ -8,7 +8,8 @@ from http import HTTPStatus
 from lru import LRU
 from utils.settings import time_it
 
-from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, password_hasher, update_password
+from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, \
+    password_hasher, update_password
 from utils.crypto import reencrypt_str
 
 
@@ -66,9 +67,10 @@ def user_loader(login_id):
     # Try to get the re-encrypted API keys
     # If they don't exist, invalidate the session
     if session['_id'] not in api_key_cache:
-        # ATTENTION: If the session id is not saved in the api_key_cache, the user will need to login again
-        # so that the session id and the tokens encryped with the session id can be stored in the cache.
-        # Otherwise the user won't be able to use any endpoint as they would be logged in but without tokens in the cache.
+        # ATTENTION: If the session id is not saved in the api_key_cache, the user will need to
+        # login again so that the session id and the tokens encryped with the session id can be
+        # stored in the cache. Otherwise the user won't be able to use any endpoint as they would be
+        # logged in but without tokens in the cache.
         return None
 
     # Load cached values for the API tokens
@@ -128,8 +130,10 @@ def login():
             session_id = session['_id']
 
             # Decrypt tokens with password and re-encrypt with session_id
-            session_canvas_token = reencrypt_str(db_user.canvas_token_password, password, session_id)
-            session_todoist_token = reencrypt_str(db_user.todoist_token_password, password, session_id)
+            session_canvas_token = reencrypt_str(db_user.canvas_token_password, password,
+                                                 session_id)
+            session_todoist_token = reencrypt_str(db_user.todoist_token_password, password,
+                                                  session_id)
 
             # Cache API re-encrypted tokens for future requests
             api_key_cache[session_id] = (session_canvas_token, session_todoist_token)
@@ -172,7 +176,8 @@ def sign_up():
             print('Invalid token exchange')
             abort(HTTPStatus.BAD_REQUEST)
             return
-        bearer, todoistToken = exchange_response    # Bearer is not needed right now, but in case we may need it in the future
+        # Bearer is not needed right now, but in case we may need it in the future
+        bearer, todoistToken = exchange_response
     else:
         todoistToken = todoistInfo.token
 
@@ -198,7 +203,8 @@ def change_password():
     new_password = request.json.get('newPassword')
 
     if len(new_password) > 128 or len(new_password) < 15:
-        return jsonify({'success': False, 'message': "Password isn't between 15 and 128 characters"}), 400
+        return jsonify({'success': False,
+                        'message': "Password isn't between 15 and 128 characters"}), 400
 
     # Verify that the old password matches with the account hashed password
     try:
@@ -246,7 +252,8 @@ def get_csrf_token():
 @auth.route('/status', methods=['GET'])
 def auth_status():
     if current_user.is_authenticated:
-        return jsonify({'authenticated': True, 'user': {'id': current_user.id, 'username': current_user.username}}), 200
+        return jsonify({'authenticated': True,
+                        'user': {'id': current_user.id, 'username': current_user.username}}), 200
     return jsonify({'authenticated': False}), 200
 
 
@@ -256,7 +263,8 @@ def auth_status():
 #                                                               #
 #################################################################
 
-def _get_authentication_params(request: Request, include_tokens: bool = False) -> tuple[str, str] | tuple[str, str, str, TodoistAuthInfo] | None:
+def _get_authentication_params(request: Request, include_tokens: bool = False)\
+        -> tuple[str, str] | tuple[str, str, str, TodoistAuthInfo] | None:
     """
     Extracts the username and password from a request, if both exist and are valid.
 

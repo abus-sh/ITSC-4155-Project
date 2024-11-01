@@ -192,6 +192,8 @@ def get_course_assignment(courseid, assignmentid):
     return jsonify(assignment_dict), 200
 
 # TO DO:
-# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions (List assignment submissions)
+# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions (List assignment
+# submissions)
 # GET /api/v1/courses/:course_id/students/submissions (List submissions for multiple assignments)
-# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id (Get a single submission)
+# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id (Get a single
+# submission)

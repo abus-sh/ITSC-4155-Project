@@ -52,10 +52,12 @@ def localize_date(due_date_naive: datetime) -> datetime:
     Adjusts a due date to America/New_York Timezone, considering daylight saving time (DST).
 
     Args:
-        due_date_naive (datetime): The due date in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ). Has to be UTC.
+        due_date_naive (datetime): The due date in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ).
+        Has to be UTC.
 
     Returns:
-        datetime: The adjusted due date as a datetime in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) for the Charlotte timezone.
+        datetime: The adjusted due date as a datetime in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) for
+        the Charlotte timezone.
     """
     # Set the naive datetime to be aware (UTC time zone)
     due_date_aware = UTC_TZ.localize(due_date_naive)
@@ -68,8 +70,8 @@ def date_passed(due_date_aware: datetime) -> bool:
     Checks if a given due date has passed in the America/New_York timezone (Charlotte timezone).
 
     Args:
-        due_date_aware (datetime): The due date as a naive datetime object (without timezone information).
-                                     This should be localized in America/New_York timezone.
+        due_date_aware (datetime): The due date as a naive datetime object (without timezone
+        information). This should be localized in America/New_York timezone.
 
     Returns:
         bool: True if the due date has passed in the Charlotte timezone, False otherwise.

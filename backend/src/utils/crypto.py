@@ -132,7 +132,8 @@ def decrypt_str(ciphertext: Ciphertext | bytes, password: str) -> str:
     return data.decode()
 
 
-def reencrypt_str(ciphertext: Ciphertext | bytes, old_password: str, new_password: str) -> Ciphertext:
+def reencrypt_str(ciphertext: Ciphertext | bytes, old_password: str, new_password: str)\
+        -> Ciphertext:
     """
     Decrypt some data, then re-encrypted it with a new password.
 

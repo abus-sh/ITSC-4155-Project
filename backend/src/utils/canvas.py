@@ -197,10 +197,11 @@ def get_current_user_no_cache(canvas_key: str) -> CurrentUser:
     return profile
 
 
-def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int, event_types: list[str]) -> list[CalendarEvent]:
+def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int,
+                            event_types: list[str]) -> list[CalendarEvent]:
     """
-    Retrieves all calendar events of certain types with a specified date range for the given event types
-    using gevent.
+    Retrieves all calendar events of certain types with a specified date range for the given event
+    types using gevent.
 
     :param canvas_key: The API key that should be used.
     :param start_date: The earliest date to retrieve events for, formatted as YYYY-MM-DD.
@@ -209,7 +210,10 @@ def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, lim
     :param event_types: A list of event types to retrieve, such as 'assignment', 'event', etc.
     :return: A list of merged calendar events from the specified event types within the date range.
     """
-    greenlets = [gevent.spawn(get_calendar_events, canvas_key, start_date, end_date, limit, event_type) for event_type in event_types]
+    greenlets = [
+        gevent.spawn(get_calendar_events, canvas_key, start_date, end_date, limit, event_type)
+        for event_type in event_types
+    ]
     gevent.joinall(greenlets)
 
     merged_events = []
@@ -219,8 +223,8 @@ def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, lim
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
-def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int = 50, type='assignment')\
-        -> list[CalendarEvent]:
+def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int = 50,
+                        type='assignment') -> list[CalendarEvent]:
     """
     Returns the calendar events within the given date range, up to a limited number. These results
     are cached for an amount of time determined by utils.settings.get_canvas_cache_time. If live
@@ -235,8 +239,8 @@ def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: 
     return get_calendar_events_no_cache(canvas_key, start_date, end_date, limit, type)
 
 
-def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str, limit: int = 50, type='assignment')\
-        -> list[CalendarEvent]:
+def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str, limit: int = 50,
+                                 type='assignment') -> list[CalendarEvent]:
     """
     Returns the calendar events within the given date range, up to a limited number. These results
     are not cached. If possible, use get_calendar_events to improve server response times.
@@ -304,8 +308,8 @@ def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str,
     :param course: The course to convert to a dict.
     :param fields: The fields to extract from the course. If fields is not specified, a default list
     of fields are used instead.
-    :return dict[str, str | None]: Returns a dict with each key. If no value was present for the key,
-    None is returned instead.
+    :return dict[str, str | None]: Returns a dict with each key. If no value was present for the
+    key, None is returned instead.
     """
     if fields is None:
         fields = [
@@ -316,7 +320,8 @@ def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str,
     return {field: getattr(course, field, None) for field in fields}
 
 
-def assignment_to_dict(assignment: Assignment, fields: list[str] | None = None) -> dict[str, str | None]:
+def assignment_to_dict(assignment: Assignment, fields: list[str] | None = None)\
+        -> dict[str, str | None]:
     """
     Converts an assignment into a dict, taking only the fields specified in fields. If fields is
     None, then a default set of fields are used.
@@ -324,8 +329,8 @@ def assignment_to_dict(assignment: Assignment, fields: list[str] | None = None) 
     :param assignment: The assignment to convert to a dict.
     :param fields: The fields to extract from the assignment. If fields is not specified, a default
     list of fields are used instead.
-    :return dict[str, str | None]: Returns a dict with each key. If no value was present for the key,
-    None is returned instead.
+    :return dict[str, str | None]: Returns a dict with each key. If no value was present for the
+    key, None is returned instead.
     """
     if fields is None:
         fields = [

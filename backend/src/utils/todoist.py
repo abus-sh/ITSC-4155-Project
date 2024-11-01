@@ -29,7 +29,9 @@ def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
     with time_it("      Canvas requests: "):
         courses = get_all_courses(canvas_key)
 
-        greenlets = [gevent.spawn(get_course_assignments, course['id'], canvas_key) for course in courses]
+        greenlets = [
+            gevent.spawn(get_course_assignments, course['id'], canvas_key) for course in courses
+        ]
         gevent.joinall(greenlets)
 
     # Creates list of all assignments
@@ -39,7 +41,7 @@ def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
         all_assignments.sort(key=_get_assignment_date_or_default)
 
     todoist_queue = []  # Command queue to send to todoist
-    temp_ids = {}       # temp id mapping (for updating the todoist_id after sending the request to todoist)
+    temp_ids = {}       # temp map for updating the todoist_id after sending the request to todoist
 
     todoist_url = 'https://api.todoist.com/sync/v9/sync'
     headers = {"Authorization": f"Bearer {todoist_key}"}
@@ -53,7 +55,8 @@ def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
 
             if not date_passed(date_aware):
                 due_date = date_aware.strftime('%Y-%m-%d %H:%M:%S')
-                # Creates tasks in the database if they dont exist / update them, and creates the todoist queue
+                # Creates tasks in the database if they dont exist / update them, and creates the
+                # todoist queue
                 add_tasks_to_database(assignment, due_date, user_id, todoist_queue, temp_ids)
 
     # If the todoist queue is not empty (something need to be added/updated)
@@ -75,7 +78,8 @@ def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
                     queries.update_task_id(task_id, final_id)
 
 
-def add_tasks_to_database(assignment: dict, due_date: str, owner: User | int, todoist_queue: list, temp_ids: dict):
+def add_tasks_to_database(assignment: dict, due_date: str, owner: User | int, todoist_queue: list,
+                          temp_ids: dict):
     """
     Adds tasks to the database and prepares them for synchronization with Todoist.
 
@@ -84,7 +88,8 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User | int, to
         due_date (str): The due date for the task in string format.
         owner (User | int): The owner of the task, which can be a User object or an integer user ID.
         todoist_queue (list): A list that stores tasks to be added or updated in Todoist.
-        temp_ids (dict): A dictionary mapping temporary task IDs to their corresponding database IDs.
+        temp_ids (dict): A dictionary mapping temporary task IDs to their corresponding database
+        IDs.
 
     Returns:
         None
@@ -115,10 +120,12 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User | int, to
         }
         # Put the command in the queue that will be sent to Todoist
         todoist_queue.append(add_task_todoist)
-        # Save the temp id of the task, this will be used to get the final todoist_id after sending the request
+        # Save the temp id of the task, this will be used to get the final todoist_id after sending
+        # the request
         temp_ids.update({temp_id: task.id})
 
-    # If the task exists but the due date has been updated, create the command for updating it in todoist
+    # If the task exists but the due date has been updated, create the command for updating it in
+    # todoist
     elif task.todoist_id and task.due_date != due_date:
         update_task_todoist = {
             "type": "item_update",
@@ -175,13 +182,15 @@ def add_task(current_user: User, todoist_key: str, task_name: str,  due_date: st
     return task_id
 
 
-def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str, subtask_desc: str = None,
-                subtask_status: TaskStatus = TaskStatus.Incomplete, subtask_date: str = None) -> int | bool:
+def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str,
+                subtask_desc: str = None, subtask_status: TaskStatus = TaskStatus.Incomplete,
+                subtask_date: str = None) -> int | bool:
     """
     Creates a subtask under a specified task for the current user in both Todoist and the database.
 
     Args:
-        current_user (User): The user creating the subtask. Only the owner of the task can add subtasks.
+        current_user (User): The user creating the subtask. Only the owner of the task can add
+        subtasks.
         todoist_key (str): The Todoist API key for the current user.
         canvas_id (str): The ID of the canvas assignment to which the task of the subtask belongs.
         subtask_name (str): The name of the subtask (must not be empty or blank).
@@ -215,7 +224,8 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
             }
 
             # Create subtask and receive the todoist id
-            response_data = _send_post_todoist("https://api.todoist.com/rest/v2/tasks", json.dumps(body), header)
+            response_data = _send_post_todoist("https://api.todoist.com/rest/v2/tasks",
+                                               json.dumps(body), header)
             if response_data:
                 todoist_id = response_data.get('id', None)
                 if not todoist_id:
@@ -254,7 +264,8 @@ def close_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bo
         bool: True if the task or subtask was completed, False otherwise.
     """
     # Get the task in the database
-    task: Task | SubTask | None = queries.get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
+    task: Task | SubTask | None = queries.get_task_or_subtask_by_todoist_id(current_user,
+                                                                            todoist_task_id)
     if task is None:
         return False
 
@@ -286,7 +297,8 @@ def open_task(current_user: User, todoist_key: str, todoist_task_id: str) -> boo
     """
 
     # Get the task in the database
-    task: Task | SubTask | None = queries.get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
+    task: Task | SubTask | None = queries.get_task_or_subtask_by_todoist_id(current_user,
+                                                                            todoist_task_id)
     if task is None:
         return False
 
@@ -314,7 +326,8 @@ def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> b
         bool: True if the task's or subtask's status was toggled, False otherwise.
     """
     # Get the task in the database
-    task: Task | SubTask | None = queries.get_task_or_subtask_by_todoist_id(current_user, todoist_task_id)
+    task: Task | SubTask | None = queries.get_task_or_subtask_by_todoist_id(current_user,
+                                                                            todoist_task_id)
     if task is None:
         return False
 
@@ -362,7 +375,8 @@ def _send_post_todoist(todoist_url, body, headers):
         headers (dict): The headers to include in the request: the authorization token.
 
     Returns:
-        dict: The JSON response data from the Todoist API if the request is successful. If not, raise an exception.
+        dict: The JSON response data from the Todoist API if the request is successful. If not,
+        raise an exception.
     """
     with time_it("      Send Todoist request: "):
         response = requests.post(todoist_url, data=body, headers=headers)
