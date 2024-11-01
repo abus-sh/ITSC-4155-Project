@@ -1,5 +1,3 @@
-from canvasapi.assignment import Assignment
-from canvasapi.course import Course
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 
@@ -73,11 +71,11 @@ def get_all_courses(canvas_key: str|None=None) -> list:
             one_course = canvas_api.course_to_dict(course)
             courses_list.append(one_course)
 
-    except AttributeError as e:
+    except AttributeError:
         if raw_data:
             return []
         return 'Unable to get field for courses', 404
-    except Exception as e:
+    except Exception:
         if raw_data:
             return []
         return 'Unable to make request to Canvas API', 400
@@ -96,9 +94,9 @@ def get_course(courseid):
         course = canvas_api.get_course(canvas_key, courseid)
         course_info = canvas_api.course_to_dict(course)
 
-    except AttributeError as e:
+    except AttributeError:
         return 'Unable to get field for courses', 404
-    except Exception as e:
+    except Exception:
         return 'Unable to make request to Canvas API', 400
     return jsonify(course_info), 200
 
@@ -131,9 +129,9 @@ def get_graded_assignments():
                     one_graded[extra_field] = assignment_details.get(extra_field, None)
 
             graded_assignments.append(one_graded)
-    except Exception as e:
+    except Exception:
         return 'Unable to make request to Canvas API', 400
-    except AttributeError as e:
+    except AttributeError:
         return 'Unable to get field for graded assignments', 404
     return jsonify(graded_assignments), 200
 
@@ -162,12 +160,12 @@ def get_course_assignments(courseid, canvas_key: str|None=None):
             assignment_dict = canvas_api.assignment_to_dict(assignment)
             assignments.append(assignment_dict)
 
-    except AttributeError as e:
+    except AttributeError:
         if raw_data:
             print(f'Attribute error while getting assignments for {courseid}..')
             return []
         return 'Unable to get field for courses', 404
-    except Exception as e:
+    except Exception:
         if raw_data:
             print(f'Exception while getting assignments for {courseid}..')
             return []
@@ -186,9 +184,9 @@ def get_course_assignment(courseid, assignmentid):
         assignment = canvas_api.get_course_assignment(canvas_key, courseid, assignmentid)
         assignment_dict = canvas_api.assignment_to_dict(assignment)
 
-    except Exception as e:
+    except Exception:
         return 'Unable to make request to Canvas API', 400
-    except AttributeError as e:
+    except AttributeError:
         return 'Unable to get field for courses', 404
     return jsonify(assignment_dict), 200
 

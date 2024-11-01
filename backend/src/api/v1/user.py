@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_login import current_user
 from datetime import datetime
-import gevent
 
 
 import utils.canvas as canvas_api
@@ -32,9 +31,9 @@ def get_user_info():
                 }
             }
 
-    except Exception as e:
+    except Exception:
         return 'Unable to make request to Canvas API', 400
-    except AttributeError as e:
+    except AttributeError:
         return 'Unable to get field for request', 404
     return jsonify(user_profile), 200
 
@@ -184,6 +183,6 @@ def get_calendar_events():
     except Exception as e:
         print(e)
         return 'Unable to make request to Canvas API', 400
-    except AttributeError as e:
+    except AttributeError:
         return 'Unable to get field for calendar event', 404
     return jsonify(calendar_events), 200

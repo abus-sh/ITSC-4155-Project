@@ -4,7 +4,6 @@ This file provides utilities for adding tasks to Todoist.
 
 
 from datetime import datetime
-from todoist_api_python.api import TodoistAPI
 import gevent, requests, uuid, json
 from typing import Literal
 

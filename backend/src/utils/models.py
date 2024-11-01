@@ -1,9 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from argon2 import PasswordHasher
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Index, orm
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Index
 from sqlalchemy.inspection import inspect
-from sqlalchemy.orm import relationship, joinedload
+from sqlalchemy.orm import relationship
 import string, random, enum
 
 
