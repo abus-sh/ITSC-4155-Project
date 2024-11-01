@@ -53,8 +53,8 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
         pw_hash = models.password_hasher.hash(password)
 
         new_user = models.User(login_id=models.gen_unique_login_id(), username=username, password=pw_hash,
-                        canvas_id=canvas_id, canvas_name=canvas_name,
-                        canvas_token_password=canvas_token_password, todoist_token_password=todoist_token_password)
+                               canvas_id=canvas_id, canvas_name=canvas_name,
+                               canvas_token_password=canvas_token_password, todoist_token_password=todoist_token_password)
         models.db.session.add(new_user)
         models.db.session.commit()
         return True
@@ -169,7 +169,7 @@ def add_or_return_task(owner: models.User | int, canvas_id: str | None, todoist_
 
     try:
         new_task = models.Task(owner=owner, task_type=models.TaskType.assignment, canvas_id=canvas_id,
-                        todoist_id=todoist_id, due_date=due_date, name=name, description=desc)
+                               todoist_id=todoist_id, due_date=due_date, name=name, description=desc)
         models.db.session.add(new_task)
         models.db.session.commit()
         return new_task
@@ -354,7 +354,7 @@ def create_subtask(owner: models.User, task_id: int, subtask_name: str, todoist_
     """
     try:
         new_subtask = models.SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id, name=subtask_name,
-                              description=subtask_desc, status=subtask_status, due_date=subtask_date)
+                                     description=subtask_desc, status=subtask_status, due_date=subtask_date)
         models.db.session.add(new_subtask)
         models.db.session.commit()
         return new_subtask.id
