@@ -15,6 +15,7 @@ CUSTOM_COURSE_PARAMS = [
     "total_scores", "term", "concluded", "course_image"
 ]
 
+
 def get_term() -> tuple[str, str]:
     """Returns current year and semester."""
     current_year = str(datetime.now().year)

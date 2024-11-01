@@ -13,7 +13,6 @@ with open(os.environ.get('TODOIST_SECRET', '../../secrets/todoist_secret.txt'), 
 todoist = Blueprint('todoist', __name__)
 
 
-
 # Redirect to Todoist for giving permission
 @todoist.route('/redirect', methods=['GET', 'POST'])
 def give_todoist_permission():
@@ -73,13 +72,11 @@ def exchange_token():
     ''', auth_code=auth_code, auth_state=auth_state, frontend_register=get_frontend_url() + '/register')
 
 
-
 #################################################################
 #                                                               #
 #                         EXCHANGE TOKEN                        #
 #                                                               #
 #################################################################
-
 
 def exchange_token(code: str, state: str, session):
     stored_state = session.pop('oauth_state', None)

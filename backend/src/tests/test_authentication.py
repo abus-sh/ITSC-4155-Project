@@ -10,20 +10,24 @@ from utils.crypto import encrypt_str
 #                                                               #
 #################################################################
 
+
 @pytest.fixture(autouse=True)
 def init_test(monkeypatch):
     # Need to set TODOIST_SECRET before importing to ensure that it can read a fake Todoist secret
     monkeypatch.setenv('TODOIST_SECRET', '../../../secrets.example/todoist_secret.txt')
+
 
 # Mocks flask.Request
 class MockRequest:
     def __init__(self, json: dict):
         self.json = json
 
+
 # Mocks flask_login.current_user
 class MockCurrentUser:
     def __init__(self, is_authed: bool=False):
         self.is_authenticated = is_authed
+
 
 # Mocks utils.models.User
 class MockUser:
@@ -45,6 +49,7 @@ class MockUser:
         yield "username", self.username
         yield "password", self.password
 
+
 # Mocks utils.queries.password_hasher
 class MockPasswordHasher:
     def verify(self, hash: str|bytes, password: str|bytes):
@@ -55,6 +60,7 @@ class MockPasswordHasher:
 
     def hash(self, password: str|bytes, salt: bytes|None=None):
         return password
+
 
 # Mocks flask.session
 class MockSession:
@@ -67,12 +73,14 @@ class MockSession:
     def __setitem__(self, key, value):
         self.data[key] = value
 
+
 # Mocks User table
 users = [
     MockUser("user", "pass"),
     MockUser("a", "b"),
     MockUser("admin", "admin")
 ]
+
 
 def mock_get_user_by_username(username: str, dict:bool=False) -> MockUser|dict|None:
     selected_user = None
@@ -88,16 +96,20 @@ def mock_get_user_by_username(username: str, dict:bool=False) -> MockUser|dict|N
         return dict(selected_user)
     return selected_user
 
+
 def mock_abort(status):
     global abort_status
     abort_status = status
+
 
 def mock_login_user(_):
     global is_logged_in
     is_logged_in = True
 
+
 def mock_get_user():
     return MockCurrentUser()
+
 
 def mock_add_user(username, password, canvasToken, todoistToken):
     for user in users:
@@ -106,6 +118,7 @@ def mock_add_user(username, password, canvasToken, todoistToken):
 
     users.append(MockUser(username, password, canvasToken, todoistToken))
     return True
+
 
 def mock_exchange_token(code, state, session):
     return 'bearer', 'ttoken'
@@ -229,6 +242,8 @@ def test_get_authentication_params_tokens():
 
 is_logged_in = False
 abort_status = None
+
+
 def test_login(monkeypatch):
     global is_logged_in, abort_status
     import api.auth.authentication as authentication
@@ -290,6 +305,7 @@ def test_login(monkeypatch):
     # Check the user was logged in and reset the flag
     assert is_logged_in
     is_logged_in = False
+
 
 def test_sign_up(monkeypatch):
     global abort_status

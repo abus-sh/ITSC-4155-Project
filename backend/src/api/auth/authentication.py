@@ -84,6 +84,7 @@ def user_loader(login_id):
 #                                                               #
 #################################################################
 
+
 @auth.route('/login', methods=['POST'])
 def login():
 
@@ -150,7 +151,6 @@ def sign_up():
 
     username, password, canvasToken, todoistInfo = parameters
 
-
     # If the username is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
     if not _is_valid_username(username):
@@ -185,13 +185,13 @@ def sign_up():
     # Respond that the user was created
     return jsonify({'success': True, 'message': f"Account created for {username}"}), 200
 
+
 @auth.route('/change-password', methods=['POST'])
 @login_required
 def change_password():
     # Check if user is not authenticated
     if not current_user.is_authenticated:
         return jsonify({'success': False, 'message': 'User is not authenticated'}), 401
-
 
     # New password must match the confirmed password
     old_password = request.json.get('oldPassword')
@@ -211,7 +211,6 @@ def change_password():
 
     # Update database with new password, rencrypt tokens, and new login id
     update_password(current_user, new_password, old_password)
-
 
     # Delete old session information from cache
     old_session_id = session.get('_id')
@@ -242,6 +241,7 @@ def logout():
 def get_csrf_token():
     token = generate_csrf()
     return jsonify({'csrf_token': token})
+
 
 @auth.route('/status', methods=['GET'])
 def auth_status():
@@ -301,6 +301,7 @@ def _get_authentication_params(request: Request, include_tokens: bool=False) -> 
 
     return params
 
+
 def _is_valid_username(username: str) -> bool:
     """
     Determines if a given username complies with the username requirements for the site.
@@ -319,6 +320,7 @@ def _is_valid_username(username: str) -> bool:
         return False
 
     return True
+
 
 def _is_valid_password(password: str) -> bool:
     """

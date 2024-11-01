@@ -15,6 +15,7 @@ BASE_URL = get_canvas_url()
 
 # ENDPOINT: /api/v1/user/
 
+
 @user.route('/profile', methods=['GET'])
 def get_user_info():
     try:
@@ -37,6 +38,7 @@ def get_user_info():
         return 'Unable to get field for request', 404
     return jsonify(user_profile), 200
 
+
 # Get Assignments due this month
 @user.route('/due_soon', methods=['GET'])
 def get_assignments_due_soon():
@@ -45,7 +47,6 @@ def get_assignments_due_soon():
 
         # Get assignments that have due date between today and 1 month from now
         start_date, end_date = get_date_range(months=1)
-
 
         assignments_due_soon = []
 

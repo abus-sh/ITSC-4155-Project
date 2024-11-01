@@ -14,6 +14,7 @@ BASE_URL = get_canvas_url()
 
 # ENDPOINT: /api/v1/tasks
 
+
 # Fetches assignments from Canvas and adds them to Todoist
 @tasks.post('/update')
 def update_tasks():
@@ -32,6 +33,7 @@ def update_tasks():
         return jsonify({'success': False}), 400
 
     return jsonify({'success': True}), 200
+
 
 @tasks.post('/add_task')
 def add_task_user():
@@ -67,6 +69,7 @@ def add_task_user():
 
     return jsonify({'success': True})
 
+
 @tasks.post('/add_subtask')
 def add_subtask_user():
     try:
@@ -92,6 +95,7 @@ def add_subtask_user():
         print('Error adding a subtask: ', e)
         return jsonify({'success': False, 'message':'Unable to create subtask'}), 400
 
+
 @tasks.post('/get_subtasks')
 def get_subtasks():
     try:
@@ -109,6 +113,7 @@ def get_subtasks():
         print(e)
         return jsonify({'success': False, 'message':'Error while getting subtasks'}), 400
     return jsonify({'success': False, 'message':'Unable to get subtasks'}), 404
+
 
 @tasks.post('/<task_id>/close')
 def close_task(task_id: str):

@@ -49,6 +49,7 @@ def get_all_courses_no_cache(canvas_key: str) -> list[Course]:
 
     return [course for course in current_courses]
 
+
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
 def get_course(canvas_key: str, course_id: str) -> Course:
     """
@@ -135,6 +136,7 @@ def get_course_assignments_no_cache(canvas_key: str, course_id: str) -> list[Ass
     course_assignments = course.get_assignments()
 
     return [assignment for assignment in course_assignments]
+
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
 def get_course_assignment(canvas_key: str, course_id: str, assignment_id: str) -> Assignment:

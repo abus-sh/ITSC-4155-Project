@@ -11,6 +11,7 @@ from sqlalchemy import select
 #                                                                       #
 #########################################################################
 
+
 def add_user(username: str, password: str, canvas_token: str, todoist_token: str) -> bool:
     """
     Add a new user to the database. Encrypt the tokens and then hash the password with argon2.
@@ -40,7 +41,6 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
             if ex.response.status_code == 401:
                 return False
 
-
         # This Canvas user is already associated with an existing user (prevents multiple account with different tokens)
         if User.query.filter_by(canvas_id=canvas_id).first():
             return False
@@ -63,6 +63,7 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
         print(f"Error adding user: {e}")
         return False
 
+
 def update_password(user: User, new_password: str, old_password: str):
     try:
         # Re-encrypt token with new password
@@ -81,6 +82,7 @@ def update_password(user: User, new_password: str, old_password: str):
         db.session.rollback()
         print("Error: ", e)
 
+
 def get_all_users() -> list[User]:
     """
     Retrieve all users from the database.
@@ -88,6 +90,7 @@ def get_all_users() -> list[User]:
     :return list: A list of all User instances.
     """
     return User.query.all()
+
 
 def get_user_by_id(user_id: int, dict=False) -> User | dict:
     """
@@ -102,6 +105,7 @@ def get_user_by_id(user_id: int, dict=False) -> User | dict:
         return user.to_dict()
     return user
 
+
 def get_user_by_username(username: str, dict=False) -> User | dict:
     """
     Retrieve a user by their username.
@@ -115,6 +119,7 @@ def get_user_by_username(username: str, dict=False) -> User | dict:
     if dict and user:
         return user.to_dict()
     return user
+
 
 def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
     """
@@ -173,6 +178,7 @@ def add_or_return_task(owner: User|int, canvas_id: str|None, todoist_id: str|Non
         print(f"Error adding task: {e}")
         raise e
 
+
 def update_task_id(primary_key: str, todoist_id: str) -> None:
     """
     Update a task to reference a Todoist task.
@@ -190,6 +196,7 @@ def update_task_id(primary_key: str, todoist_id: str) -> None:
         print(f"Error updating task: {e}")
         raise e
 
+
 def set_task_duedate(task: Task, due_date: str) -> None:
     """
     Update a task to have a new due_date in the database
@@ -204,6 +211,7 @@ def set_task_duedate(task: Task, due_date: str) -> None:
         db.session.rollback()
         print(f"Error updating task: {e}")
         raise e
+
 
 def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dict | None:
     """
@@ -223,6 +231,7 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
     if dict and task:
         return task.to_dict()
     return task
+
 
 def get_non_canvas_tasks(owner: User, dict=False) -> list[Task] | list[dict]:
     """
@@ -354,6 +363,7 @@ def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int
         print(f"Error setting subtask task: {e}")
     return False
 
+
 def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bool=True) -> list[tuple] | dict:
     """
     Retrieve all subtasks for a series of tasks for the current_user.
@@ -396,6 +406,7 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
         return subtasks_dict
     return subtasks
 
+
 def update_task_or_subtask_status(owner: User, task: Task|SubTask, status: TaskStatus) -> bool:
     """
     Change the status of a task or subtask to a new value.
@@ -418,6 +429,7 @@ def update_task_or_subtask_status(owner: User, task: Task|SubTask, status: TaskS
 #    THIS IS PURELY FOR TESTING DON'T USE THESE FUNCTIONS OTHERWISE     #
 #                                                                       #
 #########################################################################
+
 
 def _delete_task_entries() -> None:
     """ATTENTION: Deletes every entry in the Task table."""

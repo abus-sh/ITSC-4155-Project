@@ -8,7 +8,6 @@ UTC_TZ = pytz.UTC
 CHARLOTTE_TZ = pytz.timezone('America/New_York')
 
 
-
 @contextmanager
 def time_it(info: str, end_text: str=' seconds'):
     """Time the time it takes for the `with` block to execute fully in seconds"""

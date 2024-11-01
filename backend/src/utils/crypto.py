@@ -42,17 +42,14 @@ class Ciphertext:
         self.salt = salt
         self.ciphertext = ciphertext
 
-
     def to_bytes(self) -> bytes:
         """
         Convert Ciphertext to bytes. This is an alias for calling bytes(obj).
         """
         return bytes(self)
 
-
     def __bytes__(self):
         return self.tag + self.nonce + self.salt + self.ciphertext
-
 
     def __eq__(self, other):
         if type(other) != Ciphertext:
@@ -62,7 +59,6 @@ class Ciphertext:
                self.nonce == other.nonce and \
                self.salt == other.salt and \
                self.ciphertext == other.ciphertext
-
 
     @staticmethod
     def from_bytes(data: bytes) -> Self:

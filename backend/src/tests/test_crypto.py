@@ -1,6 +1,7 @@
 import utils.crypto as crypto
 import pytest
 
+
 def test_ciphertext_init():
     # Test Ciphertext constructor
     ciph_a = crypto.Ciphertext(b"a"*16, b"b"*15, b"c"*16, b"hello")
