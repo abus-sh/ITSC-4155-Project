@@ -39,8 +39,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = session_secret
 app.config['WTF_CSRF_FIELD_NAME'] = 'csrf_token'
 app.config['WTF_CSRF_SECRET_KEY'] = session_secret
-app.config['SESSION_COOKIE_SAMESITE'] = 'None' # Frontend (Angular) and backend (Flask) are on different domains or ports,
-app.config['SESSION_COOKIE_SECURE'] = True  # This must be set if using HTTPS
+# Frontend (Angular) and backend (Flask) are on different domains or ports,
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+# This must be set if using HTTPS
+app.config['SESSION_COOKIE_SECURE'] = True
 
 
 # Initiate database, login manager, and CSRF

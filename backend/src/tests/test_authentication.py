@@ -253,7 +253,8 @@ def test_login(monkeypatch):
     monkeypatch.setattr(authentication, "password_hasher", MockPasswordHasher())
     monkeypatch.setattr(authentication, "login_user", mock_login_user)
     monkeypatch.setattr(authentication, "session", MockSession())
-    monkeypatch.setattr(authentication, "jsonify", lambda x: x) # Return objects as objects not strs
+    # Return objects as objects not strs
+    monkeypatch.setattr(authentication, "jsonify", lambda x: x)
     monkeypatch.setattr(authentication, "abort", mock_abort)
 
     # Test missing username
@@ -313,7 +314,8 @@ def test_sign_up(monkeypatch):
 
     monkeypatch.setattr(authentication, "abort", mock_abort)
     monkeypatch.setattr(authentication, "add_user", mock_add_user)
-    monkeypatch.setattr(authentication, "jsonify", lambda x: x) # Return objects as objects not strs
+    # Return objects as objects not strs
+    monkeypatch.setattr(authentication, "jsonify", lambda x: x)
     monkeypatch.setattr(authentication, "exchange_token", mock_exchange_token)
 
     # Test sign up missing username

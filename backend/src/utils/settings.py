@@ -86,10 +86,12 @@ def is_valid_date(date_str: str) -> str | None:
     If date_str is not a valid date, return None. Format of return is `%Y-%m-%d %H:%M`.
     """
     try:
-        if len(date_str.strip()) == 10: # Date without time
+        # Date without time
+        if len(date_str.strip()) == 10:
             datetime.strptime(date_str, '%Y-%m-%d')
             return date_str.strip() + ' 23:59'
-        else:  # Date with time
+        # Date with time
+        else:
             return datetime.strptime(date_str, '%Y-%m-%dT%H:%M').strftime('%Y-%m-%d %H:%M')
     except Exception:
         return None

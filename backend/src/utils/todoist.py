@@ -57,7 +57,8 @@ def add_update_tasks(user_id: int, canvas_key: str, todoist_key: str):
     if todoist_queue:
         body = {
             'sync_token': '*',
-            'commands': json.dumps(todoist_queue), # Todoist command queue
+            # Todoist command queue
+            'commands': json.dumps(todoist_queue)
         }
         # Send the todoist queue request
         response_data = _send_post_todoist(todoist_url, body, headers)
@@ -223,7 +224,8 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
                         f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close",
                         headers={"Authorization": f"Bearer {todoist_key}"}
                     )
-                    if response.status_code != 204: # Failure to mark subtask as complete
+                    # Failure to mark subtask as complete
+                    if response.status_code != 204:
                         subtask_status = TaskStatus.Incomplete
 
                 # Create subtask in database
@@ -367,7 +369,8 @@ def _send_post_todoist(todoist_url, body, headers):
         print(response.text)
         print("Error sending to Todoist: ", error)
         raise Exception
-    return response_data # Return response json data
+    # Return response json data
+    return response_data
 
 
 def _get_assignment_date_or_default(assignment: dict, default: str = '~') -> str:
