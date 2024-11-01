@@ -1,16 +1,13 @@
 from gevent import monkey
 monkey.patch_all()
 
-# flake8: noqa: E402
-# This is required to allow monkey to patch everything without causing linting issues with imports
+from flask import Flask  # noqa: E402
+from flask_cors import CORS  # noqa: E402
+import os  # noqa: E402
 
-from flask import Flask
-from flask_cors import CORS
-import os
-
-from api.auth.authentication import auth, login_manager, csrf
-from api.v1.base import api_v1
-from utils.models import db
+from api.auth.authentication import auth, login_manager, csrf  # noqa: E402
+from api.v1.base import api_v1  # noqa: E402
+from utils.models import db  # noqa: E402
 
 app = Flask(__name__)
 USING_SQLITE = 'DB_CONN_FILE' not in os.environ
@@ -35,8 +32,7 @@ with open(os.environ.get('SESSION_SECRET_FILE', '../../secrets/session_secret.tx
 # SQLite will create the .db file if it doesn't exist; if it does, it will connect to it (in the
 # /database/ folder).
 if USING_SQLITE:
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(app.root_path, "../..",
-                                                                      "database", "canvas_hub.db")}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(app.root_path, "../..", "database", "canvas_hub.db")}'  # noqa: E501
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
