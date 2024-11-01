@@ -389,7 +389,7 @@ def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str],
     """
 
     subtasks = models.SubTask.query\
-        .join(models.Task, models.SubTask.taskmodels._id == models.Task.id).filter(
+        .join(models.Task, models.SubTask.task_id == models.Task.id).filter(
             models.Task.canvas_id.in_(canvas_ids),
             models.SubTask.owner == current_user.id
         ).with_entities(
