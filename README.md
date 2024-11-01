@@ -9,12 +9,14 @@ http://127.0.0.1:4200.
 
 To run the backend locally, you must have Python 3.10 installed and install the modules described by
 `backend/requirements.txt`. If you wish to run unit tests, you must also install the modules
-described by `backend/requirements-dev.txt`. From there, you can run `python3 -m flask run` in
-`backend/src` to start the backend on http://127.0.0.1:5000/.
+described by `backend/requirements-dev.txt`. To run the unit tests do `pytest backend/src/tests`
+from the project folder.
+
+Then, you can run `python3 -m flask run` in `backend/src` to start the backend on http://127.0.0.1:5000/.
 
 You will also need to create certain secret files to test locally. To run everything without Docker,
 the following files are needed. Examples or descriptions of these files can be found in the
-`secrets.example` folder. (This is not needed for the code in the Sprint2 Branch)
+`secrets.example` folder. (NOTE: This is not needed for the code in the Sprint2 Branch release)
 
 - connection_string.txt - the database connection string. An in-memory sqlite database (`sqlite://`)
 is sufficient.
