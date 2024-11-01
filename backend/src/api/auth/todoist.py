@@ -34,7 +34,7 @@ def give_todoist_permission():
 
 
 @todoist.route('/get_token_info', methods=['GET'])
-def exchange_token():
+def exchange_token_route():
     if current_user.is_authenticated:
         abort(401, "User is already authenticated.")
 
