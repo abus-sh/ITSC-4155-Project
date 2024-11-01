@@ -12,6 +12,7 @@ services:
     environment:
       DB_CONN_FILE: /run/secrets/database_conn.txt
       SESSION_SECRET_FILE: /run/secrets/session_secret.txt
+      TODOIST_CLIENT: 12fde679cfe84cff92c3a6c3e7e3beaf
       TODOIST_SECRET: /run/secrets/todoist_secret.txt
     expose:
       - 5000
