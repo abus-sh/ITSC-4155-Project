@@ -132,7 +132,7 @@ def get_canvas_cache_time() -> int:
     cache_time = os.environ.get('CANVAS_API_CACHE_TIME', default_cache_time)
     try:
         cache_time = int(cache_time)
-    except:
+    except Exception:
         cache_time = default_cache_time
 
     return cache_time
