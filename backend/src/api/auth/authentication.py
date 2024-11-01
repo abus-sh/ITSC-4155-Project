@@ -8,9 +8,9 @@ from http import HTTPStatus
 from lru import LRU
 from utils.settings import time_it
 
-from utils.queries import get_user_by_username, get_user_by_login_id, add_user, User, \
-    password_hasher, update_password
+from utils.queries import get_user_by_username, get_user_by_login_id, add_user, update_password
 from utils.crypto import reencrypt_str
+from utils.models import User, password_hasher
 
 
 auth = Blueprint('authentication', __name__)
