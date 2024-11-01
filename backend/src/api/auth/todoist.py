@@ -6,9 +6,15 @@ import requests
 
 
 # Todoist OAuth 2.0 Secret
-TODOIST_CLIENT = os.environ.get('TODOIST_CLIENT', '033c2a73ad3347609e9cf6ed1b0cd3fa')
-with open(os.environ.get('TODOIST_SECRET', '../../secrets/todoist_secret.txt'), 'r') as file:
-    TODOIST_SECRET = file.readline().strip()
+TODOIST_CLIENT = os.environ.get('TODOIST_CLIENT', '8a113e01fca341ce9af78eadb854a773')
+try:
+    with open(os.environ.get('TODOIST_SECRET', '../../secrets/todoist_secret.txt'), 'r') as file:
+        TODOIST_ID = file.readline().strip()
+except FileNotFoundError:
+    # THIS IS ONLY FOR TESTING PURPOSES, IT WILL NOT BE HARCODED IN DEPLOYMENT
+    # This is a dummy todoist secret, NOT connected with our local testing or deployment, it's purely to 
+    # make sure that the Sprint 2 Execution works without needing to create a secrets folder for the TA / Teacher
+    TODOIST_ID = "78851718870b4ca1b85266216730946e"
 
 
 todoist = Blueprint('todoist', __name__)
@@ -91,7 +97,7 @@ def exchange_token(code: str, state: str, session):
     todoist_token_url = 'https://todoist.com/oauth/access_token'
     body = {
         'client_id': TODOIST_CLIENT,
-        'client_secret': TODOIST_SECRET,
+        'client_secret': TODOIST_ID,
         'code': code
     }
     response = requests.post(todoist_token_url, data=body)

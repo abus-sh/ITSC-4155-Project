@@ -42,7 +42,9 @@ export class RegisterComponent implements OnInit {
     ngOnInit(): void {
         window.addEventListener('message', (event) => {
             // Retrieve code and state from backend
+            console.log(event.origin)
             if (event.origin === getBackendURL()) {
+                console.log(1)
                 this.handleOAuthResponse(event.data);
             }
         });
