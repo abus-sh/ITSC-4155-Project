@@ -4,7 +4,10 @@ This file provides utilities for adding tasks to Todoist.
 
 
 from datetime import datetime
-import gevent, requests, uuid, json
+import gevent
+import requests
+import uuid
+import json
 from typing import Literal
 
 from api.v1.courses import get_all_courses, get_course_assignments

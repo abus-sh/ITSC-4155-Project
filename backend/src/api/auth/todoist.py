@@ -1,7 +1,8 @@
 from flask import request, abort, session, redirect, render_template_string, Blueprint
 from flask_login import current_user
 from utils.settings import generate_random_string, get_frontend_url
-import os, requests
+import os
+import requests
 
 
 # Todoist OAuth 2.0 Secret

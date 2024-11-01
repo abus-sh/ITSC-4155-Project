@@ -4,7 +4,9 @@ from argon2 import PasswordHasher
 from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Index
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import relationship
-import string, random, enum
+import string
+import random
+import enum
 
 
 # Initialize SQLAlchemy and Password hasher
