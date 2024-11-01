@@ -1,4 +1,8 @@
 from gevent import monkey
+monkey.patch_all()
+
+# flake8: noqa: E402
+# This is required to allow monkey to patch everything without causing linting issues with imports
 
 from flask import Flask
 from flask_cors import CORS
@@ -7,8 +11,6 @@ import os
 from api.auth.authentication import auth, login_manager, csrf
 from api.v1.base import api_v1
 from utils.models import db
-
-monkey.patch_all()
 
 app = Flask(__name__)
 USING_SQLITE = 'DB_CONN_FILE' not in os.environ
