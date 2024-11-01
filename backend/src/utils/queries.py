@@ -4,6 +4,7 @@ from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
 from sqlalchemy import select
+from datetime import datetime
 
 #########################################################################
 #                                                                       #
@@ -241,7 +242,7 @@ def get_task_by_canvas_id(owner: models.User, canvas_id: str, dict=False)\
 
 def get_non_canvas_tasks(owner: models.User, dict=False) -> list[models.Task] | list[dict]:
     """
-    Retrieves all tasks that do not have a Canvas ID.
+    Retrieves all tasks that do not have a Canvas ID and that are due in the future.
 
     :param owner: The owner of the tasks.
     :param dict: If True, return the tasks as a list of dictionaries. Defaults to False.
@@ -249,9 +250,12 @@ def get_non_canvas_tasks(owner: models.User, dict=False) -> list[models.Task] | 
     as dicts if dict is True.
     """
 
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
     tasks = models.Task.query.filter(
         models.Task.owner == owner.id,
-        models.Task.canvas_id is None
+        models.Task.canvas_id == None,  # noqa: E711, using 'is' breaks comparison here
+        models.Task.due_date > now
     ).all()
     if dict:
         return [dict(task) for task in tasks]
