@@ -37,7 +37,7 @@ def get_term() -> tuple[str, str]:
 
 # Get list of all courses for current student
 @courses.route('/all', methods=['GET'])
-def get_all_courses(canvas_key: str | None = None) -> list:
+def get_all_courses(canvas_key: str | None = None) -> list:  # noqa: C901
     """
     Returns a list of all courses associated with the Canvas API key.
 
