@@ -108,7 +108,7 @@ def encrypt_str(data: str, password: str) -> Ciphertext:
     return Ciphertext(tag, cipher.nonce, salt, ciphertext)
 
 
-def decrypt_str(ciphertext: Ciphertext|bytes, password: str) -> str:
+def decrypt_str(ciphertext: Ciphertext | bytes, password: str) -> str:
     """
     Decrypt some data with the specified password using 256-bit AES-OCB.
 
@@ -132,7 +132,7 @@ def decrypt_str(ciphertext: Ciphertext|bytes, password: str) -> str:
     return data.decode()
 
 
-def reencrypt_str(ciphertext: Ciphertext|bytes, old_password: str, new_password: str) -> Ciphertext:
+def reencrypt_str(ciphertext: Ciphertext | bytes, old_password: str, new_password: str) -> Ciphertext:
     """
     Decrypt some data, then re-encrypted it with a new password.
 
@@ -147,7 +147,7 @@ def reencrypt_str(ciphertext: Ciphertext|bytes, old_password: str, new_password:
     return encrypt_str(data, new_password)
 
 
-def generate_key(seed: str|None=None) -> bytes:
+def generate_key(seed: str | None = None) -> bytes:
     """
     Generates a random encryption key for 256-bit AES-OCB encryption.
 
@@ -161,7 +161,7 @@ def generate_key(seed: str|None=None) -> bytes:
     return get_random_bytes(32)
 
 
-def _derive_key(password: str, salt: str|None=None) -> tuple[bytes, bytes]:
+def _derive_key(password: str, salt: str | None = None) -> tuple[bytes, bytes]:
     """
     Derive a key from a password to encrypt some data.
 

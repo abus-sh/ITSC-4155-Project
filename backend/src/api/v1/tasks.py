@@ -90,10 +90,10 @@ def add_subtask_user():
         if result:
             return jsonify({'success': True, 'id': result}), 200
         else:
-            return jsonify({'success': False, 'message':'Failed to create subtask'}), 400
+            return jsonify({'success': False, 'message': 'Failed to create subtask'}), 400
     except Exception as e:
         print('Error adding a subtask: ', e)
-        return jsonify({'success': False, 'message':'Unable to create subtask'}), 400
+        return jsonify({'success': False, 'message': 'Unable to create subtask'}), 400
 
 
 @tasks.post('/get_subtasks')
@@ -107,12 +107,12 @@ def get_subtasks():
             return jsonify(subtasks), 200
 
         elif len(task_ids) == 0:
-            return jsonify({'success': False, 'message':'No IDs were provided'}), 400
+            return jsonify({'success': False, 'message': 'No IDs were provided'}), 400
 
     except Exception as e:
         print(e)
-        return jsonify({'success': False, 'message':'Error while getting subtasks'}), 400
-    return jsonify({'success': False, 'message':'Unable to get subtasks'}), 404
+        return jsonify({'success': False, 'message': 'Error while getting subtasks'}), 400
+    return jsonify({'success': False, 'message': 'Unable to get subtasks'}), 404
 
 
 @tasks.post('/<task_id>/close')

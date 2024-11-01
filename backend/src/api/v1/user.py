@@ -132,7 +132,7 @@ def get_missing_submissions():
                                                                  frozenset(courses_list))
         miss_assignments_list = []
         fields = [
-            'id', 'name', 'description', 'due_at','course_id', 'html_url',
+            'id', 'name', 'description', 'due_at', 'course_id', 'html_url'
         ]
         for assignment in missing_submissions:
             miss_assignment = {field: getattr(assignment, field, None) for field in fields}
@@ -159,7 +159,7 @@ def get_calendar_events():
             return 'Invalid dates argument', 400
 
         # type event returns all the events, not just assignment
-        all_events = canvas_api.get_all_calendar_events(canvas_key, start_date, end_date, limit=60, event_types=['event','assignment'])
+        all_events = canvas_api.get_all_calendar_events(canvas_key, start_date, end_date, limit=60, event_types=['event', 'assignment'])
 
         fields = [
             'id', 'title', 'description', 'type', 'submission_types', 'html_url', 'context_name', 'start_at', 'end_at'

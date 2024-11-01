@@ -143,8 +143,8 @@ def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
 #########################################################################
 
 
-def add_or_return_task(owner: User|int, canvas_id: str|None, todoist_id: str|None=None,
-                       due_date: str=None, name: str|None=None, desc: str|None=None) -> Task:
+def add_or_return_task(owner: User | int, canvas_id: str | None, todoist_id: str | None = None,
+                       due_date: str = None, name: str | None = None, desc: str | None = None) -> Task:
     """
     Add a new task to the database or return the task if it already exists.
 
@@ -260,7 +260,7 @@ def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
     :param owner: The owner of the task.
     :param canvas_id: The internal Todoist ID of a task or subtask.
     :param dict: If True, return the task or subtask as a dictionary. Defaults to False.
-    :return Task|SubTask: The task or subtask that was retrieved, assuming dict is False.
+    :return Task | SubTask: The task or subtask that was retrieved, assuming dict is False.
     :return dict: The task or subtask that was retrieved, assuming dict is True.
     :return None: Indicates that no task or subtask with the given ID was found.
     """
@@ -335,9 +335,9 @@ def sync_task_status(owner: User, open_task_ids: list[int]):
 #########################################################################
 
 
-def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int=None, subtask_desc: str=None,
-                   subtask_status: TaskStatus=TaskStatus.Incomplete, subtask_date: str=None)\
-                   -> int|bool:
+def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int = None, subtask_desc: str = None,
+                   subtask_status: TaskStatus = TaskStatus.Incomplete, subtask_date: str = None)\
+                   -> int | bool:
     """
     Creates a subtask under a specified task for the current user in the database.
 
@@ -350,7 +350,7 @@ def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int
         subtask_date (str, optional): The due date for the subtask. Defaults to None.
 
     Returns:
-        int|False: The ID of the subtask if the subtask was successfully created, False otherwise.
+        int | False: The ID of the subtask if the subtask was successfully created, False otherwise.
     """
     try:
         new_subtask = SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id, name=subtask_name,
@@ -364,7 +364,7 @@ def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int
     return False
 
 
-def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bool=True) -> list[tuple] | dict:
+def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bool = True) -> list[tuple] | dict:
     """
     Retrieve all subtasks for a series of tasks for the current_user.
 
@@ -407,13 +407,13 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
     return subtasks
 
 
-def update_task_or_subtask_status(owner: User, task: Task|SubTask, status: TaskStatus) -> bool:
+def update_task_or_subtask_status(owner: User, task: Task | SubTask, status: TaskStatus) -> bool:
     """
     Change the status of a task or subtask to a new value.
 
     Args:
         owner (User): The User who owns the task or subtask.
-        task (Task|SubTask): The Task or Subtask to
+        task (Task | SubTask): The Task or Subtask to
     """
     try:
         task.status = status

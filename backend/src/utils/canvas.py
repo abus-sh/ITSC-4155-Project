@@ -219,7 +219,7 @@ def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, lim
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
-def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int=50, type='assignment')\
+def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int = 50, type='assignment')\
         -> list[CalendarEvent]:
     """
     Returns the calendar events within the given date range, up to a limited number. These results
@@ -235,7 +235,7 @@ def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: 
     return get_calendar_events_no_cache(canvas_key, start_date, end_date, limit, type)
 
 
-def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str, limit: int=50, type='assignment')\
+def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str, limit: int = 50, type='assignment')\
         -> list[CalendarEvent]:
     """
     Returns the calendar events within the given date range, up to a limited number. These results
@@ -296,7 +296,7 @@ def get_missing_submissions_no_cache(canvas_key: str, course_ids: frozenset[int]
     return missing_submissions
 
 
-def course_to_dict(course: Course, fields: list[str]|None=None) -> dict[str, str|None]:
+def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:
     """
     Converts a course into a dict, taking only the fields specified in fields. If fields is None,
     then a default set of fields are used.
@@ -304,7 +304,7 @@ def course_to_dict(course: Course, fields: list[str]|None=None) -> dict[str, str
     :param course: The course to convert to a dict.
     :param fields: The fields to extract from the course. If fields is not specified, a default list
     of fields are used instead.
-    :return dict[str, str|None]: Returns a dict with each key. If no value was present for the key,
+    :return dict[str, str | None]: Returns a dict with each key. If no value was present for the key,
     None is returned instead.
     """
     if fields == None:
@@ -316,7 +316,7 @@ def course_to_dict(course: Course, fields: list[str]|None=None) -> dict[str, str
     return {field: getattr(course, field, None) for field in fields}
 
 
-def assignment_to_dict(assignment: Assignment, fields: list[str]|None=None) -> dict[str, str|None]:
+def assignment_to_dict(assignment: Assignment, fields: list[str] | None = None) -> dict[str, str | None]:
     """
     Converts an assignment into a dict, taking only the fields specified in fields. If fields is
     None, then a default set of fields are used.
@@ -324,7 +324,7 @@ def assignment_to_dict(assignment: Assignment, fields: list[str]|None=None) -> d
     :param assignment: The assignment to convert to a dict.
     :param fields: The fields to extract from the assignment. If fields is not specified, a default
     list of fields are used instead.
-    :return dict[str, str|None]: Returns a dict with each key. If no value was present for the key,
+    :return dict[str, str | None]: Returns a dict with each key. If no value was present for the key,
     None is returned instead.
     """
     if fields == None:

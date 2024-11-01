@@ -9,7 +9,7 @@ CHARLOTTE_TZ = pytz.timezone('America/New_York')
 
 
 @contextmanager
-def time_it(info: str, end_text: str=' seconds'):
+def time_it(info: str, end_text: str = ' seconds'):
     """Time the time it takes for the `with` block to execute fully in seconds"""
     start_time = time.time()
     yield
@@ -17,7 +17,7 @@ def time_it(info: str, end_text: str=' seconds'):
     print(f"{info} {end_time - start_time:.4f}{end_text}")
 
 
-def get_date_range(start_date: datetime=None, months=0, days=0, hours=0) -> tuple[str, str]:
+def get_date_range(start_date: datetime = None, months=0, days=0, hours=0) -> tuple[str, str]:
     """
     Return a tuple with the `(start date, end date)` in format `%Y-%m-%d`
     If the start date is not specified, `None`, it will default to today.
@@ -74,7 +74,7 @@ def date_passed(due_date_aware: datetime) -> bool:
     return due_date_aware < now
 
 
-def generate_random_string(length: int=15) -> str:
+def generate_random_string(length: int = 15) -> str:
     """Generates a random string of 15 characters (digits and letters)."""
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))

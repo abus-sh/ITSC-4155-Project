@@ -25,7 +25,7 @@ class MockRequest:
 
 # Mocks flask_login.current_user
 class MockCurrentUser:
-    def __init__(self, is_authed: bool=False):
+    def __init__(self, is_authed: bool = False):
         self.is_authenticated = is_authed
 
 
@@ -52,13 +52,13 @@ class MockUser:
 
 # Mocks utils.queries.password_hasher
 class MockPasswordHasher:
-    def verify(self, hash: str|bytes, password: str|bytes):
+    def verify(self, hash: str | bytes, password: str | bytes):
         if hash == password:
             return True
 
         raise argon2.exceptions.VerifyMismatchError
 
-    def hash(self, password: str|bytes, salt: bytes|None=None):
+    def hash(self, password: str | bytes, salt: bytes | None = None):
         return password
 
 
@@ -82,7 +82,7 @@ users = [
 ]
 
 
-def mock_get_user_by_username(username: str, dict:bool=False) -> MockUser|dict|None:
+def mock_get_user_by_username(username: str, dict: bool = False) -> MockUser | dict | None:
     selected_user = None
     for user in users:
         if user.username == username:

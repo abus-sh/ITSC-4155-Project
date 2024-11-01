@@ -32,7 +32,7 @@ class TodoistAuthInfo:
     :param token: The permanent API key. None if OAuth is being used.
     :raises ValueError: If token is None and one of code or state is None.
     """
-    def __init__(self, code: str|None=None, state: str|None=None, token: str|None=None):
+    def __init__(self, code: str | None = None, state: str | None = None, token: str | None = None):
         # Determine if insufficient information was provided to construct an authenticaiton attempt
         # If no permanent API key was provided and one of the OAuth parameteres wasn't provided,
         # then something is wrong.
@@ -104,7 +104,7 @@ def login():
 
             username, password = parameters
 
-            db_user: User|None = get_user_by_username(username)
+            db_user: User | None = get_user_by_username(username)
 
             # If no user exists, consider the request unauthorized
             if db_user == None:
@@ -256,7 +256,7 @@ def auth_status():
 #                                                               #
 #################################################################
 
-def _get_authentication_params(request: Request, include_tokens: bool=False) -> tuple[str, str] | tuple[str, str, str, TodoistAuthInfo] |None:
+def _get_authentication_params(request: Request, include_tokens: bool = False) -> tuple[str, str] | tuple[str, str, str, TodoistAuthInfo] | None:
     """
     Extracts the username and password from a request, if both exist and are valid.
 
@@ -296,7 +296,7 @@ def _get_authentication_params(request: Request, include_tokens: bool=False) -> 
         params = (username, password)
 
     # Check that all fields of params are strings or TodoistAuthInfo and not None
-    if any(param is None or not isinstance(param, str|TodoistAuthInfo) for param in params):
+    if any(param is None or not isinstance(param, str | TodoistAuthInfo) for param in params):
         return None
 
     return params

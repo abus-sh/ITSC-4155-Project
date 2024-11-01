@@ -37,7 +37,7 @@ def get_term() -> tuple[str, str]:
 
 # Get list of all courses for current student
 @courses.route('/all', methods=['GET'])
-def get_all_courses(canvas_key: str|None=None) -> list:
+def get_all_courses(canvas_key: str | None = None) -> list:
     """
     Returns a list of all courses associated with the Canvas API key.
 
@@ -139,7 +139,7 @@ def get_graded_assignments():
 
 # Get all assignments for a course
 @courses.route('/<courseid>/assignments', methods=['GET'])
-def get_course_assignments(courseid, canvas_key: str|None=None):
+def get_course_assignments(courseid, canvas_key: str | None = None):
     """
     Returns a list of all assignments for a course.
 
