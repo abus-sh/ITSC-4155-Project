@@ -23,7 +23,7 @@ def get_term() -> tuple[str, str]:
     now = datetime.now()
     month = now.month
     day = now.day
-    # Summer classes start in middle of May, and Fall classes start in middle of August, 
+    # Summer classes start in middle of May, and Fall classes start in middle of August,
     # so we need the day to be precise
     if (1 <= month <= 4) or (month == 5 and day <= 15):
         current_semester = '10'  # Spring
@@ -81,7 +81,7 @@ def get_all_courses(canvas_key: str|None=None) -> list:
         if raw_data:
             return []
         return 'Unable to make request to Canvas API', 400
-    
+
     if raw_data:
         return courses_list
     return jsonify(courses_list), 200
@@ -95,7 +95,7 @@ def get_course(courseid):
     try:
         course = canvas_api.get_course(canvas_key, courseid)
         course_info = canvas_api.course_to_dict(course)
-            
+
     except AttributeError as e:
         return 'Unable to get field for courses', 404
     except Exception as e:
@@ -110,10 +110,10 @@ def get_graded_assignments():
         course_id = request.json.get('course_id')
         if not course_id:
             return jsonify("Invalid course_id!"), 400
-        
+
         canvas_key = decrypt_canvas_key()
         assignments = canvas_api.get_graded_assignments(canvas_key, course_id)
-        
+
         graded_assignments = []
         for graded in assignments:
             fields = [
@@ -126,10 +126,10 @@ def get_graded_assignments():
             one_graded = {field: getattr(graded, field, None) for field in fields}
             # Fields inside the assignment dict
             assignment_details = getattr(graded, 'assignment', None)
-            if assignment_details:           
+            if assignment_details:
                 for extra_field in extra_fields:
                     one_graded[extra_field] = assignment_details.get(extra_field, None)
-                    
+
             graded_assignments.append(one_graded)
     except Exception as e:
         return 'Unable to make request to Canvas API', 400

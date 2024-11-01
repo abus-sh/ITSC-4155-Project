@@ -43,10 +43,10 @@ def get_user_info():
 def get_assignments_due_soon():
     try:
         canvas_key = decrypt_canvas_key()
-        
+
         # Get assignments that have due date between today and 1 month from now
         start_date, end_date = get_date_range(months=1)
-        
+
 
         assignments_due_soon = []
 
@@ -67,7 +67,7 @@ def get_assignments_due_soon():
         assignments = canvas_api.get_calendar_events(canvas_key, start_date, end_date)
 
         fields = [
-            'title', 'description', 'type', 'submission_types', 'html_url', 'context_name', 
+            'title', 'description', 'type', 'submission_types', 'html_url', 'context_name',
         ]
         extra_fields = [
             'id', 'points_possible', 'graded_submissions_exist', 'user_submitted'
@@ -76,25 +76,25 @@ def get_assignments_due_soon():
 
             # Basic fields
             one_assignment = {field: getattr(assignment, field, None) for field in fields}
-            
+
             # Fields inside the assignment dict
             more_details = getattr(assignment, 'assignment', None)
-            if more_details:           
+            if more_details:
                 for extra_field in extra_fields:
                     one_assignment[extra_field] = more_details.get(extra_field, None)
-                
+
                 # Get the due date; if it doesn't have one, use the lock at date
                 due_date = more_details.get('due_at') or more_details.get('lock_at')
 
                 # Skip assignment if no due date
                 if not due_date:
                     continue
-                
+
                 parsed_due_date = localize_date(datetime.strptime(due_date, "%Y-%m-%dT%H:%M:%SZ"))
                 # Skip to the next iteration if the due date is older than yesterday
                 if date_passed(parsed_due_date):
-                    continue  
-                
+                    continue
+
                 one_assignment['due_at'] = parsed_due_date.strftime('%Y-%m-%d %H:%M:%S')
             assignments_due_soon.append(one_assignment)
 
@@ -132,7 +132,7 @@ def get_missing_submissions():
                                                                  frozenset(courses_list))
         miss_assignments_list = []
         fields = [
-            'id', 'name', 'description', 'due_at','course_id', 'html_url', 
+            'id', 'name', 'description', 'due_at','course_id', 'html_url',
         ]
         for assignment in missing_submissions:
             miss_assignment = {field: getattr(assignment, field, None) for field in fields}
@@ -151,13 +151,13 @@ def get_missing_submissions():
 def get_calendar_events():
     try:
         canvas_key = decrypt_canvas_key()
-        
+
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
-        
+
         if start_date is None or end_date is None:
             return 'Invalid dates argument', 400
-        
+
         # type event returns all the events, not just assignment
         all_events = canvas_api.get_all_calendar_events(canvas_key, start_date, end_date, limit=60, event_types=['event','assignment'])
 
@@ -168,17 +168,17 @@ def get_calendar_events():
         for event in all_events:
             # Basic fields
             single_event = {field: getattr(event, field, None) for field in fields}
-            
+
             if single_event['start_at'] is None:
                 continue
-            
+
             # If assignment was submitted
             assignment_details = getattr(event, 'assignment', None)
-            if assignment_details:           
+            if assignment_details:
                 single_event['user_submitted'] = assignment_details.get('user_submitted', False)
             else:
                 single_event['user_submitted'] = False
-                    
+
             calendar_events.append(single_event)
 
     except Exception as e:

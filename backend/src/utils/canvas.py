@@ -104,7 +104,7 @@ def get_graded_assignments_no_cache(canvas_key: str, course_id: str) -> list[Sub
     canvas = Canvas(BASE_URL, canvas_key)
     assignments = canvas.get_course(course_id)\
         .get_multiple_submissions(workflow_state='graded', include=['assignment'])
-    
+
     return [assignment for assignment in assignments]
 
 
@@ -197,7 +197,7 @@ def get_current_user_no_cache(canvas_key: str) -> CurrentUser:
 
 def get_all_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: int, event_types: list[str]) -> list[CalendarEvent]:
     """
-    Retrieves all calendar events of certain types with a specified date range for the given event types 
+    Retrieves all calendar events of certain types with a specified date range for the given event types
     using gevent.
 
     :param canvas_key: The API key that should be used.
@@ -223,7 +223,7 @@ def get_calendar_events(canvas_key: str, start_date: str, end_date: str, limit: 
     Returns the calendar events within the given date range, up to a limited number. These results
     are cached for an amount of time determined by utils.settings.get_canvas_cache_time. If live
     information is needed, get_calendar_events_no_cache should be used instead.
-    
+
     :param canvas_key: The API key that should be used.
     :param start_date: The earliest date to retrieve events for. Must be of the form YYYY-MM-DD.
     :param end_date: The latest date to retrieve events for. Must be of the form YYYY-MM-DD.
@@ -238,7 +238,7 @@ def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str
     """
     Returns the calendar events within the given date range, up to a limited number. These results
     are not cached. If possible, use get_calendar_events to improve server response times.
-    
+
     :param canvas_key: The API key that should be used.
     :param start_date: The earliest date to retrieve events for. Must be of the form YYYY-MM-DD.
     :param end_date: The latest date to retrieve events for. Must be of the form YYYY-MM-DD.
@@ -252,11 +252,11 @@ def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str
 
     canvas = Canvas(BASE_URL, canvas_key)
     assignments = canvas.get_calendar_events(context_codes=courses,
-        start_date=start_date, 
+        start_date=start_date,
         end_date=end_date,
         per_page=limit,
         type=type)
-    
+
     return assignments
 
 
@@ -325,11 +325,11 @@ def assignment_to_dict(assignment: Assignment, fields: list[str]|None=None) -> d
     """
     if fields == None:
         fields = [
-            'id', 'name', 'description', 'due_at', 'lock_at', 'course_id', 'html_url', 
-            'submissions_download_url', 'allowed_extensions', 'turnitin_enabled', 
-            'grade_group_students_individually', 'group_category_id', 'points_possible', 
-            'submission_types', 'published', 'quiz_id', 'omit_from_final_grade', 
+            'id', 'name', 'description', 'due_at', 'lock_at', 'course_id', 'html_url',
+            'submissions_download_url', 'allowed_extensions', 'turnitin_enabled',
+            'grade_group_students_individually', 'group_category_id', 'points_possible',
+            'submission_types', 'published', 'quiz_id', 'omit_from_final_grade',
             'allowed_attempts', 'can_submit', 'is_quiz_assignment', 'workflow_state'
         ]
-        
+
     return {field: getattr(assignment, field, None) for field in fields}

@@ -59,7 +59,7 @@ class User(UserMixin, ModelMixin, db.Model):
         :type todoist_token_password: str
     """
     __tablename__ = 'users'
-    
+
     # Table primary key
     id = Column(Integer, primary_key=True)
 
@@ -71,7 +71,7 @@ class User(UserMixin, ModelMixin, db.Model):
     # Canvas info for user
     canvas_id = Column(String(150), unique=True, nullable=False)
     canvas_name = Column(String(150), unique=False, nullable=False)
-    
+
     # Tokens encrypted with password
     canvas_token_password = Column(String(200), unique=False, nullable=False)
     todoist_token_password = Column(String(200), unique=False, nullable=False)
@@ -81,8 +81,8 @@ class User(UserMixin, ModelMixin, db.Model):
     todoist_token_session = None        # Placeholder for encrypted token with session key
 
     tasks = relationship('Task', back_populates='user', cascade="all, delete-orphan")
-    
-    # When the `login_manager.user_loader` is run for the login, this is the parameter it will use 
+
+    # When the `login_manager.user_loader` is run for the login, this is the parameter it will use
     def get_id(self):
         return str(self.login_id)
 
@@ -96,7 +96,7 @@ class TaskType(enum.Enum):
 class TaskStatus(enum.Enum):
     Incomplete = 0
     Completed = 1
-    
+
     @classmethod
     def from_integer(cls, value):
         """
@@ -134,7 +134,7 @@ class Task(ModelMixin, db.Model):
     __table_args__ = (
         Index('idx_canvas_owner', 'canvas_id', 'owner'),
     )
-    
+
     # Table primary key
     id = Column(Integer, primary_key=True)
     # Foreign key to owner
@@ -151,7 +151,7 @@ class Task(ModelMixin, db.Model):
     # Name and description for if the task is not associated with a Canvas assignment
     name = Column(String(100), unique=False, nullable=True)
     description = Column(String(500), unique=False, nullable=True)
-    
+
     user = relationship('User', back_populates='tasks')
     subtasks = relationship('SubTask', back_populates='task', cascade="all, delete-orphan")
 

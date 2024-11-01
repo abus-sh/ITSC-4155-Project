@@ -51,7 +51,7 @@ login_manager.init_app(app)
 if not app.debug:
     csrf.init_app(app)
 
-# Cross Origin Resource sharing configuration. 
+# Cross Origin Resource sharing configuration.
 # Only allow request from this address (Angular frontend)
 CORS(app, supports_credentials=True, origins=[
     'http://localhost:4200',

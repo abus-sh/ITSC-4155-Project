@@ -45,7 +45,7 @@ class TodoistAuthInfo:
 
         self.is_oauth = code != None and state != None
         self.is_token = token != None
-    
+
     def __eq__(self, other):
         if type(self) != type(other):
             return False
@@ -62,7 +62,7 @@ def user_loader(login_id):
 
     if db_user == None:
         return None
-    
+
     # Try to get the re-encrypted API keys
     # If they don't exist, invalidate the session
     if session['_id'] not in api_key_cache:
@@ -93,23 +93,23 @@ def login():
             if current_user.is_authenticated:
                 abort(HTTPStatus.UNAUTHORIZED)
                 return
-            
+
             parameters = _get_authentication_params(request, include_tokens=False)
-            
+
             # Ensure the parameters were succesfully extracted from the body of the request
             if parameters is None:
                 abort(HTTPStatus.BAD_REQUEST)
                 return
-            
+
             username, password = parameters
 
             db_user: User|None = get_user_by_username(username)
-            
+
             # If no user exists, consider the request unauthorized
             if db_user == None:
                 abort(HTTPStatus.UNAUTHORIZED)
                 return
-            
+
             # If the password is incorrect, consider the request unauthorized
             # Do not disintguish between no such user and an invalid password
             try:
@@ -118,7 +118,7 @@ def login():
                 abort(HTTPStatus.UNAUTHORIZED)
                 return
 
-            # Update the session for the user using the User's login_id 
+            # Update the session for the user using the User's login_id
             login_user(db_user)
 
         with time_it('Decrypting and Encrypting tokens:'):
@@ -141,15 +141,15 @@ def login():
 def sign_up():
 
     parameters = _get_authentication_params(request, include_tokens=True)
-    
+
     # Ensure the parameters were succesfully extracted from the body of the request
     if parameters is None:
         print('Invalid parameters')
         abort(HTTPStatus.BAD_REQUEST)
         return
-    
+
     username, password, canvasToken, todoistInfo = parameters
-    
+
 
     # If the username is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
@@ -181,7 +181,7 @@ def sign_up():
         print('Invalid add user')
         abort(HTTPStatus.INTERNAL_SERVER_ERROR)
         return
-    
+
     # Respond that the user was created
     return jsonify({'success': True, 'message': f"Account created for {username}"}), 200
 
@@ -191,36 +191,36 @@ def change_password():
     # Check if user is not authenticated
     if not current_user.is_authenticated:
         return jsonify({'success': False, 'message': 'User is not authenticated'}), 401
-    
-    
+
+
     # New password must match the confirmed password
     old_password = request.json.get('oldPassword')
     new_password = request.json.get('newPassword')
-    
+
     if len(new_password) > 128 or len(new_password) < 15:
         return jsonify({'success': False, 'message': "Password isn't between 15 and 128 characters"}), 400
-    
+
     # Verify that the old password matches with the account hashed password
     try:
         password_hasher.verify(current_user.password, old_password)
     except VerifyMismatchError:
         return jsonify({'success': False, 'message': "Failed to update"}), 400
-    
+
     if old_password == new_password:
         return jsonify({'success': False, 'message': "You can't insert the same password"}), 400
-    
+
     # Update database with new password, rencrypt tokens, and new login id
     update_password(current_user, new_password, old_password)
-    
-    
+
+
     # Delete old session information from cache
     old_session_id = session.get('_id')
     if old_session_id:
         del api_key_cache[old_session_id]
-    
+
     # Logout User
     logout_user()
-    
+
     return jsonify({'success': True, 'message': 'Password changed successfully!'}), 200
 
 
@@ -279,7 +279,7 @@ def _get_authentication_params(request: Request, include_tokens: bool=False) -> 
 
     if include_tokens:
         canvas_token = request.json.get('canvasToken')
-        
+
         # Handle the case where OAuth is being used as well as a long term API key
         todoist_oauth_info = request.json.get('todoist')
         todoist_token = request.json.get('todoistToken')
@@ -313,7 +313,7 @@ def _is_valid_username(username: str) -> bool:
     username_len = len(username)
     if username_len == 0 or username_len > 90:
         return False
-    
+
     # If the username includes a newline, return False
     if username.count('\n') != 0:
         return False
@@ -337,7 +337,7 @@ def _is_valid_password(password: str) -> bool:
     # Password maximum of 128 characters, double the minimum of 64
     if len(password) > 128:
         return False
-    
+
     # NIST SP800-63B explicitly prohibits requiring special characters and other complexity rules
 
     return True

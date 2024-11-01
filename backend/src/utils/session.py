@@ -48,7 +48,7 @@ def decrypt_canvas_key() -> str:
     # If current user doesn't have a Canvas API key encrypted w/ session key, can't decrypt key
     if current_user.canvas_token_session == None:
         raise ValueError
-    
+
     return decrypt_str(current_user.canvas_token_session, session_id)
 
 
@@ -68,5 +68,5 @@ def decrypt_todoist_key() -> str:
     # If current user doesn't have a Canvas API key encrypted w/ session key, can't decrypt key
     if current_user.todoist_token_session == None:
         raise ValueError
-    
+
     return decrypt_str(current_user.todoist_token_session, session_id)

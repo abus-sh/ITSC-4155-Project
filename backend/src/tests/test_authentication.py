@@ -39,7 +39,7 @@ class MockUser:
             self.todoist_token_password = encrypt_str('a'*40, password)
         else:
             self.todoist_token_password = encrypt_str(ttoken, password)
-    
+
     # Allow conversion to dict
     def __iter__(self):
         yield "username", self.username
@@ -52,7 +52,7 @@ class MockPasswordHasher:
             return True
 
         raise argon2.exceptions.VerifyMismatchError
-    
+
     def hash(self, password: str|bytes, salt: bytes|None=None):
         return password
 
@@ -63,7 +63,7 @@ class MockSession:
 
     def __getitem__(self, key):
         return self.data[key]
-    
+
     def __setitem__(self, key, value):
         self.data[key] = value
 
@@ -83,7 +83,7 @@ def mock_get_user_by_username(username: str, dict:bool=False) -> MockUser|dict|N
 
     if selected_user == None:
         return None
-    
+
     if dict:
         return dict(selected_user)
     return selected_user
@@ -139,7 +139,7 @@ def test_get_authentication_params_no_tokens():
     # Test wrong type for password
     req = MockRequest({"username": "user", "password": 2})
     assert authentication._get_authentication_params(req, include_tokens=False) == None
-    
+
     # Test valid username and password
     req = MockRequest({"username": "user", "password": "pass"})
     assert authentication._get_authentication_params(req, include_tokens=False) == ("user", "pass")
@@ -152,7 +152,7 @@ def test_get_authentication_params_no_tokens():
 
 def test_get_authentication_params_tokens():
     import api.auth.authentication as authentication
-    
+
     # Missing info
 
     # Test empty request
@@ -196,7 +196,7 @@ def test_get_authentication_params_tokens():
     req = MockRequest({"username": "user", "password": 1, "canvasToken": "token",
                        "todoistToken": "token"})
     assert authentication._get_authentication_params(req, include_tokens=True) == None
-    
+
     # Test wrong type for canvasToken
     req = MockRequest({"username": "user", "password": "pass", "canvasToken": 1,
                        "todoistToken": "token"})
@@ -306,7 +306,7 @@ def test_sign_up(monkeypatch):
                                      "canvasToken": "ctoken", "todoistToken": "ttoken"}))
     authentication.sign_up()
     assert abort_status == 400
-    
+
     # Test sign up missing password
     monkeypatch.setattr(authentication, "request",
                         MockRequest({"username": "newuser",

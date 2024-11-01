@@ -34,7 +34,7 @@ class Ciphertext:
            type(nonce) != bytes or \
            type(salt) != bytes or \
            type(ciphertext) != bytes:
-        
+
             raise ValueError()
 
         self.tag = tag
@@ -48,7 +48,7 @@ class Ciphertext:
         Convert Ciphertext to bytes. This is an alias for calling bytes(obj).
         """
         return bytes(self)
-    
+
 
     def __bytes__(self):
         return self.tag + self.nonce + self.salt + self.ciphertext
@@ -161,7 +161,7 @@ def generate_key(seed: str|None=None) -> bytes:
     """
     if seed:
         return _derive_key(seed)
-    
+
     return get_random_bytes(32)
 
 
@@ -176,8 +176,7 @@ def _derive_key(password: str, salt: str|None=None) -> tuple[bytes, bytes]:
     """
     if salt == None:
         salt = get_random_bytes(16)
-    
+
     # Values for scrypt chosen from:
     # https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#scrypt
     return (scrypt(password, salt, 32, N=2**17, r=8, p=1), salt)
-

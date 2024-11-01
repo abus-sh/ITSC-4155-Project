@@ -28,7 +28,7 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
         canvas_name = getattr(canvas_user, 'name', None)
         if canvas_id is None or canvas_name is None:
             return False
-        
+
         # Check that the Todoist token is valid
         try:
             # This will almost certainly fail, but the way it fails will show if the token is valid
@@ -40,11 +40,11 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
             if ex.response.status_code == 401:
                 return False
 
-        
+
         # This Canvas user is already associated with an existing user (prevents multiple account with different tokens)
         if User.query.filter_by(canvas_id=canvas_id).first():
             return False
-        
+
         # Encrypt canvas and todoist token with password
         canvas_token_password = encrypt_str(canvas_token, password).to_bytes()
         todoist_token_password = encrypt_str(todoist_token, password).to_bytes()
@@ -70,12 +70,12 @@ def update_password(user: User, new_password: str, old_password: str):
         plain_todoist_token = decrypt_str(user.todoist_token_password, old_password)
         user.canvas_token_password = encrypt_str(plain_canvas_token, new_password).to_bytes()
         user.todoist_token_password = encrypt_str(plain_todoist_token, new_password).to_bytes()
-        
+
         # Hash new password
         user.password = password_hasher.hash(new_password)
         # New login id, makes previous session tokens invalid
         user.login_id = gen_unique_login_id()
-        
+
         db.session.commit()
     except Exception as e:
         db.session.rollback()
@@ -189,7 +189,7 @@ def update_task_id(primary_key: str, todoist_id: str) -> None:
         db.session.rollback()
         print(f"Error updating task: {e}")
         raise e
-    
+
 def set_task_duedate(task: Task, due_date: str) -> None:
     """
     Update a task to have a new due_date in the database
@@ -241,7 +241,7 @@ def get_non_canvas_tasks(owner: User, dict=False) -> list[Task] | list[dict]:
     if dict:
         return [dict(task) for task in tasks]
     return tasks
-    
+
 
 def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
     -> Task | SubTask | dict | None:
@@ -255,7 +255,7 @@ def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
     :return dict: The task or subtask that was retrieved, assuming dict is True.
     :return None: Indicates that no task or subtask with the given ID was found.
     """
-    
+
     # Check for a matching task first
     task = Task.query.filter(
         Task.todoist_id == todoist_id,
@@ -266,7 +266,7 @@ def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
             return dict(task)
         else:
             return task
-    
+
     # Check for a matching subtask
     subtask = SubTask.query.filter(
         SubTask.todoist_id == todoist_id,
@@ -277,7 +277,7 @@ def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
             return dict(subtask)
         else:
             return subtask
-    
+
     # If neither were found, return None
     return None
 
@@ -303,7 +303,7 @@ def sync_task_status(owner: User, open_task_ids: list[int]):
     except Exception as e:
         print("Task rollback", e)
         db.session.rollback()
-    
+
     # Handle subtasks
     try:
         tasks: list[tuple[SubTask]] = db.session\
@@ -326,7 +326,7 @@ def sync_task_status(owner: User, open_task_ids: list[int]):
 #########################################################################
 
 
-def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int=None, subtask_desc: str=None, 
+def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int=None, subtask_desc: str=None,
                    subtask_status: TaskStatus=TaskStatus.Incomplete, subtask_date: str=None)\
                    -> int|bool:
     """
@@ -344,7 +344,7 @@ def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int
         int|False: The ID of the subtask if the subtask was successfully created, False otherwise.
     """
     try:
-        new_subtask = SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id, name=subtask_name, 
+        new_subtask = SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id, name=subtask_name,
                                 description=subtask_desc, status=subtask_status, due_date=subtask_date)
         db.session.add(new_subtask)
         db.session.commit()
@@ -367,9 +367,9 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
     :return: A list of tuple with subtasks info.
     :rtype: list[tuple]
     """
-    
+
     subtasks = SubTask.query.join(Task, SubTask.task_id == Task.id).filter(
-        Task.canvas_id.in_(canvas_ids), 
+        Task.canvas_id.in_(canvas_ids),
         SubTask.owner == current_user.id
     ).with_entities(
         SubTask.id,
@@ -399,10 +399,10 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
 def update_task_or_subtask_status(owner: User, task: Task|SubTask, status: TaskStatus) -> bool:
     """
     Change the status of a task or subtask to a new value.
-    
+
     Args:
         owner (User): The User who owns the task or subtask.
-        task (Task|SubTask): The Task or Subtask to 
+        task (Task|SubTask): The Task or Subtask to
     """
     try:
         task.status = status
@@ -423,4 +423,3 @@ def _delete_task_entries() -> None:
     """ATTENTION: Deletes every entry in the Task table."""
     Task.query.delete()
     db.session.commit()
-    
