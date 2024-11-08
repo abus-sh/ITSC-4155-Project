@@ -184,7 +184,7 @@ def add_task(current_user: User, todoist_key: str, task_name: str,  due_date: st
 
 def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str,
                 subtask_desc: str = None, subtask_status: TaskStatus = TaskStatus.Incomplete,
-                subtask_date: str = None) -> int | bool:
+                subtask_date: str = None) -> tuple | bool:
     """
     Creates a subtask under a specified task for the current user in both Todoist and the database.
 
@@ -199,7 +199,7 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
         subtask_date (str, optional): The due date for the subtask. Defaults to None.
 
     Returns:
-        int | False: The ID of the subtask if the subtask was successfully created, False otherwise.
+        tuple: subtask_id and todoist_id of subtasks, False otherwise.
     """
     # Check that the subtask belogs to a valid assignment that belong to the current user
     task = queries.get_task_by_canvas_id(current_user, canvas_id, dict=False)
@@ -246,7 +246,7 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
                 new_subtask_id = queries.create_subtask(current_user, task.id, subtask_name,
                                                         todoist_id, subtask_desc, subtask_status,
                                                         due_date)
-                return new_subtask_id
+                return new_subtask_id, todoist_id
         except Exception as e:
             print(e)
     return False

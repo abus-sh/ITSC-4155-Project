@@ -86,10 +86,10 @@ def add_subtask_user():
         if not canvas_id or not subtask_name or not subtask_status:
             return jsonify({'success': False, 'message': 'Invalid subtask parameters'}), 400
 
-        result = todoist.add_subtask(current_user, todoist_token, canvas_id, subtask_name,
+        result, todoist_id = todoist.add_subtask(current_user, todoist_token, canvas_id, subtask_name,
                                      subtask_desc, subtask_status, subtask_date)
         if result:
-            return jsonify({'success': True, 'id': result}), 200
+            return jsonify({'success': True, 'id': result, "todoist_id": todoist_id}), 200
         else:
             return jsonify({'success': False, 'message': 'Failed to create subtask'}), 400
     except Exception as e:
