@@ -12,7 +12,7 @@
     <form [formGroup]="noteForm" (ngSubmit)="updateNote()" id="note-form">
         <div>
             <textarea [class.error]="formError" id="note" name="note" formControlName="note"
-            rows="6" cols="100" placeholder="Write yoru notes here."></textarea>
+            rows="6" cols="100" placeholder="Write your notes here."></textarea>
         </div>
         <div class="submit-container">
             <button type="submit" class="submit">Save Notes</button>
