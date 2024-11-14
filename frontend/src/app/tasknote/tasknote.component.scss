@@ -1,0 +1,38 @@
+h2 {
+    border-bottom: 1px solid black;
+}
+
+.assignment-group {
+    margin-bottom: 1em;
+}
+
+.submit-container {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.notes-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+#note-form {
+    margin-top: 0px;
+}
+
+.hint {
+    font-size: small;
+    color: gray;
+}
+
+.hint.error {
+    font-size: small;
+    color: red;
+}
+
+#note.error {
+    border: 1px solid red;
+}
+
+@import "../dashboard/dashboard.component.scss"

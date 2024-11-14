@@ -1,0 +1,21 @@
+<div class="modal-content" *ngIf="assignment !== undefined">
+    <button class="close-button" (click)="closeForm()">&#10005;</button>
+    <h2>Personal Notes:</h2>
+    <div class="assignment-group">
+        <h3>Assignment:</h3>
+        <p class="assignment-name">{{ assignment.title }}</p>
+    </div>
+    <div class="notes-group">
+        <h3>Notes:</h3>
+        <p class="hint" [class.error]="formError">Max 1,000 characters</p>
+    </div>
+    <form [formGroup]="noteForm" (ngSubmit)="updateNote()" id="note-form">
+        <div>
+            <textarea [class.error]="formError" id="note" name="note" formControlName="note"
+            rows="6" cols="100" placeholder="Write yoru notes here."></textarea>
+        </div>
+        <div class="submit-container">
+            <button type="submit" class="submit">Save Notes</button>
+        </div>
+    </form>
+</div>
