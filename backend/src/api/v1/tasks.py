@@ -135,3 +135,35 @@ def toggle_task(task_id: str):
     if result:
         return jsonify({'success': True, 'message': f'{task_id} toggled'})
     return jsonify({'success': False, 'message': f'Unable to open {task_id}'}), 400
+
+
+@tasks.patch('/<task_id>/description')
+def update_descrption(task_id: str):
+    # Ensure that a description was provided
+    data = request.json
+    new_desc = data.get('description')
+    if new_desc is None:
+        return jsonify({'success': False, 'message': 'No description provided.'}), 400
+    if len(new_desc) > 500:
+        return jsonify({'success': False, 'message': 'Description is too long.'}), 400
+
+    # Check if the provided ID is a Canvas ID or an internal database ID
+    # Default to a Canvas API for consistency
+    # Options are 'canvas' and 'native'
+    task_type = data.get('task_type', 'canvas')
+
+    if task_type == 'canvas':
+        task = queries.get_task_by_canvas_id(current_user, task_id)
+    elif task_type == 'native':
+        task = queries.get_task_by_id(current_user, task_id)
+    else:
+        return jsonify({'success': False, 'message': 'Invalide task_type.'}), 400
+    
+    if task is None:
+        return jsonify({'success': False, 'message': 'No task with the given ID exists'}), 404
+
+    todoist_token = session.decrypt_todoist_key()
+    if todoist.update_task_description(todoist_token, task, new_desc):
+        return jsonify({'success': True, 'message': 'ok'})
+    
+    return jsonify({'success': False, 'message': 'An unknown error occurred'}), 500

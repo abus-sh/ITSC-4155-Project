@@ -201,7 +201,24 @@ def update_task_id(primary_key: str, todoist_id: str) -> None:
         db.session.rollback()
         print(f"Error updating task: {e}")
         raise e
-    
+
+
+def update_task_description(task: Task, description: str) -> None:
+    """
+    Update a task's description in the database.
+
+    :param id: The internal database ID of the task.
+    :param description: The new description for the task.
+    """
+    try:
+        task.description = description
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f'Error updating description', {e})
+        raise e
+
+
 def set_task_duedate(task: Task, due_date: str) -> None:
     """
     Update a task to have a new due_date in the database
@@ -216,6 +233,27 @@ def set_task_duedate(task: Task, due_date: str) -> None:
         db.session.rollback()
         print(f"Error updating task: {e}")
         raise e
+
+
+def get_task_by_id(owner: User, id: int, dict=False) -> Task | dict | None:
+    """
+    Retrieve a task by its database ID.
+
+    :param owner: The owner of the task.
+    :param canvas_id: The database ID of a task.
+    :param dict: If True, return the task as a dictionary. Defaults to False.
+    :return Task or dict or None: A Task instance or a dictionary representation of the task if dict
+    is True. If no task with the given Canvas ID exists, None is returned.
+    """
+
+    task = Task.query.filter(
+        Task.id == id,
+        Task.owner == owner.id
+    ).first()
+    if dict and task:
+        return task.to_dict()
+    return task
+
 
 def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dict | None:
     """
