@@ -54,6 +54,7 @@ def get_assignments_due_soon():
         tasks: list[models.Task] = queries.get_non_canvas_tasks(current_user)
         for task in tasks:
             data = {
+                'db_id': task.id,
                 'title': task.name,
                 'user_description': task.description,
                 'type': 'assignment',

@@ -25,6 +25,7 @@ export interface Assignment {
     html_url?: string;
     context_name?: string;
     id?: number;
+    db_id?: number;
     points_possible?: number;
     graded_submissions_exist: boolean;
     due_at: string;
