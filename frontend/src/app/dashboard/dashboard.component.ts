@@ -19,6 +19,7 @@ export interface Subtask {
 export interface Assignment {
     title: string;
     description: string;
+    user_description?: string;
     type: string;
     submission_types: string[];
     html_url?: string;

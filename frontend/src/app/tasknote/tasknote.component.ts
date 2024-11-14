@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Assignment } from '../dashboard/dashboard.component';
 import { CommonModule } from '@angular/common';
@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
     templateUrl: './tasknote.component.html',
     styleUrl: './tasknote.component.scss'
 })
-export class TasknoteComponent {
+export class TasknoteComponent implements OnInit {
     @Input() assignment?: Assignment;
     @Output() closeFormAction = new EventEmitter();
 
@@ -33,6 +33,14 @@ export class TasknoteComponent {
                 this.formError = true;
             }
         });
+    }
+
+    ngOnInit(): void {
+        if (this.assignment && this.assignment.user_description) {
+            this.noteForm.patchValue({
+                note: this.assignment.user_description
+            });
+        }
     }
 
     updateNote() {
