@@ -294,6 +294,28 @@ def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
     return None
 
 
+def get_descriptions_by_canvas_ids(owner: User, canvas_ids: list[int]) -> dict[int, str|None]:
+    """
+    Retrieves descriptions for all tasks with the Canvas IDs specified in `canvas_ids` and returns
+    a dict that maps between the ids and the descriptions.
+
+    :param owner: The owner of the tasks.
+    :param canvas_ids: The Canvas IDs of the tasks that should have descriptions retrieved.
+    :return dict[int, str|None]: Returns a dict that maps between the ids and the descriptions. If a
+    task has no description, its entry is None.
+    """
+    canvas_tasks: list[Task] = Task.query.filter(
+        Task.canvas_id.in_(canvas_ids),
+        Task.owner == owner.id
+    ).all()
+
+    description_lookup = dict()
+    for task in canvas_tasks:
+        description_lookup[task.canvas_id] = task.description
+
+    return description_lookup
+
+
 def sync_task_status(owner: User, open_task_ids: list[int]):
     """
     Sets the status for all tasks. Any task ID in completed_task_ids will be set to incomplete and
