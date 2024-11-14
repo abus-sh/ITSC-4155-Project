@@ -21,7 +21,7 @@ export class TasknoteComponent implements OnInit {
         this.noteForm = this.fb.group({
             note: ['', {
                 validators: [
-                    Validators.maxLength(1000)
+                    Validators.maxLength(500)
                 ]
             }]
         });
