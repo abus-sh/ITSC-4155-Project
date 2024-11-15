@@ -12,15 +12,60 @@ describe('RegisterComponent', () => {
         await TestBed.configureTestingModule({
             imports: [RegisterComponent, RouterModule.forRoot([])],
             providers: [provideHttpClient()]
-        })
-            .compileComponents();
+        }).compileComponents();
 
         fixture = TestBed.createComponent(RegisterComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
     });
 
-    it('should create', () => {
+    it('should create the component', () => {
         expect(component).toBeTruthy();
+    });
+
+    it('Initialize the form with empty values', () => {
+        const form = component.registerForm;
+        expect(form.value).toEqual({
+            username: '',
+            password: '',
+            confirmPassword: '',
+            canvasToken: ''
+        });
+    });
+
+    it('Mark form as invalid if any required field is missing', () => {
+        component.registerForm.setValue({
+            username: '',
+            password: '',
+            confirmPassword: '',
+            canvasToken: ''
+        });
+        expect(component.registerForm.valid).toBeFalsy();
+    });
+
+    it('Show an error if the token was not retrieved when submitting', () => {
+        spyOn(console, 'error');
+        component.tokenRetrieved = false;
+        component.registerForm.setValue({
+            username: 'testuser',
+            password: 'password123',
+            confirmPassword: 'password123',
+            canvasToken: 'token123'
+        });
+        component.onSubmit();
+        expect(console.error).toHaveBeenCalledWith('Please, give authorization to Todoist to register an account');
+    });
+
+    it('Show an error if the passwords do not match when submitting', () => {
+        spyOn(console, 'error');
+        component.tokenRetrieved = true;
+        component.registerForm.setValue({
+            username: 'testuser',
+            password: 'password123',
+            confirmPassword: 'password456',
+            canvasToken: 'token123'
+        });
+        component.onSubmit();
+        expect(console.error).toHaveBeenCalledWith('Passwords do not match');
     });
 });
