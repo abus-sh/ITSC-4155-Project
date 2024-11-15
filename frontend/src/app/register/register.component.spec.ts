@@ -1,22 +1,18 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { RegisterComponent } from './register.component';
 import { provideHttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { of } from 'rxjs';
 
+
 describe('RegisterComponent', () => {
     let component: RegisterComponent;
     let fixture: ComponentFixture<RegisterComponent>;
-    //let router: Router;
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
             imports: [RegisterComponent, RouterModule.forRoot([])],
-            providers: [
-                provideHttpClient(),
-                //{ provide: Router, useValue: { navigate: jasmine.createSpy('navigate') } }
-                ]
+            providers: [provideHttpClient()]
         }).compileComponents();
 
         fixture = TestBed.createComponent(RegisterComponent);
@@ -74,8 +70,9 @@ describe('RegisterComponent', () => {
         expect(console.error).toHaveBeenCalledWith('Passwords do not match');
     });
 
-    it('Call the registration endpoint on valid form submission and redirect to login', () => {
-        spyOn(component['http'], 'post').and.returnValue(of({}));
+    it('Call the registration endpoint on valid form submission and redirect to login', fakeAsync(() => {
+        spyOn(component['http'], 'post').and.returnValue(of({'success': 'Registration successfull'}));
+        const navigateSpy = spyOn(component['router'], 'navigate');
         component.tokenRetrieved = true;
         component.authCode = 'code';
         component.authState = 'state';
@@ -86,9 +83,11 @@ describe('RegisterComponent', () => {
             confirmPassword: 'password123',
             canvasToken: 'token123'
         });
-
+        
         component.onSubmit();
+        tick();
+
         expect(component['http'].post).toHaveBeenCalledWith(jasmine.any(String), jasmine.any(Object), jasmine.any(Object));
-        //expect(router.navigate).toHaveBeenCalledWith(['/login']);
-    });
+        expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+    }));
 });
