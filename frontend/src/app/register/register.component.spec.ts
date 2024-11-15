@@ -2,16 +2,21 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RegisterComponent } from './register.component';
 import { provideHttpClient } from '@angular/common/http';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { of } from 'rxjs';
 
 describe('RegisterComponent', () => {
     let component: RegisterComponent;
     let fixture: ComponentFixture<RegisterComponent>;
+    //let router: Router;
 
     beforeEach(async () => {
         await TestBed.configureTestingModule({
             imports: [RegisterComponent, RouterModule.forRoot([])],
-            providers: [provideHttpClient()]
+            providers: [
+                provideHttpClient(),
+                //{ provide: Router, useValue: { navigate: jasmine.createSpy('navigate') } }
+                ]
         }).compileComponents();
 
         fixture = TestBed.createComponent(RegisterComponent);
@@ -67,5 +72,23 @@ describe('RegisterComponent', () => {
         });
         component.onSubmit();
         expect(console.error).toHaveBeenCalledWith('Passwords do not match');
+    });
+
+    it('Call the registration endpoint on valid form submission and redirect to login', () => {
+        spyOn(component['http'], 'post').and.returnValue(of({}));
+        component.tokenRetrieved = true;
+        component.authCode = 'code';
+        component.authState = 'state';
+
+        component.registerForm.setValue({
+            username: 'testuser',
+            password: 'password123',
+            confirmPassword: 'password123',
+            canvasToken: 'token123'
+        });
+
+        component.onSubmit();
+        expect(component['http'].post).toHaveBeenCalledWith(jasmine.any(String), jasmine.any(Object), jasmine.any(Object));
+        //expect(router.navigate).toHaveBeenCalledWith(['/login']);
     });
 });
