@@ -2,6 +2,8 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Assignment } from '../dashboard/dashboard.component';
 import { CommonModule } from '@angular/common';
+import { IdType, TodoistService } from '../todoist.service';
+import { CanvasService } from '../canvas.service';
 
 @Component({
     selector: 'app-tasknote',
@@ -17,7 +19,8 @@ export class TasknoteComponent implements OnInit {
     noteForm: FormGroup;
     formError = false;
 
-    constructor(private fb: FormBuilder) {
+    constructor(private fb: FormBuilder, private todoistService: TodoistService,
+        private canvasService: CanvasService) {
         this.noteForm = this.fb.group({
             note: ['', {
                 validators: [
@@ -44,8 +47,37 @@ export class TasknoteComponent implements OnInit {
     }
 
     updateNote() {
-        // TODO: make this save the note
-        // For now, just do nothing
+        if (!this.assignment || !this.noteForm.valid) {
+            return;
+        }
+
+        // Don't do anything if the value hasn't changed
+        if (!this.noteForm.controls['note'].dirty) {
+            this.closeForm();
+            return;
+        }
+
+        const desc = this.noteForm.controls['note'].value;
+        let id = undefined;
+        let id_type = undefined;
+
+        if (this.assignment.db_id) {
+            id = this.assignment.db_id;
+            id_type = IdType.Native;
+        } else if (this.assignment.id) {
+            id = this.assignment.id;
+            id_type = IdType.Canvas;
+        } else {
+            this.closeForm();
+            return;
+        }
+
+        const assignment = this.assignment;
+        this.todoistService.updateAssignmentDescription(id, id_type, desc).then(result => {
+            if (result) {
+                this.canvasService.updateAssignmentDescription(assignment, desc);
+            }
+        });
         this.closeForm();
     }
 

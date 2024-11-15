@@ -227,4 +227,17 @@ export class CanvasService {
 
         return true;
     }
+
+    updateAssignmentDescription(assignment: Assignment, description: string) {
+        for (let due_assign of this.dueAssignments) {
+            // Check if the Canvas IDs match or if the native database IDs match
+            // Don't allow matching on undefined IDs though
+            if ((due_assign.id !== undefined && due_assign.id === assignment.id) ||
+                (due_assign.db_id !== undefined && due_assign.db_id === assignment.db_id)) {
+                
+                due_assign.user_description = description;
+                break;
+            }
+        }
+    }
 }
