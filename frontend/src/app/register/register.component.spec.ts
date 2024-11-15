@@ -5,22 +5,22 @@ import { provideHttpClient } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 
 describe('RegisterComponent', () => {
-  let component: RegisterComponent;
-  let fixture: ComponentFixture<RegisterComponent>;
+    let component: RegisterComponent;
+    let fixture: ComponentFixture<RegisterComponent>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [RegisterComponent, RouterModule.forRoot([])],
-      providers: [provideHttpClient()]
-    })
-    .compileComponents();
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [RegisterComponent, RouterModule.forRoot([])],
+            providers: [provideHttpClient()]
+        })
+            .compileComponents();
 
-    fixture = TestBed.createComponent(RegisterComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+        fixture = TestBed.createComponent(RegisterComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });
