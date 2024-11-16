@@ -1,11 +1,11 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { LoginComponent } from './login.component';
 import { provideHttpClient } from '@angular/common/http';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { of, throwError } from 'rxjs';
-import { WINDOW } from './login.component';
+
 
 describe('LoginComponent', () => {
     let component: LoginComponent;
