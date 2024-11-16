@@ -25,7 +25,7 @@ describe('LoginComponent', () => {
         fixture.detectChanges();
     });
 
-    it('Create component', () => {
+    it('Creating the login component', () => {
         expect(component).toBeTruthy();
     });
 
