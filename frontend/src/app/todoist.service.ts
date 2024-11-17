@@ -27,7 +27,7 @@ export class TodoistService {
 
     async updateAssignmentDescription(id: number, id_type: IdType, description: string) {
         try {
-            const resp = await firstValueFrom(
+            await firstValueFrom(
                 this.http.patch(this.updateDescUrl.replace('ID', id.toString()), {
                     'description': description,
                     'task_type': id_type
