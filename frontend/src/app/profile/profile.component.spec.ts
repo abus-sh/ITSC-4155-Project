@@ -1,7 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { ComponentFixture, TestBed, fakeAsync, flush } from '@angular/core/testing';
 import { ProfileComponent } from './profile.component';
 import { provideHttpClient } from '@angular/common/http';
+import { of, throwError } from 'rxjs';
 
 describe('ProfileComponent', () => {
     let component: ProfileComponent;
@@ -48,4 +48,38 @@ describe('ProfileComponent', () => {
         expect(component.message).toBe('All fields are required!');
         expect(component.messageClass).toBe('error');
     });
+
+    it('Submit request to change password and display success message', fakeAsync(() => {
+        component.oldPassword = 'oldPassword123';
+        component.newPassword = 'newPassword1234567890';
+        component.confirmPassword = 'newPassword1234567890';
+
+        const mockResponse = { success: true, message: 'Password changed successfully!' };
+        spyOn(component, 'reloadPage');
+        spyOn(component['http'], 'post').and.returnValue(of(mockResponse));
+
+        component.onSubmit();
+        flush();
+
+        expect(component.message).toBe(mockResponse.message);
+        expect(component.messageClass).toBe('success');
+        expect(component.reloadPage).toHaveBeenCalled();
+    }));
+
+    it('Submit request to change password and handle error message', fakeAsync(() => {
+        component.oldPassword = 'oldPassword123';
+        component.newPassword = 'newPassword1234567890';
+        component.confirmPassword = 'newPassword1234567890';
+
+        const mockErrorResponse = { success: false, message: "Mock backend error message!" };
+        spyOn(component, 'reloadPage');
+        spyOn(component['http'], 'post').and.returnValue(throwError({ error: mockErrorResponse }));
+
+        component.onSubmit();
+        flush();
+
+        expect(component.message).toBe(mockErrorResponse.message);
+        expect(component.messageClass).toBe('error');
+        expect(component.reloadPage).not.toHaveBeenCalled();
+    }));
 });

@@ -89,7 +89,7 @@ export class ProfileComponent implements OnInit {
                 this.reloadPage()
             },
             error => {
-                if (error.error?.message) {
+                if (!error.error.success) {
                     this.messageBox(true, error.error.message);
                 }
                 console.error('Error updating password:', error);
