@@ -13,14 +13,14 @@ interface Assignment {
 export interface Course {
     id: number;
     name: string;
-    image_download_url: string;
+    image_download_url: string | null;
     computed_current_score: string | number | null;
     assignments: Assignment[];
     showAssignments?: boolean;
 }
 
 interface Enrollment {
-    computed_current_score: string;
+    computed_current_score: string | number | null;
 }
 
 export interface APICourse extends Course {
