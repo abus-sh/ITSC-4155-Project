@@ -66,12 +66,76 @@ export const mockCoursesProcessed: Course[] = [
     }
 ];
 
-export const mockAssignments: APIAssignment[] = [
-    // ...mock assignment data...
+export const mockCoursesGradedAssignments: APIAssignment[] = [
+    {
+        assignment_id: "2179271",
+        html_url: "https://uncc.instructure.com/courses/223560/assignments/2179271",
+        name: "Roll Call Attendance",
+        score: 100,
+        points_possible: 100
+    },
+    {
+        assignment_id: "2316220",
+        html_url: "https://uncc.instructure.com/courses/223560/assignments/2316220",
+        name: "Team Member List",
+        score: 5,
+        points_possible: 5
+    },
+    {
+        assignment_id: "2338695",
+        html_url: "https://uncc.instructure.com/courses/223560/assignments/2338695",
+        name: "Midterm Exam",
+        score: 95.5,
+        points_possible: 104
+    }
 ];
 
-export const mockDueAssignments: Assignment[] = [
-    // ...mock due assignment data...
+export const mockDueSoon: Assignment[] = [
+    {
+        "context_name": "202480-Fall 2024-ITIS-4221-091:ITIS-5221-091_Combined",
+        "due_at": "2024-11-18 23:59:59",
+        "description": "",
+        "graded_submissions_exist": false,
+        "html_url": "https://uncc.instructure.com/courses/228876/assignments/2243006",
+        "id": 2243006,
+        "points_possible": 100,
+        "submission_types": "online_upload",
+        "title": "Project 4: Program Analysis for Tunestore",
+        "type": "assignment",
+        "user_description": null,
+        "user_submitted": false,
+        "subtasks": []
+    },
+    {
+        "context_name": "202480-Fall 2024-ITIS-3300-092-Software Req & Project Mgmt",
+        "due_at": "2024-11-18 23:59:59",
+        "description": "",
+        "graded_submissions_exist": false,
+        "html_url": "https://uncc.instructure.com/courses/223560/assignments/2322150",
+        "id": 2322150,
+        "points_possible": 10,
+        "submission_types": "online_upload",
+        "title": "1st Half-PowerPoint Submission (Team Deliverable 5)",
+        "type": "assignment",
+        "user_description": null,
+        "user_submitted": false,
+        "subtasks": []
+    },
+    {
+        "context_name": "202480-Fall 2024-ITIS-3300-092-Software Req & Project Mgmt",
+        "due_at": "2024-11-19 23:59:59",
+        "description": "",
+        "graded_submissions_exist": false,
+        "html_url": "https://uncc.instructure.com/courses/223560/assignments/2322146",
+        "id": 2322146,
+        "points_possible": 100,
+        "submission_types": "online_upload",
+        "title": "Team Deliverable-4: Project Phase-II",
+        "type": "assignment",
+        "user_description": null,
+        "user_submitted": false,
+        "subtasks": []
+    }
 ];
 
 export const mockCalendarEvents: CalendarEvent[] = [

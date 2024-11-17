@@ -17,7 +17,8 @@ describe('TasknoteComponent Canvas, No Desc', () => {
         id: 1,
         graded_submissions_exist: false,
         due_at: 'now',
-        subtasks: []
+        subtasks: [],
+        user_submitted: false,
     };
 
     beforeEach(async () => {
@@ -86,7 +87,8 @@ describe('TasknoteComponent Canvas, Desc', () => {
         id: 1,
         graded_submissions_exist: false,
         due_at: 'now',
-        subtasks: []
+        subtasks: [],
+        user_submitted: false,
     };
 
     beforeEach(async () => {
@@ -133,7 +135,8 @@ describe('TasknoteComponent Native, No Desc', () => {
         db_id: 2,
         graded_submissions_exist: false,
         due_at: 'now',
-        subtasks: []
+        subtasks: [],
+        user_submitted: false,
     };
 
     beforeEach(async () => {
@@ -181,7 +184,8 @@ describe('TasknoteComponent Native, Desc', () => {
         db_id: 2,
         graded_submissions_exist: false,
         due_at: 'now',
-        subtasks: []
+        subtasks: [],
+        user_submitted: false,
     };
 
     beforeEach(async () => {

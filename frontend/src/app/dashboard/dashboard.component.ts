@@ -19,9 +19,9 @@ export interface Subtask {
 export interface Assignment {
     title: string;
     description: string;
-    user_description?: string;
+    user_description?: string | null;
     type: string;
-    submission_types: string[];
+    submission_types: string[] | string;
     html_url?: string;
     context_name?: string;
     id?: number;
@@ -30,6 +30,7 @@ export interface Assignment {
     graded_submissions_exist: boolean;
     due_at: string;
     subtasks: Subtask[];
+    user_submitted: boolean;
 }
 
 export type SubtasksDict = Record<number, Subtask[]>;
