@@ -61,7 +61,6 @@ describe('TasknoteComponent Canvas, No Desc', () => {
 
     it('Test the form submission', fakeAsync(() => {
         spyOn(component['todoistService'], 'updateAssignmentDescription').and.resolveTo(true);
-        const closeFormSpy = spyOn(component, 'closeForm');
         component.noteForm.setValue({
             note: 'note'
         });
@@ -110,7 +109,6 @@ describe('TasknoteComponent Canvas, Desc', () => {
 
     it('Test the form submission', fakeAsync(() => {
         spyOn(component['todoistService'], 'updateAssignmentDescription').and.resolveTo(true);
-        const closeFormSpy = spyOn(component, 'closeForm');
         component.noteForm.setValue({
             note: 'note'
         });
@@ -158,7 +156,6 @@ describe('TasknoteComponent Native, No Desc', () => {
 
     it('Test the form submission', fakeAsync(() => {
         spyOn(component['todoistService'], 'updateAssignmentDescription').and.resolveTo(true);
-        const closeFormSpy = spyOn(component, 'closeForm');
         component.noteForm.setValue({
             note: 'note'
         });
@@ -207,7 +204,6 @@ describe('TasknoteComponent Native, Desc', () => {
 
     it('Test the form submission', fakeAsync(() => {
         spyOn(component['todoistService'], 'updateAssignmentDescription').and.resolveTo(true);
-        const closeFormSpy = spyOn(component, 'closeForm');
         component.noteForm.setValue({
             note: 'note'
         });
