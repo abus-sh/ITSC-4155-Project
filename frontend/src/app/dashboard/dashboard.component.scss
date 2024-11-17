@@ -50,6 +50,11 @@ h2 {
     z-index: 0;
 }
 
+.title-holder {
+    display: flex;
+    justify-content: space-between;
+}
+
 .assignment-card.show-dropdown {
     z-index: 25;
 }
