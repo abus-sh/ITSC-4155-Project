@@ -215,7 +215,7 @@ def update_task_description(task: models.Task, description: str) -> None:
         models.db.session.commit()
     except Exception as e:
         models.db.session.rollback()
-        print(f'Error updating description', {e})
+        print('Error updating description', {e})
         raise e
 
 
@@ -255,7 +255,8 @@ def get_task_by_id(owner: models.User, id: int, dict=False) -> models.Task | dic
     return task
 
 
-def get_task_by_canvas_id(owner: models.User, canvas_id: str, dict=False) -> models.Task | dict | None:
+def get_task_by_canvas_id(owner: models.User, canvas_id: str, dict=False)\
+        -> models.Task | dict | None:
     """
     Retrieve a task by its Canvas ID, which is assigned by Canvas.
 
@@ -336,7 +337,8 @@ def get_task_or_subtask_by_todoist_id(owner: models.User, todoist_id: str, dict=
     return None
 
 
-def get_descriptions_by_canvas_ids(owner: models.User, canvas_ids: list[int]) -> dict[int, str|None]:
+def get_descriptions_by_canvas_ids(owner: models.User, canvas_ids: list[int])\
+        -> dict[int, str | None]:
     """
     Retrieves descriptions for all tasks with the Canvas IDs specified in `canvas_ids` and returns
     a dict that maps between the ids and the descriptions.
