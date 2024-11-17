@@ -18,6 +18,9 @@ export class TasknoteComponent implements OnInit {
 
     noteForm: FormGroup;
     formError = false;
+    charCount = 0;
+
+    apiError = '';
 
     constructor(private fb: FormBuilder, private todoistService: TodoistService,
         private canvasService: CanvasService) {
@@ -36,6 +39,10 @@ export class TasknoteComponent implements OnInit {
                 this.formError = true;
             }
         });
+
+        this.noteForm.valueChanges.subscribe(data => {
+            this.charCount = data.note.length;
+        });
     }
 
     ngOnInit(): void {
@@ -46,7 +53,7 @@ export class TasknoteComponent implements OnInit {
         }
     }
 
-    updateNote() {
+    async updateNote() {
         if (!this.assignment || !this.noteForm.valid) {
             return;
         }
@@ -73,12 +80,15 @@ export class TasknoteComponent implements OnInit {
         }
 
         const assignment = this.assignment;
-        this.todoistService.updateAssignmentDescription(id, id_type, desc).then(result => {
-            if (result) {
-                this.canvasService.updateAssignmentDescription(assignment, desc);
-            }
-        });
-        this.closeForm();
+        const result = await this.todoistService.updateAssignmentDescription(id, id_type, desc);
+        if (result) {
+            this.apiError = '';
+            this.canvasService.updateAssignmentDescription(assignment, desc);
+            this.closeForm();
+        } else {
+            // Something went wrong, show an error message
+            this.apiError = 'An API error has occurred. Please try again.';
+        }
     }
 
     closeForm() {

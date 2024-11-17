@@ -7,7 +7,7 @@
     </div>
     <div class="notes-group">
         <h3>Notes:</h3>
-        <p class="hint" [class.error]="formError">Max 500 characters</p>
+        <p class="hint" [class.error]="formError">{{ this.charCount }}/500 characters</p>
     </div>
     <form [formGroup]="noteForm" (ngSubmit)="updateNote()" id="note-form">
         <div>
@@ -18,4 +18,5 @@
             <button type="submit" class="submit">Save Notes</button>
         </div>
     </form>
+    <p class="error">{{ this.apiError }}</p>
 </div>
