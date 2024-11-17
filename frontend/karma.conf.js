@@ -19,7 +19,7 @@ module.exports = function (config) {
                 // for example, you can disable the random execution with `random: false`
                 // or set a specific seed with `seed: 4321`
             },
-            captureConsole: false,
+            //captureConsole: false,
         },
         jasmineHtmlReporter: {
             suppressAll: true // removes the duplicated traces
@@ -38,7 +38,7 @@ module.exports = function (config) {
         customLaunchers: {
             ChromeHeadlessCustom: {
                 base: 'ChromeHeadless',
-                flags: ['--no-sandbox', '--disable-gpu']
+                flags: ['--no-sandbox', '--disable-gpu', '--silent']
             }
         }
     });
