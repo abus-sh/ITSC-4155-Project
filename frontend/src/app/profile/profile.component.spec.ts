@@ -82,4 +82,60 @@ describe('ProfileComponent', () => {
         expect(component.messageClass).toBe('error');
         expect(component.reloadPage).not.toHaveBeenCalled();
     }));
+
+    it('Load profile data on ngOnInit with request', fakeAsync(() => {
+        const mockProfileData = {
+            username: 'testuser',
+            canvas: {
+                canvas_id: '1',
+                canvas_name: 'Test Canvas',
+                canvas_title: 'Test Title',
+                canvas_bio: 'Test Bio',
+                canvas_pic: 'test-pic-url'
+            }
+        };
+
+        spyOn(component['http'], 'get').and.returnValue(of(mockProfileData));
+
+        component.ngOnInit();
+        flush();
+
+        expect(component.profileData).toEqual(mockProfileData);
+    }));
+
+    it('Handle error when request to load profile data on ngOnInit fails', fakeAsync(() => {
+        const mockError = 'Error fetching profile data';
+        spyOn(component['http'], 'get').and.returnValue(throwError(mockError));
+        spyOn(console, 'error');
+
+        component.ngOnInit();
+        flush();
+
+        expect(component.profileData).toEqual({});
+        expect(console.error).toHaveBeenCalledWith('Error fetching profile data:', mockError);
+    }));
+
+    it('Sync Todoist manually and update lastSyncDate on success', fakeAsync(() => {
+        spyOn(component['http'], 'post').and.returnValue(of({}));
+        spyOn(component['canvasService'], 'getDueAssignments').and.returnValue(Promise.resolve());
+        spyOn(component['canvasService'], 'getSubTasks');
+
+        component.syncTodoistManual();
+        flush();
+
+        expect(component.lastSyncDate).not.toBe('~');
+        expect(component.lastSyncDate).not.toBe('Started, please wait..');
+        expect(component.lastSyncDate).not.toBe('error');
+        expect(component['canvasService'].getDueAssignments).toHaveBeenCalled();
+        expect(component['canvasService'].getSubTasks).toHaveBeenCalled();
+    }));
+
+    it('Handle error during manual sync of Todoist', fakeAsync(() => {
+        spyOn(component['http'], 'post').and.returnValue(throwError({}));
+        
+        component.syncTodoistManual();
+        flush();
+
+        expect(component.lastSyncDate).toBe('error');
+    }));
 });
