@@ -203,7 +203,7 @@ def update_task_id(primary_key: str, todoist_id: str) -> None:
         raise e
 
 
-def update_task_description(task: Task, description: str) -> None:
+def update_task_description(task: models.Task, description: str) -> None:
     """
     Update a task's description in the database.
 
@@ -212,14 +212,14 @@ def update_task_description(task: Task, description: str) -> None:
     """
     try:
         task.description = description
-        db.session.commit()
+        models.db.session.commit()
     except Exception as e:
-        db.session.rollback()
+        models.db.session.rollback()
         print(f'Error updating description', {e})
         raise e
 
 
-def set_task_duedate(task: Task, due_date: str) -> None:
+def set_task_duedate(task: models.Task, due_date: str) -> None:
     """
     Update a task to have a new due_date in the database
 
@@ -235,7 +235,7 @@ def set_task_duedate(task: Task, due_date: str) -> None:
         raise e
 
 
-def get_task_by_id(owner: User, id: int, dict=False) -> Task | dict | None:
+def get_task_by_id(owner: models.User, id: int, dict=False) -> models.Task | dict | None:
     """
     Retrieve a task by its database ID.
 
@@ -246,16 +246,16 @@ def get_task_by_id(owner: User, id: int, dict=False) -> Task | dict | None:
     is True. If no task with the given Canvas ID exists, None is returned.
     """
 
-    task = Task.query.filter(
-        Task.id == id,
-        Task.owner == owner.id
+    task = models.Task.query.filter(
+        models.Task.id == id,
+        models.Task.owner == owner.id
     ).first()
     if dict and task:
         return task.to_dict()
     return task
 
 
-def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dict | None:
+def get_task_by_canvas_id(owner: models.User, canvas_id: str, dict=False) -> models.Task | dict | None:
     """
     Retrieve a task by its Canvas ID, which is assigned by Canvas.
 
@@ -336,7 +336,7 @@ def get_task_or_subtask_by_todoist_id(owner: models.User, todoist_id: str, dict=
     return None
 
 
-def get_descriptions_by_canvas_ids(owner: User, canvas_ids: list[int]) -> dict[int, str|None]:
+def get_descriptions_by_canvas_ids(owner: models.User, canvas_ids: list[int]) -> dict[int, str|None]:
     """
     Retrieves descriptions for all tasks with the Canvas IDs specified in `canvas_ids` and returns
     a dict that maps between the ids and the descriptions.
@@ -346,9 +346,9 @@ def get_descriptions_by_canvas_ids(owner: User, canvas_ids: list[int]) -> dict[i
     :return dict[int, str|None]: Returns a dict that maps between the ids and the descriptions. If a
     task has no description, its entry is None.
     """
-    canvas_tasks: list[Task] = Task.query.filter(
-        Task.canvas_id.in_(canvas_ids),
-        Task.owner == owner.id
+    canvas_tasks: list[models.Task] = models.Task.query.filter(
+        models.Task.canvas_id.in_(canvas_ids),
+        models.Task.owner == owner.id
     ).all()
 
     description_lookup = dict()
@@ -358,7 +358,7 @@ def get_descriptions_by_canvas_ids(owner: User, canvas_ids: list[int]) -> dict[i
     return description_lookup
 
 
-def sync_task_status(owner: User, open_task_ids: list[int]):
+def sync_task_status(owner: models.User, open_task_ids: list[int]):
     """
     Sets the status for all tasks. Any task ID in completed_task_ids will be set to incomplete and
     all others will be set to completed.
