@@ -28,14 +28,14 @@ describe('CanvasService', () => {
 
     it('Fetch courses from backend and transform them', fakeAsync(() => {
         service.getCourses();
+        expect(service['courses']).toEqual([]);
 
         const req = httpMock.expectOne(`${getBackendURL()}/api/v1/courses/all`);
         expect(req.request.method).toBe('GET');
         req.flush(mockCourses);
-        flush();
+        tick();
         
         expect(service['courses']).toEqual(mockCoursesProcessed);
-        expect(service['courses'].length).toEqual(3);
     }));
 
     it('Getting the graded assignments from the backend', fakeAsync(() => {
@@ -56,17 +56,17 @@ describe('CanvasService', () => {
         });
     }));
 
-    it('Get assignments due soon', () => {
+    it('Get assignments due soon', fakeAsync(() => {
         expect(service['dueAssignments']).toEqual([]);
         service.getDueAssignments();
 
         const req = httpMock.expectOne(`${getBackendURL()}/api/v1/user/due_soon`);
         expect(req.request.method).toBe('GET');
         req.flush(mockDueSoon);
-        flush();
+        tick();
 
         expect(service['dueAssignments']).toEqual(mockDueSoon);
-    });
+    }));
 
     // it('', () => {
 
