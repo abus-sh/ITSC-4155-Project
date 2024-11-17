@@ -28,7 +28,7 @@ describe('AppComponent', () => {
         component = fixture.componentInstance;
     });
 
-    it('Create the app component', () => {
+    it('Creating the app component', () => {
         expect(component).toBeTruthy();
     });
 

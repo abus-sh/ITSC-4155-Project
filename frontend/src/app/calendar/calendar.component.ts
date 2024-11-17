@@ -37,8 +37,8 @@ export class CalendarComponent {
     year = 0;
     days: CalendarDay[] = [];
 
-    private todayString: string;
-    private monthView: Date;
+    todayString: string;
+    monthView: Date;
 
     showEvents = true;       
     showAssignments = true;  
