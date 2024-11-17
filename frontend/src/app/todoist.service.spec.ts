@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-
 import { TodoistService } from './todoist.service';
-import { provideHttpClient } from '@angular/common/http';
 import { IdType } from './todoist.service';
+
 
 describe('TodoistService', () => {
     let service: TodoistService;
