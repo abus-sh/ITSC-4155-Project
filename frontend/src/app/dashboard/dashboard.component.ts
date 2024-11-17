@@ -216,7 +216,8 @@ export class DashboardComponent implements OnInit {
             element = element.parentElement;
         }
         // If the div isn't the card itself (i.e., it is some submenu), do nothing
-        if (!element.classList.contains("assignment-card")) {
+        if (!element.classList.contains("assignment-card") &&
+            !element.classList.contains("title-holder")) {
             return;
         }
 

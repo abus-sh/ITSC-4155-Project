@@ -11,7 +11,11 @@
         <div *ngFor="let assignment of assignments | orderBy: 'due_at'" class="assignment-card"
         (click)="openNoteForm(assignment, $event)" (keypress)="openNoteForm(assignment, $event)"
         tabindex="0">
-            <h3 class="assignment-title">{{ assignment.title }}</h3>
+            <div class="title-holder">
+                <h3 class="assignment-title">{{ assignment.title }}</h3>
+                <p *ngIf="assignment.user_description && assignment.user_description !== ''"
+                title="A note exists for this assignment.">📝</p>
+            </div>
             <p class="assignment-duedate">
                 <strong>Due Date</strong>:
                 <span [ngStyle]="{'color': getDueDateColor(assignment.due_at)}">
