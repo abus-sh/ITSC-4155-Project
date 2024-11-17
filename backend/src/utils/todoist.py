@@ -349,7 +349,7 @@ def update_task_description(todoist_key: str, task: Task, description: str) -> b
         todoist_key (str): The Todoist API key for the current user.
         todoist_task_id (str): The ID of the task or subtask in Todoist.
         description (str): The new description for the task.
-    
+
     Returns:
         bool: True if the task's description was updated successfully, False otherwise
     """
@@ -368,7 +368,7 @@ def update_task_description(todoist_key: str, task: Task, description: str) -> b
             return False
 
         queries.update_task_description(task, description)
-    except Exception as e:
+    except Exception:
         return False
 
     return True
