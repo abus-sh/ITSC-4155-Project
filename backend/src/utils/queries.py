@@ -1,9 +1,10 @@
-from utils.models import *
+import utils.models as models
 from utils.crypto import decrypt_str, encrypt_str
 from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
 from sqlalchemy import select
+from datetime import datetime
 
 #########################################################################
 #                                                                       #
@@ -11,17 +12,6 @@ from sqlalchemy import select
 #                                                                       #
 #########################################################################
 
-#########################################################################
-#                                                                       #
-#                                USERS                                  #
-#                                                                       #
-#########################################################################
-
-#########################################################################
-#                                                                       #
-#                                USERS                                  #
-#                                                                       #
-#########################################################################
 
 def add_user(username: str, password: str, canvas_token: str, todoist_token: str) -> bool:
     """
@@ -40,7 +30,7 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
         canvas_name = getattr(canvas_user, 'name', None)
         if canvas_id is None or canvas_name is None:
             return False
-        
+
         # Check that the Todoist token is valid
         try:
             # This will almost certainly fail, but the way it fails will show if the token is valid
@@ -52,69 +42,75 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
             if ex.response.status_code == 401:
                 return False
 
-        
-        # This Canvas user is already associated with an existing user (prevents multiple account with different tokens)
-        if User.query.filter_by(canvas_id=canvas_id).first():
+        # This Canvas user is already associated with an existing user (prevents multiple account
+        # with different tokens)
+        if models.User.query.filter_by(canvas_id=canvas_id).first():
             return False
-        
+
         # Encrypt canvas and todoist token with password
         canvas_token_password = encrypt_str(canvas_token, password).to_bytes()
         todoist_token_password = encrypt_str(todoist_token, password).to_bytes()
 
         # Hash the password
-        pw_hash = password_hasher.hash(password)
+        pw_hash = models.password_hasher.hash(password)
 
-        new_user = User(login_id=gen_unique_login_id(), username=username, password=pw_hash,
-                        canvas_id=canvas_id, canvas_name=canvas_name,
-                        canvas_token_password=canvas_token_password, todoist_token_password=todoist_token_password)
-        db.session.add(new_user)
-        db.session.commit()
+        new_user = models.User(login_id=models.gen_unique_login_id(), username=username,
+                               password=pw_hash, canvas_id=canvas_id, canvas_name=canvas_name,
+                               canvas_token_password=canvas_token_password,
+                               todoist_token_password=todoist_token_password)
+        models.db.session.add(new_user)
+        models.db.session.commit()
         return True
     except Exception as e:
-        db.session.rollback()
+        models.db.session.rollback()
         print(f"Error adding user: {e}")
         return False
 
-def update_password(user: User, new_password: str, old_password: str):
+
+def update_password(user: models.User, new_password: str, old_password: str):
     try:
         # Re-encrypt token with new password
         plain_canvas_token = decrypt_str(user.canvas_token_password, old_password)
         plain_todoist_token = decrypt_str(user.todoist_token_password, old_password)
         user.canvas_token_password = encrypt_str(plain_canvas_token, new_password).to_bytes()
         user.todoist_token_password = encrypt_str(plain_todoist_token, new_password).to_bytes()
-        
+
         # Hash new password
-        user.password = password_hasher.hash(new_password)
+        user.password = models.password_hasher.hash(new_password)
         # New login id, makes previous session tokens invalid
-        user.login_id = gen_unique_login_id()
-        
-        db.session.commit()
+        user.login_id = models.gen_unique_login_id()
+
+        models.db.session.commit()
     except Exception as e:
-        db.session.rollback()
+        models.db.session.rollback()
         print("Error: ", e)
 
-def get_all_users() -> list[User]:
+
+def get_all_users() -> list[models.User]:
     """
     Retrieve all users from the database.
 
     :return list: A list of all User instances.
     """
-    return User.query.all()
+    return models.User.query.all()
 
-def get_user_by_id(user_id: int, dict=False) -> User | dict:
+
+def get_user_by_id(user_id: int, dict=False) -> models.User | dict:
     """
     Retrieve a user by their ID.
 
     :param user_id: The id of the user to retrieve.
     :param dict: If True, return the user as a dictionary. Defaults to False.
-    :return user or dict: A user instance or a dictionary representation of the user if dict is True.
+    :return user or dict: A user instance or a dictionary representation of the user if dict is
+    True.
     """
-    user = User.query.get(user_id)
+    user = models.User.query.get(user_id)
     if dict and user:
         return user.to_dict()
     return user
 
-def get_user_by_username(username: str, dict=False) -> User | dict:
+
+def get_user_by_username(username: str, dict=False) -> models.User | dict:
     """
     Retrieve a user by their username.
 
@@ -123,12 +119,13 @@ def get_user_by_username(username: str, dict=False) -> User | dict:
     :return User or dict or None: A User instance or a dictionary representation of the user if dict
     is True. If no user with the given username exists, None is returned.
     """
-    user = User.query.filter_by(username=username).first()
+    user = models.User.query.filter_by(username=username).first()
     if dict and user:
         return user.to_dict()
     return user
 
-def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
+
+def get_user_by_login_id(login_id: str, dict=False) -> models.User | dict | None:
     """
     Retrieve a user by their login_id.
 
@@ -137,7 +134,7 @@ def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
     :return User or dict or None: A User instance or a dictionary representation of the user if dict
     is True. If no user with the given username exists, None is returned.
     """
-    user = User.query.filter_by(login_id=login_id).first()
+    user = models.User.query.filter_by(login_id=login_id).first()
     if dict and user:
         return user.to_dict()
     return user
@@ -150,8 +147,9 @@ def get_user_by_login_id(login_id: str, dict=False) -> User | dict | None:
 #########################################################################
 
 
-def add_or_return_task(owner: User|int, canvas_id: str|None, todoist_id: str|None=None,
-                       due_date: str=None, name: str|None=None, desc: str|None=None) -> Task:
+def add_or_return_task(owner: models.User | int, canvas_id: str | None,
+                       todoist_id: str | None = None, due_date: str = None, name: str | None = None,
+                       desc: str | None = None) -> models.Task:
     """
     Add a new task to the database or return the task if it already exists.
 
@@ -170,20 +168,22 @@ def add_or_return_task(owner: User|int, canvas_id: str|None, todoist_id: str|Non
 
     # Prevent exact duplicates from being registered.
     if canvas_id:
-        current_task = Task.query.filter_by(owner=owner, canvas_id=canvas_id).first()
+        current_task = models.Task.query.filter_by(owner=owner, canvas_id=canvas_id).first()
         if current_task:
             return current_task
 
     try:
-        new_task = Task(owner=owner, task_type=TaskType.assignment, canvas_id=canvas_id,
-                        todoist_id=todoist_id, due_date=due_date, name=name, description=desc)
-        db.session.add(new_task)
-        db.session.commit()
+        new_task = models.Task(owner=owner, task_type=models.TaskType.assignment,
+                               canvas_id=canvas_id, todoist_id=todoist_id, due_date=due_date,
+                               name=name, description=desc)
+        models.db.session.add(new_task)
+        models.db.session.commit()
         return new_task
     except Exception as e:
-        db.session.rollback()
+        models.db.session.rollback()
         print(f"Error adding task: {e}")
         raise e
+
 
 def update_task_id(primary_key: str, todoist_id: str) -> None:
     """
@@ -193,12 +193,12 @@ def update_task_id(primary_key: str, todoist_id: str) -> None:
     :param todoist_id: The ID of a task in Todoist.
     """
     try:
-        task = Task.query.get(primary_key)
+        task = models.Task.query.get(primary_key)
         if task:
             task.todoist_id = todoist_id
-            db.session.commit()
+            models.db.session.commit()
     except Exception as e:
-        db.session.rollback()
+        models.db.session.rollback()
         print(f"Error updating task: {e}")
         raise e
 
@@ -228,9 +228,9 @@ def set_task_duedate(task: Task, due_date: str) -> None:
     """
     try:
         task.due_date = due_date
-        db.session.commit()
+        models.db.session.commit()
     except Exception as e:
-        db.session.rollback()
+        models.db.session.rollback()
         print(f"Error updating task: {e}")
         raise e
 
@@ -266,17 +266,18 @@ def get_task_by_canvas_id(owner: User, canvas_id: str, dict=False) -> Task | dic
     is True. If no task with the given Canvas ID exists, None is returned.
     """
 
-    task = Task.query.filter(
-        Task.canvas_id == canvas_id,
-        Task.owner == owner.id
+    task = models.Task.query.filter(
+        models.Task.canvas_id == canvas_id,
+        models.Task.owner == owner.id
     ).first()
     if dict and task:
         return task.to_dict()
     return task
 
-def get_non_canvas_tasks(owner: User, dict=False) -> list[Task] | list[dict]:
+
+def get_non_canvas_tasks(owner: models.User, dict=False) -> list[models.Task] | list[dict]:
     """
-    Retrieves all tasks that do not have a Canvas ID.
+    Retrieves all tasks that do not have a Canvas ID and that are due in the future.
 
     :param owner: The owner of the tasks.
     :param dict: If True, return the tasks as a list of dictionaries. Defaults to False.
@@ -284,50 +285,53 @@ def get_non_canvas_tasks(owner: User, dict=False) -> list[Task] | list[dict]:
     as dicts if dict is True.
     """
 
-    tasks = Task.query.filter(
-        Task.owner == owner.id,
-        Task.canvas_id == None
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    tasks = models.Task.query.filter(
+        models.Task.owner == owner.id,
+        models.Task.canvas_id == None,  # noqa: E711, using 'is' breaks comparison here
+        models.Task.due_date > now
     ).all()
     if dict:
         return [dict(task) for task in tasks]
     return tasks
-    
 
-def get_task_or_subtask_by_todoist_id(owner: User, todoist_id: str, dict=False)\
-    -> Task | SubTask | dict | None:
+
+def get_task_or_subtask_by_todoist_id(owner: models.User, todoist_id: str, dict=False)\
+        -> models.Task | models.SubTask | dict | None:
     """
     Retrieve a task or subtask by its Todoist ID.
 
     :param owner: The owner of the task.
     :param canvas_id: The internal Todoist ID of a task or subtask.
     :param dict: If True, return the task or subtask as a dictionary. Defaults to False.
-    :return Task|SubTask: The task or subtask that was retrieved, assuming dict is False.
+    :return Task | SubTask: The task or subtask that was retrieved, assuming dict is False.
     :return dict: The task or subtask that was retrieved, assuming dict is True.
     :return None: Indicates that no task or subtask with the given ID was found.
     """
-    
+
     # Check for a matching task first
-    task = Task.query.filter(
-        Task.todoist_id == todoist_id,
-        Task.owner == owner.id
+    task = models.Task.query.filter(
+        models.Task.todoist_id == todoist_id,
+        models.Task.owner == owner.id
     ).first()
     if task:
         if dict:
             return dict(task)
         else:
             return task
-    
+
     # Check for a matching subtask
-    subtask = SubTask.query.filter(
-        SubTask.todoist_id == todoist_id,
-        SubTask.owner == owner.id
+    subtask = models.SubTask.query.filter(
+        models.SubTask.todoist_id == todoist_id,
+        models.SubTask.owner == owner.id
     ).first()
     if subtask:
         if dict:
             return dict(subtask)
         else:
             return subtask
-    
+
     # If neither were found, return None
     return None
 
@@ -364,32 +368,33 @@ def sync_task_status(owner: User, open_task_ids: list[int]):
     """
     # Handle tasks
     try:
-        tasks: list[tuple[Task]] = db.session.execute(select(Task).where(Task.owner == owner.id))
+        tasks: list[tuple[models.Task]] = models.db.session\
+            .execute(select(models.Task).where(models.Task.owner == owner.id))
         for (task,) in tasks:
             if task.todoist_id in open_task_ids:
-                task.status = TaskStatus.Incomplete
+                task.status = models.TaskStatus.Incomplete
             else:
                 print(f'Marking task {task.todoist_id} as done')
-                task.status = TaskStatus.Completed
-        db.session.commit()
+                task.status = models.TaskStatus.Completed
+        models.db.session.commit()
     except Exception as e:
         print("Task rollback", e)
-        db.session.rollback()
-    
+        models.db.session.rollback()
+
     # Handle subtasks
     try:
-        tasks: list[tuple[SubTask]] = db.session\
-            .execute(select(SubTask).where(SubTask.owner == owner.id))
+        tasks: list[tuple[models.SubTask]] = models.db.session\
+            .execute(select(models.SubTask).where(models.SubTask.owner == owner.id))
         for (task,) in tasks:
             if task.todoist_id in open_task_ids:
-                task.status = TaskStatus.Incomplete
+                task.status = models.TaskStatus.Incomplete
             else:
                 print(f'Marking task {task.todoist_id} as done')
-                task.status = TaskStatus.Completed
-        db.session.commit()
+                task.status = models.TaskStatus.Completed
+        models.db.session.commit()
     except Exception as e:
         print("Subtask rollback", e)
-        db.session.rollback()
+        models.db.session.rollback()
 
 #########################################################################
 #                                                                       #
@@ -398,9 +403,10 @@ def sync_task_status(owner: User, open_task_ids: list[int]):
 #########################################################################
 
 
-def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int=None, subtask_desc: str=None, 
-                   subtask_status: TaskStatus=TaskStatus.Incomplete, subtask_date: str=None)\
-                   -> int|bool:
+def create_subtask(owner: models.User, task_id: int, subtask_name: str, todoist_id: int = None,
+                   subtask_desc: str = None,
+                   subtask_status: models.TaskStatus = models.TaskStatus.Incomplete,
+                   subtask_date: str = None) -> int | bool:
     """
     Creates a subtask under a specified task for the current user in the database.
 
@@ -413,20 +419,23 @@ def create_subtask(owner: User, task_id: int, subtask_name: str, todoist_id: int
         subtask_date (str, optional): The due date for the subtask. Defaults to None.
 
     Returns:
-        int|False: The ID of the subtask if the subtask was successfully created, False otherwise.
+        int | False: The ID of the subtask if the subtask was successfully created, False otherwise.
     """
     try:
-        new_subtask = SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id, name=subtask_name, 
-                                description=subtask_desc, status=subtask_status, due_date=subtask_date)
-        db.session.add(new_subtask)
-        db.session.commit()
+        new_subtask = models.SubTask(owner=owner.id, task_id=task_id, todoist_id=todoist_id,
+                                     name=subtask_name, description=subtask_desc,
+                                     status=subtask_status, due_date=subtask_date)
+        models.db.session.add(new_subtask)
+        models.db.session.commit()
         return new_subtask.id
     except Exception as e:
-        db.session.rollback()
+        models.db.session.rollback()
         print(f"Error setting subtask task: {e}")
     return False
 
-def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bool=True) -> list[tuple] | dict:
+
+def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str],
+                           format: bool = True) -> list[tuple] | dict:
     """
     Retrieve all subtasks for a series of tasks for the current_user.
 
@@ -439,19 +448,20 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
     :return: A list of tuple with subtasks info.
     :rtype: list[tuple]
     """
-    
-    subtasks = SubTask.query.join(Task, SubTask.task_id == Task.id).filter(
-        Task.canvas_id.in_(canvas_ids), 
-        SubTask.owner == current_user.id
-    ).with_entities(
-        SubTask.id,
-        SubTask.name,
-        SubTask.description,
-        SubTask.status,
-        SubTask.due_date,
-        Task.canvas_id,
-        SubTask.todoist_id
-    ).all()
+
+    subtasks = models.SubTask.query\
+        .join(models.Task, models.SubTask.task_id == models.Task.id).filter(
+            models.Task.canvas_id.in_(canvas_ids),
+            models.SubTask.owner == current_user.id
+        ).with_entities(
+            models.SubTask.id,
+            models.SubTask.name,
+            models.SubTask.description,
+            models.SubTask.status,
+            models.SubTask.due_date,
+            models.Task.canvas_id,
+            models.SubTask.todoist_id
+        ).all()
 
     if format:
         subtasks_dict = {}
@@ -468,19 +478,21 @@ def get_subtasks_for_tasks(current_user: User, canvas_ids: list[str], format: bo
         return subtasks_dict
     return subtasks
 
-def update_task_or_subtask_status(owner: User, task: Task|SubTask, status: TaskStatus) -> bool:
+
+def update_task_or_subtask_status(owner: models.User, task: models.Task | models.SubTask,
+                                  status: models.TaskStatus) -> bool:
     """
     Change the status of a task or subtask to a new value.
-    
+
     Args:
         owner (User): The User who owns the task or subtask.
-        task (Task|SubTask): The Task or Subtask to 
+        task (Task | SubTask): The Task or Subtask to
     """
     try:
         task.status = status
-        db.session.commit()
+        models.db.session.commit()
     except Exception as e:
-        db.session.rollback()
+        models.db.session.rollback()
         print(f"Error updating task status: {e}")
     return False
 
@@ -491,8 +503,8 @@ def update_task_or_subtask_status(owner: User, task: Task|SubTask, status: TaskS
 #                                                                       #
 #########################################################################
 
+
 def _delete_task_entries() -> None:
     """ATTENTION: Deletes every entry in the Task table."""
-    Task.query.delete()
-    db.session.commit()
-    
+    models.Task.query.delete()
+    models.db.session.commit()

@@ -9,7 +9,8 @@ import { CalendarEvent } from './calendar/calendar.component';
 interface AddSubtaskResponse {
     success: boolean,
     message?: string,
-    id?: number
+    id?: number,
+    todoist_id?: string
 }
 
 
@@ -148,7 +149,7 @@ export class CanvasService {
     async getCalendarEvents(start_date: string, end_date: string): Promise<CalendarEvent[]> {
         const params = new HttpParams().set('start_date', start_date).set('end_date', end_date);
     
-        let events = await firstValueFrom(this.http.get<CalendarEvent[]>(this.calendarEventsUrl, {
+        const events = await firstValueFrom(this.http.get<CalendarEvent[]>(this.calendarEventsUrl, {
             params: params,
             withCredentials: true
         }));
@@ -191,7 +192,7 @@ export class CanvasService {
         console.log(resp);
         console.log(subtaskData);
 
-        if (resp.id == undefined) {
+        if (resp.id == undefined || resp.id == undefined) {
             return;
         }
 
@@ -201,7 +202,8 @@ export class CanvasService {
             description: subtaskData.description,
             status: subtaskData.status,
             due_date: subtaskData.due_date,
-            id: resp.id
+            id: resp.id,
+            todoist_id: resp.todoist_id
         }
 
         this.dueAssignments.filter(assignment => {

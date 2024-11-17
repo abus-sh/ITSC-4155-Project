@@ -1,28 +1,31 @@
 from contextlib import contextmanager
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
-import os, time, string, pytz, random
+import os
+import time
+import string
+import pytz
+import random
 
 
 UTC_TZ = pytz.UTC
 CHARLOTTE_TZ = pytz.timezone('America/New_York')
 
 
-
 @contextmanager
-def time_it(info: str, end_text: str=' seconds'):
+def time_it(info: str, end_text: str = ' seconds'):
     """Time the time it takes for the `with` block to execute fully in seconds"""
     start_time = time.time()
     yield
     end_time = time.time()
     print(f"{info} {end_time - start_time:.4f}{end_text}")
-    
-    
-def get_date_range(start_date: datetime=None, months=0, days=0, hours=0) -> tuple[str, str]:
+
+
+def get_date_range(start_date: datetime = None, months=0, days=0, hours=0) -> tuple[str, str]:
     """
     Return a tuple with the `(start date, end date)` in format `%Y-%m-%d`
     If the start date is not specified, `None`, it will default to today.
-    
+
     Args:
         start_date (Optional[datetime] | None): The starting date. If `None`, defaults to today.
         months (int): The number of months to add/subtract (default is 0).
@@ -33,13 +36,13 @@ def get_date_range(start_date: datetime=None, months=0, days=0, hours=0) -> tupl
     Returns:
         tuple: A tuple containing two dates (start date, end date) formatted as strings `%Y-%m-%d`.
     """
-    
+
     # Use today if no start_date is provided
     if start_date is None:
         start_date = datetime.now()
 
     end_date = start_date + relativedelta(months=months, days=days, hours=hours)
-    
+
     # Return the formatted start and end date as a tuple
     return (start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
 
@@ -49,10 +52,12 @@ def localize_date(due_date_naive: datetime) -> datetime:
     Adjusts a due date to America/New_York Timezone, considering daylight saving time (DST).
 
     Args:
-        due_date_naive (datetime): The due date in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ). Has to be UTC.
+        due_date_naive (datetime): The due date in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ).
+        Has to be UTC.
 
     Returns:
-        datetime: The adjusted due date as a datetime in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) for the Charlotte timezone.
+        datetime: The adjusted due date as a datetime in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) for
+        the Charlotte timezone.
     """
     # Set the naive datetime to be aware (UTC time zone)
     due_date_aware = UTC_TZ.localize(due_date_naive)
@@ -65,17 +70,17 @@ def date_passed(due_date_aware: datetime) -> bool:
     Checks if a given due date has passed in the America/New_York timezone (Charlotte timezone).
 
     Args:
-        due_date_aware (datetime): The due date as a naive datetime object (without timezone information).
-                                     This should be localized in America/New_York timezone.
+        due_date_aware (datetime): The due date as a naive datetime object (without timezone
+        information). This should be localized in America/New_York timezone.
 
     Returns:
         bool: True if the due date has passed in the Charlotte timezone, False otherwise.
     """
     now = datetime.now(CHARLOTTE_TZ)
-    return due_date_aware < now 
-    
+    return due_date_aware < now
 
-def generate_random_string(length: int=15) -> str:
+
+def generate_random_string(length: int = 15) -> str:
     """Generates a random string of 15 characters (digits and letters)."""
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
@@ -87,10 +92,12 @@ def is_valid_date(date_str: str) -> str | None:
     If date_str is not a valid date, return None. Format of return is `%Y-%m-%d %H:%M`.
     """
     try:
-        if len(date_str.strip()) == 10: # Date without time
+        # Date without time
+        if len(date_str.strip()) == 10:
             datetime.strptime(date_str, '%Y-%m-%d')
             return date_str.strip() + ' 23:59'
-        else:  # Date with time
+        # Date with time
+        else:
             return datetime.strptime(date_str, '%Y-%m-%dT%H:%M').strftime('%Y-%m-%d %H:%M')
     except Exception:
         return None
@@ -127,7 +134,7 @@ def get_canvas_cache_time() -> int:
     cache_time = os.environ.get('CANVAS_API_CACHE_TIME', default_cache_time)
     try:
         cache_time = int(cache_time)
-    except:
+    except Exception:
         cache_time = default_cache_time
 
     return cache_time

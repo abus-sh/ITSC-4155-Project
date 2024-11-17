@@ -6,6 +6,7 @@ import utils.session as session
 import utils.todoist as todoist
 from utils.settings import get_canvas_url
 
+import utils.models as models
 import utils.queries as queries
 
 
@@ -13,6 +14,7 @@ tasks = Blueprint('tasks', __name__)
 BASE_URL = get_canvas_url()
 
 # ENDPOINT: /api/v1/tasks
+
 
 # Fetches assignments from Canvas and adds them to Todoist
 @tasks.post('/update')
@@ -33,14 +35,15 @@ def update_tasks():
 
     return jsonify({'success': True}), 200
 
+
 @tasks.post('/add_task')
 def add_task_user():
     data = request.json
 
-    if 'name' not in data or type(data['name']) != str:
+    if 'name' not in data or type(data['name']) is not str:
         return jsonify({'success': False, 'message': 'Missing name'}), 400
-    
-    if 'due_at' not in data or type(data['due_at']) != str:
+
+    if 'due_at' not in data or type(data['due_at']) is not str:
         return jsonify({'success': False, 'message': 'Missing due_at'}), 400
 
     name = data['name']
@@ -51,11 +54,11 @@ def add_task_user():
 
     if len(name) == 0 or len(name) > 100:
         return jsonify({'success': False, 'message': 'Invalid name'}), 400
-    
+
     desc = data.get('description', None)
-    if type(desc) != str:
+    if type(desc) is not str:
         desc = None
-    if type(desc) == str and len(desc) > 500:
+    if type(desc) is str and len(desc) > 500:
         return jsonify({'success': False, 'message': 'Invalid description'}), 400
 
     todoist_key = session.decrypt_todoist_key()
@@ -67,48 +70,51 @@ def add_task_user():
 
     return jsonify({'success': True})
 
+
 @tasks.post('/add_subtask')
 def add_subtask_user():
     try:
         todoist_token = session.decrypt_todoist_key()
         data = request.json
-        
+
         canvas_id = data.get('canvas_id')
         subtask_name = data.get('name').strip()
         subtask_desc = data.get('description')
-        subtask_status = queries.TaskStatus.from_integer(data.get('status'))
+        subtask_status = models.TaskStatus.from_integer(data.get('status'))
         subtask_date = data.get('due_date')
-        
+
         if not canvas_id or not subtask_name or not subtask_status:
             return jsonify({'success': False, 'message': 'Invalid subtask parameters'}), 400
-        
-        result = todoist.add_subtask(current_user, todoist_token, canvas_id, subtask_name, subtask_desc, 
-                                subtask_status, subtask_date)
+
+        result, todoist_id = todoist.add_subtask(current_user, todoist_token, canvas_id, subtask_name,
+                                     subtask_desc, subtask_status, subtask_date)
         if result:
-            return jsonify({'success': True, 'id': result}), 200
+            return jsonify({'success': True, 'id': result, "todoist_id": todoist_id}), 200
         else:
-            return jsonify({'success': False, 'message':'Failed to create subtask'}), 400 
+            return jsonify({'success': False, 'message': 'Failed to create subtask'}), 400
     except Exception as e:
         print('Error adding a subtask: ', e)
-        return jsonify({'success': False, 'message':'Unable to create subtask'}), 400
-    
+        return jsonify({'success': False, 'message': 'Unable to create subtask'}), 400
+
+
 @tasks.post('/get_subtasks')
 def get_subtasks():
     try:
         data = request.json
         task_ids = data.get('task_ids')
-        
+
         if task_ids and isinstance(task_ids, list):
             subtasks = queries.get_subtasks_for_tasks(current_user, task_ids)
             return jsonify(subtasks), 200
-        
+
         elif len(task_ids) == 0:
-            return jsonify({'success': False, 'message':'No IDs were provided'}), 400
+            return jsonify({'success': False, 'message': 'No IDs were provided'}), 400
 
     except Exception as e:
         print(e)
-        return jsonify({'success': False, 'message':'Error while getting subtasks'}), 400
-    return jsonify({'success': False, 'message':'Unable to get subtasks'}), 404
+        return jsonify({'success': False, 'message': 'Error while getting subtasks'}), 400
+    return jsonify({'success': False, 'message': 'Unable to get subtasks'}), 404
+
 
 @tasks.post('/<task_id>/close')
 def close_task(task_id: str):

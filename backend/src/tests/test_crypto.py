@@ -1,10 +1,11 @@
 import utils.crypto as crypto
 import pytest
 
+
 def test_ciphertext_init():
     # Test Ciphertext constructor
     ciph_a = crypto.Ciphertext(b"a"*16, b"b"*15, b"c"*16, b"hello")
-    assert type(ciph_a) == crypto.Ciphertext
+    assert type(ciph_a) is crypto.Ciphertext
     assert ciph_a.tag == b"a"*16
     assert ciph_a.nonce == b"b"*15
     assert ciph_a.salt == b"c"*16
@@ -13,13 +14,13 @@ def test_ciphertext_init():
     # Test Ciphertext constructor passing in various non-byte values
     with pytest.raises(ValueError):
         crypto.Ciphertext("a"*16, b"b"*15, b"c"*16, b"hello")
-    
+
     with pytest.raises(ValueError):
         crypto.Ciphertext(b"a"*16, 0, b"c"*16, b"hello")
-    
+
     with pytest.raises(ValueError):
         crypto.Ciphertext(b"a"*16, b"b"*15, False, b"hello")
-    
+
     with pytest.raises(ValueError):
         crypto.Ciphertext(b"a"*16, b"b"*15, b"c"*16, [b"hello"])
 
@@ -42,7 +43,7 @@ def test_ciphertext_conversion():
     # Ensure that Ciphertexts can be constructed out of bytes of sufficient length
     b = bytes(16+15+16)
     ciph_c = crypto.Ciphertext.from_bytes(b)
-    assert type(ciph_c) == crypto.Ciphertext
+    assert type(ciph_c) is crypto.Ciphertext
 
 
 def test_encrypt_decrypt():
@@ -67,4 +68,3 @@ def test_encrypt_decrypt_empty():
     ciphertext = crypto.encrypt_str("data", "")
     data = crypto.decrypt_str(ciphertext, "")
     assert data == "data"
-

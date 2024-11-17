@@ -30,11 +30,11 @@ class Ciphertext:
         :param ciphertext: The ciphertext itself.
         :raises ValueError: If any argument is not bytes.
         """
-        if type(tag) != bytes or \
-           type(nonce) != bytes or \
-           type(salt) != bytes or \
-           type(ciphertext) != bytes:
-        
+        if type(tag) is not bytes or \
+           type(nonce) is not bytes or \
+           type(salt) is not bytes or \
+           type(ciphertext) is not bytes:
+
             raise ValueError()
 
         self.tag = tag
@@ -42,27 +42,23 @@ class Ciphertext:
         self.salt = salt
         self.ciphertext = ciphertext
 
-
     def to_bytes(self) -> bytes:
         """
         Convert Ciphertext to bytes. This is an alias for calling bytes(obj).
         """
         return bytes(self)
-    
 
     def __bytes__(self):
         return self.tag + self.nonce + self.salt + self.ciphertext
 
-
     def __eq__(self, other):
-        if type(other) != Ciphertext:
+        if type(other) is not Ciphertext:
             return False
 
         return self.tag == other.tag and \
-               self.nonce == other.nonce and \
-               self.salt == other.salt and \
-               self.ciphertext == other.ciphertext
-
+            self.nonce == other.nonce and \
+            self.salt == other.salt and \
+            self.ciphertext == other.ciphertext
 
     @staticmethod
     def from_bytes(data: bytes) -> Self:
@@ -112,7 +108,7 @@ def encrypt_str(data: str, password: str) -> Ciphertext:
     return Ciphertext(tag, cipher.nonce, salt, ciphertext)
 
 
-def decrypt_str(ciphertext: Ciphertext|bytes, password: str) -> str:
+def decrypt_str(ciphertext: Ciphertext | bytes, password: str) -> str:
     """
     Decrypt some data with the specified password using 256-bit AES-OCB.
 
@@ -123,7 +119,7 @@ def decrypt_str(ciphertext: Ciphertext|bytes, password: str) -> str:
     Ciphertext.
     :raises ValueError: If the given password is incorrect or the ciphertext has been modified.
     """
-    if type(ciphertext) == bytes:
+    if type(ciphertext) is bytes:
         ciphertext = Ciphertext.from_bytes(ciphertext)
 
     # Generate a key from the password and salt
@@ -136,7 +132,8 @@ def decrypt_str(ciphertext: Ciphertext|bytes, password: str) -> str:
     return data.decode()
 
 
-def reencrypt_str(ciphertext: Ciphertext|bytes, old_password: str, new_password: str) -> Ciphertext:
+def reencrypt_str(ciphertext: Ciphertext | bytes, old_password: str, new_password: str)\
+        -> Ciphertext:
     """
     Decrypt some data, then re-encrypted it with a new password.
 
@@ -151,7 +148,7 @@ def reencrypt_str(ciphertext: Ciphertext|bytes, old_password: str, new_password:
     return encrypt_str(data, new_password)
 
 
-def generate_key(seed: str|None=None) -> bytes:
+def generate_key(seed: str | None = None) -> bytes:
     """
     Generates a random encryption key for 256-bit AES-OCB encryption.
 
@@ -161,11 +158,11 @@ def generate_key(seed: str|None=None) -> bytes:
     """
     if seed:
         return _derive_key(seed)
-    
+
     return get_random_bytes(32)
 
 
-def _derive_key(password: str, salt: str|None=None) -> tuple[bytes, bytes]:
+def _derive_key(password: str, salt: str | None = None) -> tuple[bytes, bytes]:
     """
     Derive a key from a password to encrypt some data.
 
@@ -174,10 +171,9 @@ def _derive_key(password: str, salt: str|None=None) -> tuple[bytes, bytes]:
     generated.
     :return tuple[bytes, bytes]: The derived key as bytes and the salt used to derive it.
     """
-    if salt == None:
+    if salt is None:
         salt = get_random_bytes(16)
-    
+
     # Values for scrypt chosen from:
     # https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#scrypt
     return (scrypt(password, salt, 32, N=2**17, r=8, p=1), salt)
-

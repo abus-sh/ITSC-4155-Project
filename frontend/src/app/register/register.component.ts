@@ -114,7 +114,7 @@ export class RegisterComponent implements OnInit {
             this.tokenRetrieved = true;
             this.todoistAuthString = "Authorization completed - ✔️"
         } else {
-            console.log("Error authorizing Todoist: ", data)
+            console.error("Error authorizing Todoist: ", data)
             this.todoistAuthString = "Error while authorizing Todoist - ❌"
         }
     }

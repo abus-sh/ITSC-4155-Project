@@ -86,10 +86,10 @@ export class ProfileComponent implements OnInit {
                 console.log(response)
                 this.messageBox(false, response.message);
                 this.clearForm();
-                window.location.reload();
+                this.reloadPage()
             },
             error => {
-                if (error.error?.message) {
+                if (!error.error.success) {
                     this.messageBox(true, error.error.message);
                 }
                 console.error('Error updating password:', error);
@@ -114,11 +114,15 @@ export class ProfileComponent implements OnInit {
         this.oldPassword = '';
         this.newPassword = '';
         this.confirmPassword = '';
-        this.message = '';
     }
 
     messageBox(error: boolean, message: string) {
         this.message = message;
         this.messageClass = error ? 'error' : 'success';
+    }
+
+    // For some reason window.location doesn't want to be mocked in the spec, and I hate it
+    reloadPage() {
+        window.location.reload();
     }
 }

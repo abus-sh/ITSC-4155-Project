@@ -1,5 +1,3 @@
-from canvasapi.assignment import Assignment
-from canvasapi.course import Course
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 
@@ -17,13 +15,14 @@ CUSTOM_COURSE_PARAMS = [
     "total_scores", "term", "concluded", "course_image"
 ]
 
+
 def get_term() -> tuple[str, str]:
     """Returns current year and semester."""
     current_year = str(datetime.now().year)
     now = datetime.now()
     month = now.month
     day = now.day
-    # Summer classes start in middle of May, and Fall classes start in middle of August, 
+    # Summer classes start in middle of May, and Fall classes start in middle of August,
     # so we need the day to be precise
     if (1 <= month <= 4) or (month == 5 and day <= 15):
         current_semester = '10'  # Spring
@@ -38,7 +37,7 @@ def get_term() -> tuple[str, str]:
 
 # Get list of all courses for current student
 @courses.route('/all', methods=['GET'])
-def get_all_courses(canvas_key: str|None=None) -> list:
+def get_all_courses(canvas_key: str | None = None) -> list:  # noqa: C901
     """
     Returns a list of all courses associated with the Canvas API key.
 
@@ -47,7 +46,7 @@ def get_all_courses(canvas_key: str|None=None) -> list:
     will return a tuple of the form (Flask Response, status code).
     """
 
-    if canvas_key == None:
+    if canvas_key is None:
         canvas_key = decrypt_canvas_key()
         raw_data = False
     else:
@@ -73,15 +72,15 @@ def get_all_courses(canvas_key: str|None=None) -> list:
             one_course = canvas_api.course_to_dict(course)
             courses_list.append(one_course)
 
-    except AttributeError as e:
+    except AttributeError:
         if raw_data:
             return []
         return 'Unable to get field for courses', 404
-    except Exception as e:
+    except Exception:
         if raw_data:
             return []
         return 'Unable to make request to Canvas API', 400
-    
+
     if raw_data:
         return courses_list
     return jsonify(courses_list), 200
@@ -95,10 +94,10 @@ def get_course(courseid):
     try:
         course = canvas_api.get_course(canvas_key, courseid)
         course_info = canvas_api.course_to_dict(course)
-            
-    except AttributeError as e:
+
+    except AttributeError:
         return 'Unable to get field for courses', 404
-    except Exception as e:
+    except Exception:
         return 'Unable to make request to Canvas API', 400
     return jsonify(course_info), 200
 
@@ -110,10 +109,10 @@ def get_graded_assignments():
         course_id = request.json.get('course_id')
         if not course_id:
             return jsonify("Invalid course_id!"), 400
-        
+
         canvas_key = decrypt_canvas_key()
         assignments = canvas_api.get_graded_assignments(canvas_key, course_id)
-        
+
         graded_assignments = []
         for graded in assignments:
             fields = [
@@ -126,21 +125,22 @@ def get_graded_assignments():
             one_graded = {field: getattr(graded, field, None) for field in fields}
             # Fields inside the assignment dict
             assignment_details = getattr(graded, 'assignment', None)
-            if assignment_details:           
+            if assignment_details:
                 for extra_field in extra_fields:
                     one_graded[extra_field] = assignment_details.get(extra_field, None)
-                    
+
             graded_assignments.append(one_graded)
     except Exception as e:
+        print(e)
         return 'Unable to make request to Canvas API', 400
-    except AttributeError as e:
+    except AttributeError:
         return 'Unable to get field for graded assignments', 404
     return jsonify(graded_assignments), 200
 
 
 # Get all assignments for a course
 @courses.route('/<courseid>/assignments', methods=['GET'])
-def get_course_assignments(courseid, canvas_key: str|None=None):
+def get_course_assignments(courseid, canvas_key: str | None = None):
     """
     Returns a list of all assignments for a course.
 
@@ -149,7 +149,7 @@ def get_course_assignments(courseid, canvas_key: str|None=None):
     course. Otherwise, it will return a tuple of the form (Flask Response, status code).
     """
 
-    if canvas_key == None:
+    if canvas_key is None:
         canvas_key = decrypt_canvas_key()
         raw_data = False
     else:
@@ -162,12 +162,12 @@ def get_course_assignments(courseid, canvas_key: str|None=None):
             assignment_dict = canvas_api.assignment_to_dict(assignment)
             assignments.append(assignment_dict)
 
-    except AttributeError as e:
+    except AttributeError:
         if raw_data:
             print(f'Attribute error while getting assignments for {courseid}..')
             return []
         return 'Unable to get field for courses', 404
-    except Exception as e:
+    except Exception:
         if raw_data:
             print(f'Exception while getting assignments for {courseid}..')
             return []
@@ -186,13 +186,15 @@ def get_course_assignment(courseid, assignmentid):
         assignment = canvas_api.get_course_assignment(canvas_key, courseid, assignmentid)
         assignment_dict = canvas_api.assignment_to_dict(assignment)
 
-    except Exception as e:
+    except Exception:
         return 'Unable to make request to Canvas API', 400
-    except AttributeError as e:
+    except AttributeError:
         return 'Unable to get field for courses', 404
     return jsonify(assignment_dict), 200
 
 # TO DO:
-# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions (List assignment submissions)
+# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions (List assignment
+# submissions)
 # GET /api/v1/courses/:course_id/students/submissions (List submissions for multiple assignments)
-# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id (Get a single submission)
+# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id (Get a single
+# submission)
