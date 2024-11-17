@@ -150,6 +150,8 @@ def update_description(task_id: str):
     new_desc = data.get('description')
     if new_desc is None:
         return jsonify({'success': False, 'message': 'No description provided.'}), 400
+    if type(new_desc) is not str:
+        return jsonify({'success': False, 'message': 'Invalid description.'}), 400
     if len(new_desc) > 500:
         return jsonify({'success': False, 'message': 'Description is too long.'}), 400
 
@@ -166,10 +168,10 @@ def update_description(task_id: str):
         return jsonify({'success': False, 'message': 'Invalide task_type.'}), 400
     
     if task is None:
-        return jsonify({'success': False, 'message': 'No task with the given ID exists'}), 404
+        return jsonify({'success': False, 'message': 'No task with the given ID exists.'}), 404
 
     todoist_token = session.decrypt_todoist_key()
     if todoist.update_task_description(todoist_token, task, new_desc):
-        return jsonify({'success': True, 'message': 'ok'})
+        return jsonify({'success': True, 'message': 'OK.'})
     
-    return jsonify({'success': False, 'message': 'An unknown error occurred'}), 500
+    return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
