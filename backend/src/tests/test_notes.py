@@ -10,8 +10,8 @@ import utils.session as session
 import utils.todoist as todoist
 
 from .test_courses import fake_login, MockCanvas, MockTodoistAPI
-from .test_tasks import mock_decrypt_todoist_key, MockRequests, mock_tasks,\
-mock_get_task_by_canvas_id
+from .test_tasks import mock_decrypt_todoist_key, MockRequests, mock_tasks, \
+    mock_get_task_by_canvas_id
 
 #################################################################
 #                                                               #
@@ -22,12 +22,7 @@ mock_get_task_by_canvas_id
 
 @pytest.fixture(autouse=True)
 def init_test(monkeypatch):
-    # Need to set TODOIST_SECRET before importing to ensure that it can read a fake Todoist secret
     monkeypatch.setenv('TODOIST_SECRET', 'secrets.example/todoist_secret.txt')
-
-
-@pytest.fixture(autouse=True)
-def init_test(monkeypatch):
     monkeypatch.setattr(queries, 'Canvas', MockCanvas)
     monkeypatch.setattr(queries, 'TodoistAPI', MockTodoistAPI)
     monkeypatch.setattr(queries, 'get_task_by_id', mock_get_task_by_id)
