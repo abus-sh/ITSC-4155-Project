@@ -72,6 +72,8 @@ describe('DashboardComponent', () => {
         });
 
         spyOn(canvasService, 'addSubtask').and.callThrough();
+        spyOn(component, 'closeForm').and.callThrough();
+        
         component.addSubtask(assignment);
         expect(canvasService.addSubtask).toHaveBeenCalled();
         expect(component.addSubtaskForm.value.name).toBe('');
