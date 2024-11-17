@@ -138,7 +138,7 @@ def toggle_task(task_id: str):
 
 
 @tasks.patch('/<task_id>/description')
-def update_descrption(task_id: str):
+def update_description(task_id: str):
     # Ensure that a description was provided
     data = request.json
     new_desc = data.get('description')
