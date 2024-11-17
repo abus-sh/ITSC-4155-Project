@@ -1,7 +1,9 @@
 from datetime import datetime
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file, after_this_request
+import os
 
 import utils.canvas as canvas_api
+import utils.files as files
 from utils.session import decrypt_canvas_key
 from utils.settings import get_canvas_url
 
@@ -100,6 +102,43 @@ def get_course(courseid):
     except Exception:
         return 'Unable to make request to Canvas API', 400
     return jsonify(course_info), 200
+
+
+@courses.get('/<courseid>/submissions')
+def get_course_submissions(courseid):
+    canvas_key = decrypt_canvas_key()
+
+    try:
+        # Construct a file prefix name
+        course_name = canvas_api.get_course(canvas_key, courseid).name
+        today = datetime.now().strftime('%Y-%m-%d')
+        file_name = f'{course_name}_submissions_{today}'
+
+        # Get all submissions in a course
+        submissions = canvas_api.get_course_submissions(canvas_key, courseid)
+
+        # Download them to disk
+        download_dir = canvas_api.download_submissions(submissions)
+
+        # Zip the files
+        zip_file = files.zip_folder(download_dir, dirname=file_name, delete_dir=True)
+
+        # Handle cleaning up the archive after the request
+        @after_this_request
+        def delete_archive(response):
+            # Delete the archive
+            try:
+                os.remove(zip_file)
+            except Exception as e:
+                print(e)
+
+            return response
+
+        # Send the file
+        return send_file(zip_file, download_name=f'{file_name}.zip')
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
 
 
 @courses.route('/graded_assignments', methods=['GET', 'POST'])
