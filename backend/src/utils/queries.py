@@ -203,6 +203,22 @@ def update_task_id(primary_key: str, todoist_id: str) -> None:
         raise e
 
 
+def update_task_description(task: models.Task, description: str) -> None:
+    """
+    Update a task's description in the database.
+
+    :param id: The internal database ID of the task.
+    :param description: The new description for the task.
+    """
+    try:
+        task.description = description
+        models.db.session.commit()
+    except Exception as e:
+        models.db.session.rollback()
+        print('Error updating description', {e})
+        raise e
+
+
 def set_task_duedate(task: models.Task, due_date: str) -> None:
     """
     Update a task to have a new due_date in the database
@@ -217,6 +233,26 @@ def set_task_duedate(task: models.Task, due_date: str) -> None:
         models.db.session.rollback()
         print(f"Error updating task: {e}")
         raise e
+
+
+def get_task_by_id(owner: models.User, id: int, dict=False) -> models.Task | dict | None:
+    """
+    Retrieve a task by its database ID.
+
+    :param owner: The owner of the task.
+    :param canvas_id: The database ID of a task.
+    :param dict: If True, return the task as a dictionary. Defaults to False.
+    :return Task or dict or None: A Task instance or a dictionary representation of the task if dict
+    is True. If no task with the given Canvas ID exists, None is returned.
+    """
+
+    task = models.Task.query.filter(
+        models.Task.id == id,
+        models.Task.owner == owner.id
+    ).first()
+    if dict and task:
+        return task.to_dict()
+    return task
 
 
 def get_task_by_canvas_id(owner: models.User, canvas_id: str, dict=False)\
@@ -299,6 +335,29 @@ def get_task_or_subtask_by_todoist_id(owner: models.User, todoist_id: str, dict=
 
     # If neither were found, return None
     return None
+
+
+def get_descriptions_by_canvas_ids(owner: models.User, canvas_ids: list[int])\
+        -> dict[int, str | None]:
+    """
+    Retrieves descriptions for all tasks with the Canvas IDs specified in `canvas_ids` and returns
+    a dict that maps between the ids and the descriptions.
+
+    :param owner: The owner of the tasks.
+    :param canvas_ids: The Canvas IDs of the tasks that should have descriptions retrieved.
+    :return dict[int, str|None]: Returns a dict that maps between the ids and the descriptions. If a
+    task has no description, its entry is None.
+    """
+    canvas_tasks: list[models.Task] = models.Task.query.filter(
+        models.Task.canvas_id.in_(canvas_ids),
+        models.Task.owner == owner.id
+    ).all()
+
+    description_lookup = dict()
+    for task in canvas_tasks:
+        description_lookup[task.canvas_id] = task.description
+
+    return description_lookup
 
 
 def sync_task_status(owner: models.User, open_task_ids: list[int]):

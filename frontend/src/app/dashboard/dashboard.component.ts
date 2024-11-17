@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { OrderByPipe } from '../pipes/date.pipe';
 import { CanvasService } from '../canvas.service';
 import { AddtaskComponent } from "../addtask/addtask.component";
+import { TasknoteComponent } from '../tasknote/tasknote.component';
 
 export interface Subtask {
     id: number;
@@ -18,11 +19,13 @@ export interface Subtask {
 export interface Assignment {
     title: string;
     description: string;
+    user_description?: string;
     type: string;
     submission_types: string[];
     html_url?: string;
     context_name?: string;
     id?: number;
+    db_id?: number;
     points_possible?: number;
     graded_submissions_exist: boolean;
     due_at: string;
@@ -42,7 +45,7 @@ export interface AddSubtaskBody {
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent],
+    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent, TasknoteComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })
@@ -55,6 +58,9 @@ export class DashboardComponent implements OnInit {
     private cantToggle = false;
 
     assignmentFormDisplay = false;
+
+    noteFormDisplay = false;
+    noteAssignment?: Assignment;
 
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
@@ -193,6 +199,34 @@ export class DashboardComponent implements OnInit {
 
     closeAssignmentForm() {
         this.assignmentFormDisplay = false;
+    }
+
+    openNoteForm(assignment: Assignment, event: MouseEvent|KeyboardEvent) {
+        if (event.target === null) {
+            return;
+        }
+
+        // Find the closest div parent to this element
+        // This allows us to determine if we are clicking a submenu that should not trigger the menu
+        let element = event.target as HTMLElement;
+        while (element.tagName !== "DIV") {
+            if (element.parentElement === null) {
+                return;
+            }
+            element = element.parentElement;
+        }
+        // If the div isn't the card itself (i.e., it is some submenu), do nothing
+        if (!element.classList.contains("assignment-card") &&
+            !element.classList.contains("title-holder")) {
+            return;
+        }
+
+        this.noteAssignment = assignment;
+        this.noteFormDisplay = true;
+    }
+
+    closeNoteForm() {
+        this.noteFormDisplay = false;
     }
 
     // Get end of current day date

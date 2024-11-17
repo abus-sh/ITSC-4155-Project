@@ -41,7 +41,7 @@ def get_user_info():
 
 # Get Assignments due this month
 @user.route('/due_soon', methods=['GET'])
-def get_assignments_due_soon():
+def get_assignments_due_soon():  # noqa: C901
     try:
         canvas_key = decrypt_canvas_key()
 
@@ -54,8 +54,9 @@ def get_assignments_due_soon():
         tasks: list[models.Task] = queries.get_non_canvas_tasks(current_user)
         for task in tasks:
             data = {
+                'db_id': task.id,
                 'title': task.name,
-                'description': task.description,
+                'user_description': task.description,
                 'type': 'assignment',
                 'submission_types': [],
                 'graded_submissions_exist': False,
@@ -67,7 +68,7 @@ def get_assignments_due_soon():
         assignments = canvas_api.get_calendar_events(canvas_key, start_date, end_date)
 
         fields = [
-            'title', 'description', 'type', 'submission_types', 'html_url', 'context_name',
+            'title', 'type', 'submission_types', 'html_url', 'context_name',
         ]
         extra_fields = [
             'id', 'points_possible', 'graded_submissions_exist', 'user_submitted'
@@ -97,6 +98,19 @@ def get_assignments_due_soon():
 
                 one_assignment['due_at'] = parsed_due_date.strftime('%Y-%m-%d %H:%M:%S')
             assignments_due_soon.append(one_assignment)
+
+        # Get all assignments that come from Canvas (i.e., have a Canvas ID)
+        # Retrieve their descriptions from database
+        canvas_assignments: dict[int, dict] = dict()
+        for assignment in assignments_due_soon:
+            if 'id' in assignment:
+                canvas_assignments[assignment['id']] = assignment
+        canvas_ids = [id for id in canvas_assignments]
+        descriptions = queries.get_descriptions_by_canvas_ids(current_user, canvas_ids)
+
+        # Update each Canvas assignment to include the database description
+        for id in descriptions:
+            canvas_assignments[id]['user_description'] = descriptions[id]
 
     except Exception as e:
         print(e)
