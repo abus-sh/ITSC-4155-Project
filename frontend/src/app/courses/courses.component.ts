@@ -50,9 +50,12 @@ export class CoursesComponent {
             this.courses = courses;
         });
 
-        this.canvasService.getCourses().then(() => {
-            this.canvasService.getGradedAssignments();
-        });
+        this.initializeCourses();
+    }
+
+    async initializeCourses() {
+        await this.canvasService.getCourses();
+        await this.canvasService.getGradedAssignments();
     }
 
     toggleAssignments(course: Course): void {

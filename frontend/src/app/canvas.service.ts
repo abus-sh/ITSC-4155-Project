@@ -41,7 +41,7 @@ export class CanvasService {
 
     constructor(private http: HttpClient) {}
 
-    async getCourses() {
+    async getCourses(): Promise<void> {
         // Only fetch new courses if enough time has passed
         const now = new Date().getTime();
         if ((now - this.coursesLastUpdated) > getCanvasCacheTime()) {
@@ -100,7 +100,7 @@ export class CanvasService {
         this.courses$.next(this.courses);
     }
 
-    async getGradedAssignments() {
+    async getGradedAssignments(): Promise<void> {
         for (const course of this.courses) {
             const body = { course_id: course.id };
             const assignments = await firstValueFrom(this.http
