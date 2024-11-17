@@ -9,7 +9,8 @@
     <div class="assignments-container" *ngIf="!sectionCollapseUpcoming">
         <!-- ASSIGNMENT LIST -->
         <div *ngFor="let assignment of assignments | orderBy: 'due_at'" class="assignment-card"
-        (click)="openNoteForm(assignment, $event)" (keypress)="openNoteForm(assignment, $event)">
+        (click)="openNoteForm(assignment, $event)" (keypress)="openNoteForm(assignment, $event)"
+        tabindex="0">
             <h3 class="assignment-title">{{ assignment.title }}</h3>
             <p class="assignment-duedate">
                 <strong>Due Date</strong>:
