@@ -341,6 +341,39 @@ def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> b
     return False
 
 
+def update_task_description(todoist_key: str, task: Task, description: str) -> bool:
+    """
+    Updates a task's description in Todoist and in the database.
+
+    Args:
+        todoist_key (str): The Todoist API key for the current user.
+        todoist_task_id (str): The ID of the task or subtask in Todoist.
+        description (str): The new description for the task.
+
+    Returns:
+        bool: True if the task's description was updated successfully, False otherwise
+    """
+    if task.todoist_id is None:
+        return False
+
+    try:
+        data = {'description': description}
+        response = requests.post(
+            f'https://api.todoist.com/rest/v2/tasks/{task.todoist_id}',
+            data=json.dumps(data),
+            headers={"Authorization": f"Bearer {todoist_key}", "Content-Type": "application/json"}
+        )
+
+        if response.status_code != 200:
+            return False
+
+        queries.update_task_description(task, description)
+    except Exception:
+        return False
+
+    return True
+
+
 def sync_task_status(current_user: User, todoist_key: str):
     """
     Syncs the status of tasks and subtasks in the database with Todoist. The Todoist status will

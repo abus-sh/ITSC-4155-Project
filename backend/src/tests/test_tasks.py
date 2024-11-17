@@ -37,12 +37,15 @@ def mock_get_task_by_canvas_id(current_user, canvas_id, dict=False):
 
 
 class MockRequests:
-    def post(self, url, json={}, data={}, headers=[]):
+    def post(self, url: str, json={}, data={}, headers=[]):
         match url:
             case 'https://api.todoist.com/rest/v2/tasks':
                 return MockResponse(200, {'id': 1})
 
-        pass
+        if url.startswith('https://api.todoist.com/rest/v2/tasks/'):
+            return MockResponse(200, {})
+
+        raise ValueError
 
 
 class MockResponse:
@@ -56,15 +59,16 @@ class MockResponse:
 
 
 class MockTask:
-    def __init__(self, owner, id, canvas_id, todoist_id):
+    def __init__(self, owner, id, canvas_id, todoist_id, description=''):
         self.owner = owner
         self.id = id
         self.canvas_id = canvas_id
         self.todoist_id = todoist_id
+        self.description = description
 
 
 mock_tasks = [
-    MockTask(1, '1', 'a', 'i'),
+    MockTask(1, '1', 'a', 'i', 'desc'),
     MockTask(1, '2', 'b', 'ii'),
     MockTask(1, '3', 'c', 'iii'),
 ]
