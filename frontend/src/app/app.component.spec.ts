@@ -1,13 +1,14 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { provideHttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { of } from 'rxjs';
 
+
 describe('AppComponent', () => {
     let authServiceSpy: jasmine.SpyObj<AuthService>;
-    let fixture: any;
-    let component: any;
+    let fixture: ComponentFixture<AppComponent>;
+    let component: AppComponent;
 
     beforeEach(async () => {
         const authSpy = jasmine.createSpyObj('AuthService', ['getCsrfToken', 'logout', 'authStatus$']);

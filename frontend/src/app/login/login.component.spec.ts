@@ -35,8 +35,8 @@ describe('LoginComponent', () => {
     });
 
     it('Make the username and password controls required', () => {
-        let usernameControl = component.loginForm.get('username');
-        let passwordControl = component.loginForm.get('password');
+        const usernameControl = component.loginForm.get('username');
+        const passwordControl = component.loginForm.get('password');
 
         if (usernameControl && passwordControl) {
             usernameControl.setValue('');
