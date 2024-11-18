@@ -102,7 +102,7 @@ export const mockDueSoon: Assignment[] = [
         "submission_types": "online_upload",
         "title": "Project 4: Program Analysis for Tunestore",
         "type": "assignment",
-        "user_description": null,
+        "user_description": "Old description",
         "user_submitted": false,
         "subtasks": []
     },
