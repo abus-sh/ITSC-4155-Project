@@ -22,7 +22,7 @@ export class SubmissiondownloadComponent implements OnInit {
     courseForm: FormGroup;
 
     // Flag to determine if a ZIP download is pending
-    fileDownloading: boolean = false;
+    fileDownloading = false;
 
     // Error message for file download
     errorMsg = '';
