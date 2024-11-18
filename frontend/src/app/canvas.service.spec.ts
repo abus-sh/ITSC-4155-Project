@@ -2,7 +2,7 @@ import { fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { CanvasService } from './canvas.service';
 import { getBackendURL } from '../config';
-import { mockCourses, mockCoursesProcessed, mockCoursesGradedAssignments, mockDueSoon, mockCalendarEvents } from './mock-data';
+import { mockCoursesProcessed, mockCoursesGradedAssignments, mockDueSoon, mockCalendarEvents } from './mock-data';
 
 
 describe('CanvasService', () => {
