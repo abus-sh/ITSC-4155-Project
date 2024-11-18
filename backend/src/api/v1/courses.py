@@ -146,12 +146,12 @@ def get_course_submissions(courseid):
         # Convert 403 to 404 since we don't know if the ID is bad or non-existent. From the user's
         # perspective, it's like it doesn't exist.
         return jsonify({'success': False, 'message': 'Course not found.'}), 404
-    
+
     except TypeError:
         # Thrown if courseid can't be interpreted as an int
         return jsonify({'success': False, 'message': 'Course ID must be an integer.'}), 400
 
-    except Exception as e:
+    except Exception:
         return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
 
 

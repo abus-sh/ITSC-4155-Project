@@ -1,4 +1,3 @@
-import canvasapi.exceptions
 from flask import url_for
 import pytest
 
@@ -71,7 +70,7 @@ class MockCourse:
 
 
 class MockAssignment:
-    def __init__(self, id, assignment_id, course_id, score, due_at, attachments = []):
+    def __init__(self, id, assignment_id, course_id, score, due_at, attachments=[]):
         self.id = id
         self.assignment_id = assignment_id
         self.course_id = course_id
