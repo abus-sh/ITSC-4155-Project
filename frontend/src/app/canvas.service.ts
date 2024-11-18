@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { getBackendURL, getCanvasCacheTime } from '../config';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { APIAssignment, APICourse, Course } from './courses/courses.component';
 import { firstValueFrom, Subject } from 'rxjs';
 import { AddSubtaskBody, Assignment, Subtask, SubtasksDict } from './dashboard/dashboard.component';
@@ -283,7 +283,7 @@ export class CanvasService {
     }
 
     // Based on https://stackoverflow.com/a/46882407
-    private downloadFile(blob: Blob, fileName: string, fileType: string='application/zip') {
+    private downloadFile(blob: Blob, fileName: string) {
         const url = window.URL.createObjectURL(blob);
 
         // Hidden anchor to trigger the download
