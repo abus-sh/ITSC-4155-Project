@@ -364,7 +364,7 @@ def download_submissions_no_cache(submissions: list[Submission]):
         for att in sub.attachments:
             path = os.path.join(download_dir, f'a{sub.assignment_id}_{att}')
             att.download(path)
-    
+
     return download_dir
 
 
