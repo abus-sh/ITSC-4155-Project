@@ -59,7 +59,7 @@ CORS(app, supports_credentials=True, origins=[
     'http://localhost:4200',
     'https://localhost:4200',
     'https://itsc4155.abus.sh:4200'
-])
+], expose_headers='Content-Disposition')
 
 
 # Create all missing tables based on the table models in `backend/src/utils/models.py`
