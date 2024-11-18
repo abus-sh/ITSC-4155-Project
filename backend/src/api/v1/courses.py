@@ -137,7 +137,7 @@ def get_course_submissions(courseid):
         # Send the file
         return send_file(zip_file, download_name=f'{file_name}.zip')
 
-    except Exception as e:
+    except Exception:
         return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
 
 
