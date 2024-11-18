@@ -10,7 +10,7 @@ import tempfile
 import zipfile
 
 
-def zip_folder(path: str, dirname: str='', prefix: str='', delete_dir: bool=False) -> str:
+def zip_folder(path: str, dirname: str = '', prefix: str = '', delete_dir: bool = False) -> str:
     """
     Zips all files in a given folder and returns a path to the archive.
 
@@ -48,7 +48,7 @@ def zip_folder(path: str, dirname: str='', prefix: str='', delete_dir: bool=Fals
     return zip_loc
 
 
-def walk_dir(path: str, dirname: str='') -> list[tuple[str, str]]:
+def walk_dir(path: str, dirname: str = '') -> list[tuple[str, str]]:
     """
     Walks the directory structure starting at path. Returns a list of files as absolute and relative
     paths.
