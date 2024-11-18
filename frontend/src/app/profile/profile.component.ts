@@ -6,6 +6,7 @@ import { AuthService, AuthStatus } from '../auth.service';
 import { Observable } from 'rxjs';
 import { getBackendURL } from '../../config';
 import { CanvasService } from '../canvas.service';
+import { SubmissiondownloadComponent } from '../submissiondownload/submissiondownload.component';
 
 export interface UserProfile {
     username?: string;
@@ -21,7 +22,7 @@ export interface UserProfile {
 @Component({
     selector: 'app-profile',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, SubmissiondownloadComponent],
     templateUrl: './profile.component.html',
     styleUrls: ['./profile.component.scss']
 })

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { getBackendURL, getCanvasCacheTime } from '../config';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { APIAssignment, APICourse, Course } from './courses/courses.component';
 import { firstValueFrom, Subject } from 'rxjs';
 import { AddSubtaskBody, Assignment, Subtask, SubtasksDict } from './dashboard/dashboard.component';
@@ -30,6 +30,7 @@ export class CanvasService {
     private getSubTasksUrl = getBackendURL() + '/api/v1/tasks/get_subtasks';
     private addSubTaskUrl = getBackendURL() + '/api/v1/tasks/add_subtask';
     private subTaskUrl = getBackendURL() + '/api/v1/tasks';
+    private downloadSubmissionUrl = getBackendURL() + '/api/v1/courses/ID/submissions';
 
     courses$ = new Subject<Course[]>();
     private courses: Course[] = [];
@@ -241,5 +242,61 @@ export class CanvasService {
                 break;
             }
         }
+    }
+
+    async downloadSubmissions(course: Course) {
+        try {
+            const submissions = await firstValueFrom(
+                this.http.get(this.downloadSubmissionUrl.replace('ID', course.id.toString()),
+                {
+                    withCredentials: true,
+                    responseType: 'blob',
+                    observe: 'response'
+                },
+            ));
+            
+            // Get the file name for this file
+            // Default to submissions.zip
+            let fileName = 'submissions.zip';
+
+            // If the Content-Disposition header was set, try to use that for the name
+            const contentHeader = submissions.headers.get('Content-Disposition');
+            if (contentHeader) {
+                // The format should be "inline; filename=filename.zip", so extract "filename.zip"
+                const splitHeader = contentHeader.split('=');
+                if (splitHeader.length == 2) {
+                    fileName = contentHeader.split('=')[1];
+                }
+            }
+            
+            if (submissions.body) {
+                this.downloadFile(submissions.body, fileName);
+            } else {
+                throw Error('No file provided by server.');
+            }
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+
+        return true;
+    }
+
+    // Based on https://stackoverflow.com/a/46882407
+    private downloadFile(blob: Blob, fileName: string, fileType: string='application/zip') {
+        const url = window.URL.createObjectURL(blob);
+
+        // Hidden anchor to trigger the download
+        const a = document.createElement('a');
+        a.setAttribute('style', 'display:none;');
+        document.body.appendChild(a);
+
+        // Set the info for the download and trigger it
+        a.href = url;
+        a.download = fileName;
+        a.click();
+
+        // Remove the anchor element since it isn't needed anymore
+        a.remove();
     }
 }

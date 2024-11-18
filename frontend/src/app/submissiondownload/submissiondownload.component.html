@@ -1,0 +1,22 @@
+<div class="parent">
+    <h3>Canvas</h3>
+    <p>
+        Download all submissions for the given class as a ZIP file. Assignments will be
+        named after the assignment's ID in Canvas and the name of the submission in Canvas.
+    </p>
+    <hr>
+    <form class="submission-form" [formGroup]="courseForm" (ngSubmit)="downloadSubmissions()">
+        <div>
+            <label for="classselect">Select a class</label>
+        </div>
+        <select name="classselect" id="classselect" formControlName="classselect">
+            <option class="default" disabled [ngValue]="null"></option>
+            <option *ngFor="let course of courses | orderBy: 'name'" [ngValue]="course.readableName">{{ course.readableName }}</option>
+        </select>
+        <p class="error">{{ errorMsg }}</p>
+        <div class="space-top-one flex">
+            <button type="submit">Download all submissions</button>
+            <object data="spinner.svg" type="image/svg+xml" *ngIf="fileDownloading"></object>
+        </div>
+    </form>
+</div>
