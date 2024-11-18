@@ -1,3 +1,4 @@
+import canvasapi.exceptions
 from datetime import datetime
 from flask import Blueprint, jsonify, request, send_file, after_this_request
 import os
@@ -110,7 +111,11 @@ def get_course_submissions(courseid):
 
     try:
         # Construct a file prefix name
-        course_name = canvas_api.get_course(canvas_key, courseid).name
+        course = canvas_api.get_course(canvas_key, courseid)
+        if course is None:
+            raise canvasapi.exceptions.Forbidden('Course not found')
+
+        course_name = course.name
         today = datetime.now().strftime('%Y-%m-%d')
         file_name = f'{course_name}_submissions_{today}'
 
@@ -137,7 +142,16 @@ def get_course_submissions(courseid):
         # Send the file
         return send_file(zip_file, download_name=f'{file_name}.zip')
 
-    except Exception:
+    except canvasapi.exceptions.Forbidden:
+        # Convert 403 to 404 since we don't know if the ID is bad or non-existent. From the user's
+        # perspective, it's like it doesn't exist.
+        return jsonify({'success': False, 'message': 'Course not found.'}), 404
+    
+    except TypeError:
+        # Thrown if courseid can't be interpreted as an int
+        return jsonify({'success': False, 'message': 'Course ID must be an integer.'}), 400
+
+    except Exception as e:
         return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
 
 
