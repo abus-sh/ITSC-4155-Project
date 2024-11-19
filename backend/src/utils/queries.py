@@ -526,13 +526,16 @@ def create_new_conversation(owner: models.User, task_id: int, conv_id: int) -> b
     return False
 
 
-def get_user_conversations(owner: models.User) -> list[models.Conversation]:
+def get_user_conversations(owner: models.User, dict: bool=False) -> list[models.Conversation] | list[dict]:
     """
     Retrieve all conversations for a user.
 
     :param owner: The owner of the conversations.
-    :return list[Conversation]: A list of Conversation instances.
+    :param dict: If True, return the conversations as a list of dictionaries. Defaults to False.
+    :return list[Conversation | dict]: A list of all conversations for the user.
     """
+    if dict:
+        return [conv.to_dict() for conv in models.User.query.get(owner.id).conversations]
     return models.User.query.get(owner.id).conversations
 
 

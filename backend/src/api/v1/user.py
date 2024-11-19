@@ -204,6 +204,7 @@ def get_calendar_events():
         return 'Unable to get field for calendar event', 404
     return jsonify(calendar_events), 200
 
+
 @user.route('/send_message', methods=['POST'])
 def send_message_to_professor_ta():
     canvas_key = decrypt_canvas_key()
@@ -233,3 +234,11 @@ def send_message_to_professor_ta():
     except AttributeError:
         return 'Unable to determine message fields', 404
     return jsonify('Message sent successfully!'), 200
+
+@user.route('/get_conversations', methods=['GET'])
+def get_conversations():
+    try:
+        conversations = queries.get_user_conversations(current_user)
+    except Exception:
+        return 'Unable to get conversations', 400
+    jsonify(conversations), 200
