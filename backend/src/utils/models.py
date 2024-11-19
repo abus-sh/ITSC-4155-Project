@@ -207,7 +207,7 @@ class Filter(ModelMixin, db.Model):
         :type filter: str
     """
     __tablename__ = 'filters'
-    
+
     id = Column(Integer, primary_key=True)
     owner = Column(Integer, ForeignKey('users.id'), nullable=False)
     filter = Column(String(50), nullable=False)

@@ -43,12 +43,12 @@ def delete_filter():
     return jsonify({'success': True, 'message': 'Deleted filter.'}), 200
 
 
-def _get_filter_name(request: Request) -> str|None:
+def _get_filter_name(request: Request) -> str | None:
     data = request.json
 
     if 'filter' not in data or type(data['filter']) is not str:
         return None
-    
+
     filter_str: str = data['filter']
     if filter_str == '' or len(filter_str) > 50:
         return None

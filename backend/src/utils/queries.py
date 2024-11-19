@@ -533,7 +533,7 @@ def create_filter(owner: models.User, filter: str) -> bool:
     Args:
         owner (User): The User who will own the filter.
         filter (str): The filter to create.
-    
+
     Retuns:
         bool: True if the filter was created successfully, False otherwise.
     """
@@ -559,11 +559,11 @@ def delete_filter(owner: models.User, filter: str) -> int | None:
     Args:
         owner (User): The User that owns the filter.
         filter (str): The filter to delete.
-    
+
     Returns:
         int | None: The filter's internal ID if one was deleted. If no ID was deleted, None is
         returned instead.
-    
+
     Raises:
         ValueError: If the given filter does not exist for the given user.
     """
