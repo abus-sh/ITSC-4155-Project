@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Assignment } from '../dashboard/dashboard.component';
-
-
+import { HttpClient } from '@angular/common/http';
+import { getBackendURL } from '../../config';
 
 export interface Recipient {
     id: number;
@@ -22,26 +22,27 @@ export class SendmessageComponent implements OnInit {
     @Output() closeFormAction = new EventEmitter();
 
     messageForm: FormGroup;
-    recipientsList: Recipient[] = [
-        { id: 1, name: 'John Doe' },
-        { id: 2, name: 'Jane Smith' },
-        { id: 3, name: 'Alice Johnson' },
-    ];
+    recipientsList: Recipient[] = [];
     selectedRecipients: Recipient[] = [];
     recipientsIds: number[] = [];
 
-    constructor(private fb: FormBuilder) {
+    constructor(private fb: FormBuilder, private http: HttpClient) {
         this.messageForm = this.fb.group({
-            recipients: [this.recipientsIds, [Validators.required]],
-            subject: ['', [Validators.required, Validators.maxLength(100)]],
-            body: ['', [Validators.required, Validators.maxLength(1000)]],
+            recipients: [this.recipientsIds, [Validators.minLength(1)]],
+            subject: ['', [Validators.required]],
+            body: ['', [Validators.required]],
         });
     }
 
     ngOnInit(): void {
         // Send request to get professor and TA's ids to send emails to
         if (this.messageAssignment !== null && this.messageAssignment !== undefined) {
-            console.log('Getting professor for course:', this.messageAssignment.context_code);
+            const course_id = this.messageAssignment?.context_code ? this.messageAssignment.context_code.split('_')[1] : '';
+            this.http.get<Recipient[]>(getBackendURL() + `/api/v1/courses/get_emails/${course_id}`, { withCredentials: true })
+                .subscribe((data: Recipient[]) => {
+                    this.recipientsList = data;
+                    this.recipientsList.push({ id: 264631, name: 'Alberto' });
+                });
         } else {
             this.closeMessageForm();
         }
@@ -52,14 +53,29 @@ export class SendmessageComponent implements OnInit {
     }
 
     sendMessage() {
-        console.log('Message sent to recipients:', this.selectedRecipients);
+        if (this.messageForm.valid && this.recipientsIds.length > 0) {
+            const messageData = {
+                recipients: this.messageForm.controls['recipients'].value,
+                subject: this.messageForm.controls['subject'].value,
+                body: this.messageForm.controls['body'].value,
+            };
+
+            this.http.post(getBackendURL() + '/api/v1/courses/send_message', messageData, { withCredentials: true })
+                .subscribe(response => {
+                    console.log('Message sent successfully:', response);
+                    this.closeMessageForm();
+                }, error => {
+                    console.error('Error sending message:', error);
+                });
+        } else {
+            console.error('Form is invalid', this.messageForm.errors);
+        }
     }
 
     // Method to toggle recipient selection
     toggleRecipientSelection(event: any) {
         const selectedOptions = event.target.selectedOptions;
         const selectedValues = Array.from(selectedOptions).map((option: any) => parseInt(option.value, 10));
-        console.log(selectedValues);
 
         selectedValues.forEach((recipientId) => {
             // Check if the recipient ID is already in the recipientsIds array

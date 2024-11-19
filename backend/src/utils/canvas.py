@@ -300,6 +300,35 @@ def get_missing_submissions_no_cache(canvas_key: str, course_ids: frozenset[int]
     return missing_submissions
 
 
+def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
+    """
+    This function is used to get the id and name of all teachers and TAs for a course.
+    
+    :param canvas_key: The API key that should be used.
+    :param course_id: The ID of the course to retrieve the users from.
+    :return list[dict]: A list of dictionaries with the id and name of each teacher and TAs
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    user_list = canvas.get_course(course_id).get_users(enrollment_type=['teacher', 'ta'])
+    fields = ['id', 'name']
+    return [{field: getattr(user, field, None) for field in fields} for user in user_list]
+
+
+def create_message(canvas_key: str, recipients: list, subject: str, body: str) -> int:
+    """
+    This function is used to send a message to a user in Canvas.
+    
+    :param canvas_key: The API key that should be used.
+    :param recipients: A list of user IDs to send the message to.
+    :param subject: The subject of the message.
+    :param body: The body of the message.
+    :return int: The ID of the conversation that the message was sent part of.
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    result = canvas.create_conversation(recipients=recipients, subject=subject, body=body)
+    return result
+
+
 def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:
     """
     Converts a course into a dict, taking only the fields specified in fields. If fields is None,
