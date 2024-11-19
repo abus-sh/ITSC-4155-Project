@@ -6,7 +6,7 @@ import utils.queries as queries
 filters = Blueprint('filters', __name__)
 
 
-@filters.get('/')
+@filters.get('')
 def get_filters():
     filters = queries.get_filters(current_user)
 
@@ -26,7 +26,7 @@ def create_filter():
     return jsonify({'success': True, 'message': 'Created filter.'}), 200
 
 
-@filters.delete('/')
+@filters.delete('')
 def delete_filter():
     # Check that a value for the filter was provided.
     filter_str = _get_filter_name(request)
