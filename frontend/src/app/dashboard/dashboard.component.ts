@@ -67,7 +67,7 @@ export class DashboardComponent implements OnInit {
     noteFormDisplay = false;
     noteAssignment?: Assignment;
 
-    filterFormDisplay = true;
+    filterFormDisplay = false;
     filters: string[] = [];
 
     sectionCollapseUpcoming = false;
