@@ -1,5 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { Assignment } from '../dashboard/dashboard.component';
+
+interface HasTitle {
+    title: string;
+}
 
 @Pipe({
     name: 'filter',
@@ -8,9 +11,7 @@ import { Assignment } from '../dashboard/dashboard.component';
 })
 export class FilterPipe implements PipeTransform {
     // Removes assignments that contain any string in args[0]
-    transform(value: Assignment[], ...args: unknown[]): Assignment[] {
-        console.log('hi');
-
+    transform<T extends HasTitle>(value: T[], ...args: unknown[]) {
         // If no array was given to filter against, don't filter
         if (args.length === 0 || !Array.isArray(args[0])) {
             return value;
