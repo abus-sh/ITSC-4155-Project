@@ -53,7 +53,9 @@ export class AddfilterComponent {
         // Clear the error message
         this.errorMsg = '';
         
-        this.filterService.addFilter(keyword);
+        if (!this.filterService.addFilter(keyword)) {
+            this.errorMsg = 'An API error has occurred. Please try again.';
+        }
 
         this.addFilterForm.reset();
     }
