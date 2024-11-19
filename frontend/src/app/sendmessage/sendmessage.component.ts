@@ -5,6 +5,7 @@ import { Assignment } from '../dashboard/dashboard.component';
 import { HttpClient } from '@angular/common/http';
 import { getBackendURL } from '../../config';
 
+
 export interface Recipient {
     id: number;
     name: string;
@@ -38,10 +39,16 @@ export class SendmessageComponent implements OnInit {
         // Send request to get professor and TA's ids to send emails to
         if (this.messageAssignment !== null && this.messageAssignment !== undefined && this.messageAssignment.id !== undefined) {
             const course_id = this.messageAssignment?.context_code ? this.messageAssignment.context_code.split('_')[1] : '';
+            const assignmend_id = this.messageAssignment?.id;
             this.http.get<Recipient[]>(getBackendURL() + `/api/v1/courses/get_emails/${course_id}`, { withCredentials: true })
                 .subscribe((data: Recipient[]) => {
                     this.recipientsList = data;
                     this.recipientsList.push({ id: 264631, name: 'Alberto' });
+                });
+                
+                this.http.get(getBackendURL() + `/api/v1/user/get_conversations/${assignmend_id}`, { withCredentials: true })
+                .subscribe((data: any) => {
+                    console.log(data);
                 });
         } else {
             this.closeMessageForm();

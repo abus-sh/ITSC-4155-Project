@@ -399,6 +399,28 @@ def send_message(canvas_key: str, recipients: list, subject: str, body: str, con
 
     return result[0].id
 
+
+def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
+    """
+    This function is used to get all the conversations for a course.
+    
+    :param canvas_key: The API key that should be used.
+    :param convs_id: The ID of the conversations to retrieve.
+    :return list[dict]: A list of conversations.
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    all_conversations = []
+    for id in convs_id:
+        conv = canvas.get_conversation(id)
+        messages = getattr(conv, 'messages', None)
+        participants = getattr(conv, 'participants', None)
+        if not messages or not participants:
+            continue
+        all_conversations.append({ 'id': id, 'subject': getattr(conv, 'subject', None), 
+                                  'messages': messages, 'participants': participants})
+    return all_conversations
+
+
 def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:
     """
     Converts a course into a dict, taking only the fields specified in fields. If fields is None,

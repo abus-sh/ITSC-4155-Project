@@ -203,13 +203,12 @@ class Conversation(ModelMixin, db.Model):
     """
     __tablename__ = 'conversations'
     __table_args__ = (
-        Index('idx_conv_owner', 'conversation_id', 'owner'),
+        Index('idx_conv_owner', 'canvas_id', 'owner'),
     )
 
     id = Column(Integer, primary_key=True)
     owner = Column(Integer, ForeignKey('users.id'), nullable=False)
     conversation_id = Column(Integer, nullable=False)
-    task_id = Column(Integer, ForeignKey('tasks.id'), nullable=False)
+    canvas_id = Column(Integer, nullable=False)
 
     user = relationship('User', back_populates='conversations')
-    task = relationship('Task')
