@@ -55,7 +55,6 @@
 
 .settings {
     display: flex;
-    flex-wrap: wrap;
     justify-content: space-around;
     align-items: flex-start;
     background-color: #f9f9f9;
@@ -95,11 +94,11 @@
     }
 
     .message {
-        margin-top: 10px; 
-        padding: 15px; 
-        border-radius: 5px; 
-        font-size: 1.1rem; 
-        font-weight: bold; 
+        margin-top: 10px;
+        padding: 15px;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        font-weight: bold;
         transition: background-color 0.3s ease;
     }
 
@@ -110,9 +109,9 @@
     }
 
     .message.success {
-        color: rgb(49, 233, 49); 
-        border: 1px solid rgb(49, 233, 49); 
-        background-color: rgba(49, 233, 49, 0.1); 
+        color: rgb(49, 233, 49);
+        border: 1px solid rgb(49, 233, 49);
+        background-color: rgba(49, 233, 49, 0.1);
     }
 
     .setting-section {
@@ -155,4 +154,20 @@ p {
     color: gray;
     font-style: italic;
     padding-left: 5px
+}
+
+.flex {
+    display: flex;
+}
+
+.vertical {
+    flex-direction: column;
+    align-items: start;
+}
+
+.submission-form {
+    select {
+        font-size: medium;
+        padding: 0.5em;
+    }
 }

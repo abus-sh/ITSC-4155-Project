@@ -5,6 +5,8 @@ from canvasapi.calendar_event import CalendarEvent
 from canvasapi.course import Course
 from canvasapi.current_user import CurrentUser
 from canvasapi.submission import Submission
+import os.path
+import tempfile
 
 from utils.settings import get_canvas_url, get_canvas_cache_time
 import gevent
@@ -300,6 +302,72 @@ def get_missing_submissions_no_cache(canvas_key: str, course_ids: frozenset[int]
     return missing_submissions
 
 
+@cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
+def get_course_submissions(canvas_key: str, course_id: int):
+    """
+    Get all submissions for a course using the given API key. These results are cached
+    for an amount of time determined by utils.settings.get_canvas_cache_time. If live information is
+    needed, get_course_submissions_no_cache should be used instead.
+
+    :param canvas_key: The API key that should be used.
+    :param course_id: The course ID to retrieve submissions for.
+    :return list[Submission]: A list of canvasapi Submissions for the given course.
+    """
+    return get_course_submissions_no_cache(canvas_key, course_id)
+
+
+def get_course_submissions_no_cache(canvas_key: str, course_id: int):
+    """
+    Get all submissions for a course using the given API key. These results are not cached. If
+    possible, use get_course_submissiosn to improve server response times.
+
+    :param canvas_key: The API key that should be used.
+    :param course_id: The course ID to retrieve submissions for.
+    :return list[Submission]: A list of canvasapi Submissions for the given course.
+    """
+    course = get_course(canvas_key, course_id)
+    submissions = course.get_multiple_submissions()
+
+    # Actually a PaginatedList, not a list, but it's a useful lie
+    return submissions
+
+
+def download_submissions(submissions: list[Submission]):
+    """
+    Download all submissions for a course to disk using the given API key. These results are not
+    cached, but this function exists for consistency's sake. Since files are written to disk and
+    could be deleted, caching this information could lead to bad paths being returned. This directly
+    wraps download_submissions_no_cache.
+
+    :param canvas_key: The API key that should be used.
+    :param submissions: The submissions to download.
+    :return str: A path to directory on disk that contains the downloaded submissions. This folder
+    should be deleted as soon as it is no longer needed to save storage.
+    """
+    return download_submissions_no_cache(submissions)
+
+
+def download_submissions_no_cache(submissions: list[Submission]):
+    """
+    Download all submissions for a course to disk using the given API key.
+
+    :param submissions: The submissions to download.
+    :return str: A path to directory on disk that contains the downloaded submissions. This folder
+    should be deleted as soon as it is no longer needed to save storage.
+    """
+    # Get a temporary directory to store everyting
+    download_dir = tempfile.mkdtemp()
+
+    # Download all attachments for an assignment
+    # If a submission consistend of multiple files, then this will grab all of them
+    for sub in submissions:
+        for att in sub.attachments:
+            path = os.path.join(download_dir, f'a{sub.assignment_id}_{att}')
+            att.download(path)
+
+    return download_dir
+
+
 def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
     """
     This function is used to get the id and name of all teachers and TAs for a course.
@@ -327,7 +395,6 @@ def create_message(canvas_key: str, recipients: list, subject: str, body: str) -
     canvas = Canvas(BASE_URL, canvas_key)
     result = canvas.create_conversation(recipients=recipients, subject=subject, body=body)
     return result
-
 
 def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:
     """
