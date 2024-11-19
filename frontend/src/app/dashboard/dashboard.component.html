@@ -3,12 +3,15 @@
         <h2 class="collapsible-title" (click)="toggleSection(0)" (keypress)="toggleSection(0)" tabindex="0">
             {{ sectionCollapseUpcoming ? '&#9662;' : '&#9652;' }} Upcoming Assignments
         </h2>
-        <button class="dropdown-toggle" (click)="openAssignmentForm()">Add Assignment</button>
+        <div class="button-holder">
+            <button class="dropdown-toggle" (click)="openFilterForm()">Add Filter</button>
+            <button class="dropdown-toggle" (click)="openAssignmentForm()">Add Assignment</button>
+        </div>
     </div>
     <hr>
     <div class="assignments-container" *ngIf="!sectionCollapseUpcoming">
         <!-- ASSIGNMENT LIST -->
-        <div *ngFor="let assignment of assignments | orderBy: 'due_at'" class="assignment-card"
+        <div *ngFor="let assignment of assignments | orderBy: 'due_at' | filter: this.filters" class="assignment-card"
         (click)="openNoteForm(assignment, $event)" (keypress)="openNoteForm(assignment, $event)"
         tabindex="0">
             <div class="title-holder">
@@ -96,4 +99,7 @@
 
     <!-- Add a note to an assignment -->
     <app-tasknote class="modal" *ngIf="noteFormDisplay" (closeFormAction)="closeNoteForm()" [assignment]="noteAssignment"></app-tasknote>
+
+    <!-- Add a filter -->
+    <app-addfilter class="modal" *ngIf="filterFormDisplay" (closeFormAction)="closeFilterForm()"></app-addfilter>
 </div>

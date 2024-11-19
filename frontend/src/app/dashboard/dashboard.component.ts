@@ -5,6 +5,9 @@ import { OrderByPipe } from '../pipes/date.pipe';
 import { CanvasService } from '../canvas.service';
 import { AddtaskComponent } from "../addtask/addtask.component";
 import { TasknoteComponent } from '../tasknote/tasknote.component';
+import { AddfilterComponent } from '../addfilter/addfilter.component';
+import { FilterService } from '../filter.service';
+import { FilterPipe } from '../pipes/filter.pipe';
 
 export interface Subtask {
     id: number;
@@ -46,7 +49,8 @@ export interface AddSubtaskBody {
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent, TasknoteComponent],
+    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent, TasknoteComponent,
+        AddfilterComponent, FilterPipe],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })
@@ -63,12 +67,15 @@ export class DashboardComponent implements OnInit {
     noteFormDisplay = false;
     noteAssignment?: Assignment;
 
+    filterFormDisplay = true;
+    filters: string[] = [];
+
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
     assignments: Assignment[] = [];
 
     constructor(private fb: FormBuilder, private canvasService: CanvasService,
-        private renderer: Renderer2) {
+        private renderer: Renderer2, private filterService: FilterService) {
         
         this.addSubtaskForm = this.fb.group({
             name: ['', Validators.required],
@@ -76,6 +83,9 @@ export class DashboardComponent implements OnInit {
             due_date: [this.getFormattedDueDate()],
             status: ['0']
         });
+
+        this.filterService.filters$.subscribe(filters => this.filters = filters);
+        this.filterService.getFilters();
     }
 
     ngOnInit() {
@@ -228,6 +238,14 @@ export class DashboardComponent implements OnInit {
 
     closeNoteForm() {
         this.noteFormDisplay = false;
+    }
+
+    openFilterForm() {
+        this.filterFormDisplay = true;
+    }
+
+    closeFilterForm() {
+        this.filterFormDisplay = false;
     }
 
     // Get end of current day date

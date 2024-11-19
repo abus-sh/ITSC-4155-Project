@@ -1,0 +1,50 @@
+form {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    button {
+        height: auto;
+    }
+
+    #keyword {
+        margin-bottom: 0;
+        width: 15em;
+    }
+}
+
+ul {
+    padding-left: 1em;
+}
+
+li {
+    height: 1.5em;
+}
+
+li:hover {
+    color: red;
+    list-style-type: "\1F5D1";
+    text-decoration: line-through;
+    cursor: pointer;
+}
+
+li::target-text {
+    color: green;
+}
+
+.error {
+    font-size: small;
+    color: red;
+}
+
+.modal-content.wide {
+    min-width: 550px;
+    max-width: 600px;
+    min-height: auto;
+}
+
+.italic {
+    font-style: italic;
+}
+
+@import "../dashboard/dashboard.component.scss"

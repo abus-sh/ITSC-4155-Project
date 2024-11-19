@@ -1,0 +1,16 @@
+<div class="modal-content wide">
+    <button class="close-button" (click)="closeForm()">&#10005;</button>
+    <h2>Filters</h2>
+    <ul>
+        <li *ngFor="let filter of filters" (click)="deleteFilter(filter)">{{ filter }}</li>
+    </ul>
+    <p *ngIf="filters.length == 0" class="italic">
+        No filters yet.
+    </p>
+    <p class="error">{{ this.errorMsg }}</p>
+    <form [formGroup]="addFilterForm" (ngSubmit)="addFilter()">
+        <label for="keyword">Keyword to filter:</label>
+        <input type="text" id="keyword" formControlName="keyword">
+        <button type="submit">Create</button>
+    </form>
+</div>
