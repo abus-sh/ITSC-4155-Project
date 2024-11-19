@@ -5,6 +5,8 @@ import { OrderByPipe } from '../pipes/date.pipe';
 import { CanvasService } from '../canvas.service';
 import { AddtaskComponent } from "../addtask/addtask.component";
 import { TasknoteComponent } from '../tasknote/tasknote.component';
+import { SendmessageComponent } from '../sendmessage/sendmessage.component';
+
 
 export interface Subtask {
     id: number;
@@ -24,13 +26,14 @@ export interface Assignment {
     submission_types: string[] | string;
     html_url?: string;
     context_name?: string;
+    context_code?: string;
     id?: number;
     db_id?: number;
     points_possible?: number;
     graded_submissions_exist: boolean;
     due_at: string;
     subtasks: Subtask[];
-    user_submitted: boolean;
+    user_submitted?: boolean;
 }
 
 export type SubtasksDict = Record<number, Subtask[]>;
@@ -46,7 +49,8 @@ export interface AddSubtaskBody {
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent, TasknoteComponent],
+    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent, 
+        SendmessageComponent, TasknoteComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })
@@ -62,6 +66,9 @@ export class DashboardComponent implements OnInit {
 
     noteFormDisplay = false;
     noteAssignment?: Assignment;
+
+    sendMessageFormDisplay = false;
+    sendMessageAssignment?: Assignment;
 
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
@@ -194,6 +201,8 @@ export class DashboardComponent implements OnInit {
         this.subtaskAssignment = null;
     }
 
+    /*      ASSIGNMENT FORM         */
+
     openAssignmentForm() {
         this.assignmentFormDisplay = true;
     }
@@ -201,6 +210,8 @@ export class DashboardComponent implements OnInit {
     closeAssignmentForm() {
         this.assignmentFormDisplay = false;
     }
+
+    /*      NOTE FORM         */
 
     openNoteForm(assignment: Assignment, event: MouseEvent|KeyboardEvent) {
         if (event.target === null) {
@@ -229,6 +240,18 @@ export class DashboardComponent implements OnInit {
     closeNoteForm() {
         this.noteFormDisplay = false;
     }
+
+    /*      SEND MESSAGE FORM         */
+
+    openSendMessageForm(assignment: Assignment) {
+        this.sendMessageAssignment = assignment;
+        this.sendMessageFormDisplay = true;
+    }
+
+    closeSendMessageForm() {
+        this.sendMessageFormDisplay = false;
+    }
+
 
     // Get end of current day date
     getFormattedDueDate(): string {

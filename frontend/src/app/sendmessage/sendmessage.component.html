@@ -1,0 +1,31 @@
+<div class="modal-content">
+    <button class="close-button" (click)="closeMessageForm()">&#10005;</button>
+    <h2>Send a Message</h2>
+    <form [formGroup]="messageForm" (ngSubmit)="sendMessage()">
+        <div>
+            <label for="recipients">Professor & TAs</label>
+            <select id="recipients" multiple (change)="toggleRecipientSelection($event)">
+                <option *ngFor="let recipient of recipientsList" [value]="recipient.id">
+                    {{ recipient.name }}
+                </option>
+            </select>
+        </div>
+        <div>
+            <label>Selected Recipients</label>
+            <div class="selected-recipient-container">
+                <button *ngFor="let recipient of selectedRecipients" type="button" class="selected-recipient"
+                    (click)="removeRecipient(recipient.id)">{{ recipient.name }}</button>
+            </div>
+        </div>
+        <br>
+        <div>
+            <label for="subject">Subject</label>
+            <input type="text" id="subject" formControlName="subject" placeholder="Enter message subject">
+        </div>
+        <div>
+            <label for="body">Message Body</label>
+            <textarea id="body" formControlName="body" rows="5" placeholder="Enter your message"></textarea>
+        </div>
+        <button type="submit" [disabled]="messageForm.invalid">Send Message</button>
+    </form>
+</div>

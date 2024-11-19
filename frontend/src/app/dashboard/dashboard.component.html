@@ -23,6 +23,7 @@
                 </span>
             </p>
             <p class="assignment-course">{{ assignment.context_name }}</p>
+            <button class="dropdown-toggle" (click)="openSendMessageForm(assignment)">Send Message</button>
             <div class="assignment-buttons">
                 <a class="assignment-link" [href]="assignment.html_url" target="_blank" *ngIf="assignment.html_url">View Assignment</a>
                 <!-- TODO: allow non-Canvas tasks to have subtasks -->
@@ -96,4 +97,7 @@
 
     <!-- Add a note to an assignment -->
     <app-tasknote class="modal" *ngIf="noteFormDisplay" (closeFormAction)="closeNoteForm()" [assignment]="noteAssignment"></app-tasknote>
+
+    <!-- Send a message to TA and/or Professor -->
+    <app-sendmessage class="modal" *ngIf="sendMessageFormDisplay" (closeFormAction)="closeSendMessageForm()" [messageAssignment]="sendMessageAssignment"></app-sendmessage>
 </div>
