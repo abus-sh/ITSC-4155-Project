@@ -280,4 +280,4 @@ def send_message_to_professor_ta():
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to determine message fields', 404
-    return 'Message sent successfully!', 200
+    return jsonify('Message sent successfully!'), 200

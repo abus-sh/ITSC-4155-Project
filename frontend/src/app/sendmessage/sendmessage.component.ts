@@ -62,7 +62,7 @@ export class SendmessageComponent implements OnInit {
 
             this.http.post(getBackendURL() + '/api/v1/courses/send_message', messageData, { withCredentials: true })
                 .subscribe(response => {
-                    console.log('Message sent successfully:', response);
+                    console.log(response);
                     this.closeMessageForm();
                 }, error => {
                     console.error('Error sending message:', error);
