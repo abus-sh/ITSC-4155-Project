@@ -4,6 +4,7 @@ from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
 from sqlalchemy import select
+import sqlalchemy.exc
 from datetime import datetime
 
 #########################################################################
@@ -544,6 +545,10 @@ def create_filter(owner: models.User, filter: str) -> bool:
         filter = models.Filter(owner=owner.id, filter=filter)
         models.db.session.add(filter)
         models.db.session.commit()
+        return True
+    except sqlalchemy.exc.IntegrityError:
+        # This means that a duplicate filter tried to be added.
+        # Since it already exists, simply do nothing
         return True
     except Exception as e:
         models.db.session.rollback()

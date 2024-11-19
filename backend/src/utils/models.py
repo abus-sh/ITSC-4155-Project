@@ -207,6 +207,9 @@ class Filter(ModelMixin, db.Model):
         :type filter: str
     """
     __tablename__ = 'filters'
+    __table_args__ = (
+        db.UniqueConstraint('owner', 'filter'),
+    )
 
     id = Column(Integer, primary_key=True)
     owner = Column(Integer, ForeignKey('users.id'), nullable=False)
