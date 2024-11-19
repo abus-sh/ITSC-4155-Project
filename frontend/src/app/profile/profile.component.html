@@ -57,13 +57,16 @@
             {{ message }}
         </div>
     </div>
-    <div class="setting-section">
-        <h3>Todoist</h3>
-        <hr>
-        <div class="space-top">
-            <p>Note that synching with Todoist is done automatically when visiting CanvasHub.</p>
-            <button class="space-top-one" (click)="syncTodoistManual()">Sync with Todoist</button>
-            <p class="standard-text sync">Manual sync: {{ lastSyncDate }}</p>
+    <div class="setting-section flex vertical">
+        <div class="setting-section">
+            <h3>Todoist</h3>
+            <hr>
+            <div class="space-top">
+                <p>Note that synching with Todoist is done automatically when visiting CanvasHub.</p>
+                <button class="space-top-one" (click)="syncTodoistManual()">Sync with Todoist</button>
+                <p class="standard-text sync">Manual sync: {{ lastSyncDate }}</p>
+            </div>
         </div>
+        <app-submissiondownload class="setting-section"></app-submissiondownload>
     </div>
 </div>
