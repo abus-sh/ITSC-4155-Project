@@ -68,7 +68,7 @@ def get_assignments_due_soon():  # noqa: C901
         assignments = canvas_api.get_calendar_events(canvas_key, start_date, end_date)
 
         fields = [
-            'title', 'type', 'submission_types', 'html_url', 'context_name',
+            'title', 'type', 'submission_types', 'html_url', 'context_name', 'context_code'
         ]
         extra_fields = [
             'id', 'points_possible', 'graded_submissions_exist', 'user_submitted'
