@@ -516,6 +516,9 @@ def create_new_conversation(owner: models.User, task_id: int, conv_id: int) -> b
     :return bool: Returns True if the conversation was created, False otherwise.
     """
     try:
+        already_exists = models.Conversation.query.filter_by(owner=owner.id, task_id=task_id, conversation_id=conv_id)
+        if already_exists:
+            return True
         new_conv = models.Conversation(owner=owner.id, task_id=task_id, conversation_id=conv_id)
         models.db.session.add(new_conv)
         models.db.session.commit()
@@ -539,18 +542,19 @@ def get_user_conversations(owner: models.User, dict: bool=False) -> list[models.
     return models.User.query.get(owner.id).conversations
 
 
-def valid_task_id(canvas_id: int, owner: models.User) -> int:
+def valid_task_id(owner: models.User, canvas_id: int, ) -> tuple[int, bool] | None:
     """
-    Check if a task ID is valid for a given user.
+    Check if a task ID is valid for a given user to create a conversation.
 
-    :param canvas_id: The ID of the canvas assignment to check.
     :param owner: The owner of the task.
-    :return int | None: The ID of the task if it is valid.
+    :param canvas_id: The ID of the canvas assignment to check.
+    :return (int, bool): The ID of the task if it is valid, and if a conversation already exists for said task.
     """
     task = models.Task.query.filter_by(canvas_id=canvas_id, owner=owner.id).first()
     if not task or not task.id:
         return None
-    return task.id
+    conv_exists = models.Conversation.query.filter_by(owner=owner.id, task_id=task.id).first()
+    return task.id, True if conv_exists else None
 
 
 #########################################################################

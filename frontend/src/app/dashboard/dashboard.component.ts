@@ -49,7 +49,7 @@ export interface AddSubtaskBody {
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent, 
+    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent,
         SendmessageComponent, TasknoteComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
@@ -76,7 +76,7 @@ export class DashboardComponent implements OnInit {
 
     constructor(private fb: FormBuilder, private canvasService: CanvasService,
         private renderer: Renderer2) {
-        
+
         this.addSubtaskForm = this.fb.group({
             name: ['', Validators.required],
             description: [''],
@@ -150,13 +150,13 @@ export class DashboardComponent implements OnInit {
         const button = event.target as HTMLElement;
         const card = button.parentElement?.parentElement as HTMLElement;
         const dropdown = button.parentElement?.nextElementSibling as HTMLElement;
-    
+
         // Hide the previously opened dropdown, if any
         if (this.previousDropdown && this.previousDropdown !== dropdown) {
             this.renderer.removeClass(this.previousDropdown, 'show');
             this.renderer.removeClass(this.previousDropdown.parentElement, 'show-dropdown');
         }
-    
+
         // Toggle the clicked dropdown
         if (this.previousDropdown == dropdown) {
             this.renderer.removeClass(dropdown, 'show');
@@ -173,7 +173,7 @@ export class DashboardComponent implements OnInit {
     async toggleSubtaskStatus(subtask: Subtask) {
         // If you send multiple toggle status rapidly to Todoist, 
         // they won't be processed in exact order, causing some to be ignored
-        if (this.cantToggle) { 
+        if (this.cantToggle) {
             return;
         }
         this.cantToggle = true;
@@ -213,7 +213,7 @@ export class DashboardComponent implements OnInit {
 
     /*      NOTE FORM         */
 
-    openNoteForm(assignment: Assignment, event: MouseEvent|KeyboardEvent) {
+    openNoteForm(assignment: Assignment, event: MouseEvent | KeyboardEvent) {
         if (event.target === null) {
             return;
         }
@@ -244,8 +244,10 @@ export class DashboardComponent implements OnInit {
     /*      SEND MESSAGE FORM         */
 
     openSendMessageForm(assignment: Assignment) {
-        this.sendMessageAssignment = assignment;
-        this.sendMessageFormDisplay = true;
+        if (assignment.id !== undefined) {
+            this.sendMessageAssignment = assignment;
+            this.sendMessageFormDisplay = true;
+        }
     }
 
     closeSendMessageForm() {

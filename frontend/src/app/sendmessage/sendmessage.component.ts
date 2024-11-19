@@ -36,7 +36,7 @@ export class SendmessageComponent implements OnInit {
 
     ngOnInit(): void {
         // Send request to get professor and TA's ids to send emails to
-        if (this.messageAssignment !== null && this.messageAssignment !== undefined) {
+        if (this.messageAssignment !== null && this.messageAssignment !== undefined && this.messageAssignment.id !== undefined) {
             const course_id = this.messageAssignment?.context_code ? this.messageAssignment.context_code.split('_')[1] : '';
             this.http.get<Recipient[]>(getBackendURL() + `/api/v1/courses/get_emails/${course_id}`, { withCredentials: true })
                 .subscribe((data: Recipient[]) => {
@@ -58,6 +58,7 @@ export class SendmessageComponent implements OnInit {
                 recipients: this.messageForm.controls['recipients'].value,
                 subject: this.messageForm.controls['subject'].value,
                 body: this.messageForm.controls['body'].value,
+                canvas_id: this.messageAssignment?.id,
             };
 
             this.http.post(getBackendURL() + '/api/v1/user/send_message', messageData, { withCredentials: true })

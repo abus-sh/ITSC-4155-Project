@@ -215,25 +215,30 @@ def send_message_to_professor_ta():
         recipients = data.get('recipients')
         subject = data.get('subject').strip()
         body = data.get('body').strip()
-        canvas_id = data.get('canvas_id').strip()
+        canvas_id = int(data.get('canvas_id'))
         
         if not recipients or not subject or not body or not isinstance(recipients, list) or not canvas_id:
             return 'Invalid payload', 400
         
-        task_id = queries.valid_task_id(current_user, canvas_id)
+        task_id, conv_exists = queries.valid_task_id(current_user, canvas_id)
         if not task_id:
             return 'Conversation associated with invalid task', 400
         
-        conversation_id = canvas_api.create_message(canvas_key, recipients, subject, body)
+        conversation_id = canvas_api.send_message(canvas_key, recipients, subject, body, conv_exists)
+
+        if not conversation_id:
+            return 'Unable to send message', 400
         result = queries.create_new_conversation(current_user, task_id, conversation_id)
         if result is False:
             return 'Unable to create conversation successfully', 400
         
-    except Exception:
+    except Exception as e:
+        print(e)
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to determine message fields', 404
     return jsonify('Message sent successfully!'), 200
+
 
 @user.route('/get_conversations', methods=['GET'])
 def get_conversations():

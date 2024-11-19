@@ -382,7 +382,7 @@ def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
     return [{field: getattr(user, field, None) for field in fields} for user in user_list]
 
 
-def create_message(canvas_key: str, recipients: list, subject: str, body: str) -> int:
+def send_message(canvas_key: str, recipients: list, subject: str, body: str, conv_exists: bool=False) -> int:
     """
     This function is used to send a message to a user in Canvas.
     
@@ -390,11 +390,14 @@ def create_message(canvas_key: str, recipients: list, subject: str, body: str) -
     :param recipients: A list of user IDs to send the message to.
     :param subject: The subject of the message.
     :param body: The body of the message.
+    :param conv_exists: A boolean to determine if a new conversation should be created.
     :return int: The ID of the conversation that the message was sent part of.
     """
     canvas = Canvas(BASE_URL, canvas_key)
-    result = canvas.create_conversation(recipients=recipients, subject=subject, body=body)
-    return result
+    result = canvas.create_conversation(recipients=recipients, subject=subject, body=body, 
+                                        force_new=not conv_exists, group_conversation=True)
+
+    return result[0].id
 
 def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:
     """

@@ -86,6 +86,7 @@ class User(UserMixin, ModelMixin, db.Model):
     todoist_token_session = None        # Placeholder for encrypted token with session key
 
     tasks = relationship('Task', back_populates='user', cascade="all, delete-orphan")
+    conversations = relationship('Conversation', back_populates='user', cascade="all, delete-orphan")
 
     # When the `login_manager.user_loader` is run for the login, this is the parameter it will use
     def get_id(self):
