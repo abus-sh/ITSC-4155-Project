@@ -194,3 +194,20 @@ class SubTask(ModelMixin, db.Model):
     due_date = Column(String(12), nullable=True)
 
     task = relationship('Task', back_populates='subtasks')
+
+
+class Filter(ModelMixin, db.Model):
+    """
+    A new Filter instance.
+        :param id: The auto-generated table ID.
+        :type id: int
+        :param owner: The ID of the User that owns the filter.
+        :type owner: int
+        :param filter: The word or phrase to filter.
+        :type filter: str
+    """
+    __tablename__ = 'filters'
+    
+    id = Column(Integer, primary_key=True)
+    owner = Column(Integer, ForeignKey('users.id'), nullable=False)
+    filter = Column(String(50), nullable=False)

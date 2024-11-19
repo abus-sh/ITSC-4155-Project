@@ -400,7 +400,7 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]):
 
 #########################################################################
 #                                                                       #
-#                             SUBTASKS                                  #
+#                               SUBTASKS                                #
 #                                                                       #
 #########################################################################
 
@@ -493,10 +493,102 @@ def update_task_or_subtask_status(owner: models.User, task: models.Task | models
     try:
         task.status = status
         models.db.session.commit()
+        return True
     except Exception as e:
         models.db.session.rollback()
         print(f"Error updating task status: {e}")
     return False
+
+
+#########################################################################
+#                                                                       #
+#                                FILTERS                                #
+#                                                                       #
+#########################################################################
+
+
+def get_filters(owner: models.User) -> list[str]:
+    """
+    Gets all filters for a given user.
+
+    Args:
+        owner (User): The User who owns the filters.
+
+    Returns:
+        list[str]: A list of filters created by the user.
+    """
+    filters = models.Filter.query.filter(
+        models.Filter.owner == owner.id
+    ).with_entities(models.Filter.filter).all()
+
+    filters = [row[0] for row in filters]
+
+    return filters
+
+
+def create_filter(owner: models.User, filter: str) -> bool:
+    """
+    Creates a new filter for the given user.
+
+    Args:
+        owner (User): The User who will own the filter.
+        filter (str): The filter to create.
+    
+    Retuns:
+        bool: True if the filter was created successfully, False otherwise.
+    """
+    if filter == '':
+        return False
+
+    try:
+        filter = models.Filter(owner=owner.id, filter=filter)
+        models.db.session.add(filter)
+        models.db.session.commit()
+        return True
+    except Exception as e:
+        models.db.session.rollback()
+        print(f"Error creating filter: {e}")
+
+    return False
+
+
+def delete_filter(owner: models.User, filter: str) -> int | None:
+    """
+    Deletes the given filter owned by the owner.
+
+    Args:
+        owner (User): The User that owns the filter.
+        filter (str): The filter to delete.
+    
+    Returns:
+        int | None: The filter's internal ID if one was deleted. If no ID was deleted, None is
+        returned instead.
+    
+    Raises:
+        ValueError: If the given filter does not exist for the given user.
+    """
+    try:
+        filter_db: models.Filter = models.Filter.query.filter(
+            models.Filter.owner == owner.id,
+            models.Filter.filter == filter
+        ).first()
+
+        if filter_db is None:
+            raise ValueError
+
+        db_id = filter_db.id
+
+        models.db.session.delete(filter_db)
+        models.db.session.commit()
+
+        return db_id
+    except ValueError:
+        raise ValueError
+    except Exception as e:
+        models.db.session.rollback()
+        print(f"Error deleting filter: {e}")
+
+    return None
 
 
 #########################################################################
