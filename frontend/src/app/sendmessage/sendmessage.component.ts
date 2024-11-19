@@ -60,7 +60,7 @@ export class SendmessageComponent implements OnInit {
                 body: this.messageForm.controls['body'].value,
             };
 
-            this.http.post(getBackendURL() + '/api/v1/courses/send_message', messageData, { withCredentials: true })
+            this.http.post(getBackendURL() + '/api/v1/user/send_message', messageData, { withCredentials: true })
                 .subscribe(response => {
                     console.log(response);
                     this.closeMessageForm();

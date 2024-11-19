@@ -501,6 +501,57 @@ def update_task_or_subtask_status(owner: models.User, task: models.Task | models
 
 #########################################################################
 #                                                                       #
+#                           CONVERSATION                                #
+#                                                                       #
+#########################################################################
+
+
+def create_new_conversation(owner: models.User, task_id: int, conv_id: int) -> bool:
+    """
+    Create a new conversation in the database.
+
+    :param owner: The User who owns the conversation.
+    :param task_id: The ID of the task that the conversation is associated with.
+    :param conv_id: The ID of the conversation in the Canvas API.
+    :return bool: Returns True if the conversation was created, False otherwise.
+    """
+    try:
+        new_conv = models.Conversation(owner=owner.id, task_id=task_id, conversation_id=conv_id)
+        models.db.session.add(new_conv)
+        models.db.session.commit()
+        return True
+    except Exception as e:
+        models.db.session.rollback()
+        print(f"Error creating conversation: {e}")
+    return False
+
+
+def get_user_conversations(owner: models.User) -> list[models.Conversation]:
+    """
+    Retrieve all conversations for a user.
+
+    :param owner: The owner of the conversations.
+    :return list[Conversation]: A list of Conversation instances.
+    """
+    return models.User.query.get(owner.id).conversations
+
+
+def valid_task_id(canvas_id: int, owner: models.User) -> int:
+    """
+    Check if a task ID is valid for a given user.
+
+    :param canvas_id: The ID of the canvas assignment to check.
+    :param owner: The owner of the task.
+    :return int | None: The ID of the task if it is valid.
+    """
+    task = models.Task.query.filter_by(canvas_id=canvas_id, owner=owner.id).first()
+    if not task or not task.id:
+        return None
+    return task.id
+
+
+#########################################################################
+#                                                                       #
 #    THIS IS PURELY FOR TESTING DON'T USE THESE FUNCTIONS OTHERWISE     #
 #                                                                       #
 #########################################################################

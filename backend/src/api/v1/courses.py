@@ -257,27 +257,3 @@ def get_professor_ta_ids(courseid):
     except AttributeError:
         return 'Unable to get field for users in course', 404
     return jsonify(professor_ta_ids), 200
-
-
-@courses.route('/send_message', methods=['POST'])
-def send_message_to_professor_ta():
-    canvas_key = decrypt_canvas_key()
-    
-    try:
-        data = request.json
-
-        recipients = data.get('recipients')
-        subject = data.get('subject').strip()
-        body = data.get('body').strip()
-
-        if not recipients or not subject or not body or not isinstance(recipients, list):
-            return 'Invalid payload', 400
-
-        conversation_id = canvas_api.create_message(canvas_key, recipients, subject, body)
-        print(conversation_id)
-        
-    except Exception:
-        return 'Unable to make request to Canvas API', 400
-    except AttributeError:
-        return 'Unable to determine message fields', 404
-    return jsonify('Message sent successfully!'), 200

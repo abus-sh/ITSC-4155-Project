@@ -203,3 +203,33 @@ def get_calendar_events():
     except AttributeError:
         return 'Unable to get field for calendar event', 404
     return jsonify(calendar_events), 200
+
+@user.route('/send_message', methods=['POST'])
+def send_message_to_professor_ta():
+    canvas_key = decrypt_canvas_key()
+    
+    try:
+        data = request.json
+
+        recipients = data.get('recipients')
+        subject = data.get('subject').strip()
+        body = data.get('body').strip()
+        canvas_id = data.get('canvas_id').strip()
+        
+        if not recipients or not subject or not body or not isinstance(recipients, list) or not canvas_id:
+            return 'Invalid payload', 400
+        
+        task_id = queries.valid_task_id(current_user, canvas_id)
+        if not task_id:
+            return 'Conversation associated with invalid task', 400
+        
+        conversation_id = canvas_api.create_message(canvas_key, recipients, subject, body)
+        result = queries.create_new_conversation(current_user, task_id, conversation_id)
+        if result is False:
+            return 'Unable to create conversation successfully', 400
+        
+    except Exception:
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError:
+        return 'Unable to determine message fields', 404
+    return jsonify('Message sent successfully!'), 200
