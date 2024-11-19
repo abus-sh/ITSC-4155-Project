@@ -2,9 +2,9 @@
     <button class="close-button" (click)="closeForm()">&#10005;</button>
     <h2>Filters</h2>
     <ul>
-        <li *ngFor="let filter of filters" (click)="deleteFilter(filter)">{{ filter }}</li>
+        <li *ngFor="let filter of filters" (click)="deleteFilter(filter)" (keypress)="deleteFilter(filter)" tabindex="0">{{ filter }}</li>
     </ul>
-    <p *ngIf="filters.length == 0" class="italic">
+    <p *ngIf="filters.length === 0" class="italic">
         No filters yet.
     </p>
     <p class="error">{{ this.errorMsg }}</p>

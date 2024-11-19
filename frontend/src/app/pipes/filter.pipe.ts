@@ -21,7 +21,7 @@ export class FilterPipe implements PipeTransform {
 
         // Love some O(n^2) code
         return value.filter(assign => {
-            for (let filter of filters) {
+            for (const filter of filters) {
                 if (assign.title.includes(filter)) {
                     return false;
                 }
