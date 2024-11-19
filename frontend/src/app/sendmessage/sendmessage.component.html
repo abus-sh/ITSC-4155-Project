@@ -1,31 +1,63 @@
 <div class="modal-content">
     <button class="close-button" (click)="closeMessageForm()">&#10005;</button>
-    <h2>Send a Message</h2>
-    <form [formGroup]="messageForm" (ngSubmit)="sendMessage()">
-        <div>
-            <label for="recipients">Professor & TAs</label>
-            <select id="recipients" multiple (change)="toggleRecipientSelection($event)">
-                <option *ngFor="let recipient of recipientsList" [value]="recipient.id">
-                    {{ recipient.name }}
-                </option>
-            </select>
-        </div>
-        <div>
-            <label>Selected Recipients</label>
-            <div class="selected-recipient-container">
-                <button *ngFor="let recipient of selectedRecipients" type="button" class="selected-recipient"
-                    (click)="removeRecipient(recipient.id)">{{ recipient.name }}</button>
+    <h2>Message Center</h2>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button *ngFor="let tab of tabs; let i = index" [class.active]="activeTab === i" (click)="switchTab(i)">
+            {{ tab }}
+        </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div *ngIf="activeTab === 0">
+        <!-- Send a Message Tab -->
+        <h3>Send a Message</h3>
+        <form [formGroup]="messageForm" (ngSubmit)="sendMessage()">
+            <!-- Send message form fields -->
+            <div>
+                <label for="recipients">Professor & TAs</label>
+                <select id="recipients" multiple (change)="toggleRecipientSelection($event)">
+                    <option *ngFor="let recipient of recipientsList" [value]="recipient.id">
+                        {{ recipient.name }}
+                    </option>
+                </select>
+            </div>
+            <div>
+                <label>Selected Recipients</label>
+                <div class="selected-recipient-container">
+                    <button *ngFor="let recipient of selectedRecipients" type="button" class="selected-recipient"
+                        (click)="removeRecipient(recipient.id)">{{ recipient.name }}</button>
+                </div>
+            </div>
+            <br>
+            <div>
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" formControlName="subject" placeholder="Enter message subject">
+            </div>
+            <div>
+                <label for="body">Message Body</label>
+                <textarea id="body" formControlName="body" rows="5" placeholder="Enter your message"></textarea>
+            </div>
+            <button type="submit">Send Message</button>
+        </form>
+    </div>
+
+    <!-- Conversation Tabs -->
+    <ng-container *ngFor="let conversation of conversations; let i = index">
+        <div *ngIf="activeTab === i + 1">
+            <!-- Conversation Tab -->
+            <h3>{{ conversation.subject }}</h3>
+            <div class="messages">
+                <div *ngFor="let message of conversation.messages">
+                    <p><strong>{{ getParticipantName(message.author_id, conversation) }}:</strong> {{ message.body }}</p>
+                    <p class="timestamp">{{ message.created_at | date: 'short' }}</p>
+                </div>
+            </div>
+            <div>
+                <textarea [(ngModel)]="replyTexts[conversation.id]" rows="3" placeholder="Type your reply"></textarea>
+                <button (click)="sendReply(conversation.id)">Reply</button>
             </div>
         </div>
-        <br>
-        <div>
-            <label for="subject">Subject</label>
-            <input type="text" id="subject" formControlName="subject" placeholder="Enter message subject">
-        </div>
-        <div>
-            <label for="body">Message Body</label>
-            <textarea id="body" formControlName="body" rows="5" placeholder="Enter your message"></textarea>
-        </div>
-        <button type="submit">Send Message</button>
-    </form>
+    </ng-container>
 </div>

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Assignment } from '../dashboard/dashboard.component';
 import { HttpClient } from '@angular/common/http';
 import { getBackendURL } from '../../config';
@@ -14,7 +14,7 @@ export interface Recipient {
 @Component({
     selector: 'app-sendmessage',
     standalone: true,
-    imports: [ReactiveFormsModule, CommonModule],
+    imports: [ReactiveFormsModule, CommonModule, FormsModule ],
     templateUrl: './sendmessage.component.html',
     styleUrl: './sendmessage.component.scss'
 })
@@ -27,6 +27,11 @@ export class SendmessageComponent implements OnInit {
     selectedRecipients: Recipient[] = [];
     recipientsIds: number[] = [];
 
+    tabs: string[] = ['Send a Message'];
+    activeTab = 0;
+    conversations: any[] = [];
+    replyTexts: { [conversationId: number]: string } = {};
+
     constructor(private fb: FormBuilder, private http: HttpClient) {
         this.messageForm = this.fb.group({
             recipients: [this.recipientsIds, [Validators.minLength(1)]],
@@ -36,27 +41,28 @@ export class SendmessageComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        // Send request to get professor and TA's ids to send emails to
-        if (this.messageAssignment !== null && this.messageAssignment !== undefined && this.messageAssignment.id !== undefined) {
-            const course_id = this.messageAssignment?.context_code ? this.messageAssignment.context_code.split('_')[1] : '';
-            const assignmend_id = this.messageAssignment?.id;
+        if (this.messageAssignment?.id) {
+            const course_id = this.messageAssignment?.context_code?.split('_')[1] ?? '';
+            const assignment_id = this.messageAssignment?.id;
+
             this.http.get<Recipient[]>(getBackendURL() + `/api/v1/courses/get_emails/${course_id}`, { withCredentials: true })
-                .subscribe((data: Recipient[]) => {
-                    this.recipientsList = data;
-                    this.recipientsList.push({ id: 264631, name: 'Alberto' });
-                });
-                
-                this.http.get(getBackendURL() + `/api/v1/user/get_conversations/${assignmend_id}`, { withCredentials: true })
+                .subscribe((data: Recipient[]) => this.recipientsList = data);
+
+            this.http.get(getBackendURL() + `/api/v1/user/get_conversations/${assignment_id}`, { withCredentials: true })
                 .subscribe((data: any) => {
-                    console.log(data);
+                    this.conversations = data;
+                    this.conversations.forEach(conversation => {
+                        this.tabs.push(conversation.subject);
+                        this.replyTexts[conversation.id] = '';
+                    });
                 });
         } else {
             this.closeMessageForm();
         }
     }
 
-    closeMessageForm() {
-        this.closeFormAction.emit();
+    switchTab(index: number) {
+        this.activeTab = index;
     }
 
     sendMessage() {
@@ -69,15 +75,28 @@ export class SendmessageComponent implements OnInit {
             };
 
             this.http.post(getBackendURL() + '/api/v1/user/send_message', messageData, { withCredentials: true })
-                .subscribe(response => {
-                    console.log(response);
-                    this.closeMessageForm();
-                }, error => {
-                    console.error('Error sending message:', error);
-                });
-        } else {
-            console.error('Form is invalid', this.messageForm.errors);
+                .subscribe(() => this.closeMessageForm());
         }
+    }
+
+    sendReply(conversationId: number) {
+        const replyBody = this.replyTexts[conversationId];
+        if (replyBody.trim()) {
+            this.http.post(getBackendURL() + '/api/v1/user/reply_message', {
+                body: replyBody,
+                conversation_id: conversationId
+            }, { withCredentials: true })
+                .subscribe(() => this.replyTexts[conversationId] = '');
+        }
+    }
+
+    getParticipantName(authorId: number, conversation: any): string {
+        const participant = conversation.participants.find((p: any) => p.id === authorId);
+        return participant ? participant.name : 'Unknown';
+    }
+
+    closeMessageForm() {
+        this.closeFormAction.emit();
     }
 
     // Method to toggle recipient selection
