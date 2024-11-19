@@ -66,7 +66,7 @@ main {
     background-color: #ff3b30;
     padding: .4rem .8rem;
     transition: all 0.5s ease;
-    z-index: 50;
+    z-index: 30;
 }
 
 .sidebar.active~.main.content {
@@ -201,11 +201,13 @@ main {
     line-height: 1.8rem;
     z-index: 20;
     opacity: 0;
+    display: none;
 }
 
 .sidebar ul li:hover .tooltip {
     opacity: 1;
-    z-index: 30
+    z-index: 30;
+    display: block;
 }
 
 .sidebar ul li .tooltip:hover {

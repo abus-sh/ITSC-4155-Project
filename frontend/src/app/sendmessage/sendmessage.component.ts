@@ -42,6 +42,8 @@ export class SendmessageComponent implements OnInit {
         // Send request to get professor and TA's ids to send emails to
         if (this.messageAssignment !== null && this.messageAssignment !== undefined) {
             console.log('Getting professor for course:', this.messageAssignment.context_code);
+        } else {
+            this.closeMessageForm();
         }
     }
 
