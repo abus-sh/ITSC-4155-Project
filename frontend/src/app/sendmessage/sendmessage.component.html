@@ -39,7 +39,7 @@
                 <label for="body">Message Body</label>
                 <textarea id="body" formControlName="body" rows="5" placeholder="Enter your message"></textarea>
             </div>
-            <button class="send-message-button" type="submit">Send Message</button>
+            <button id="message-button" class="send-message-button" type="submit" [disabled]="isSendingMessage" [class.button-disabled]="isSendingMessage">Send Message</button>
         </form>
     </div>
 
@@ -56,7 +56,7 @@
             </div>
             <div class="message-reply">
                 <textarea [(ngModel)]="replyTexts[conversation.id]" rows="3" placeholder="Type your reply"></textarea>
-                <button class="send-message-button" (click)="sendReply(conversation.id)">Reply</button>
+                <button class="send-message-button" (click)="sendReply(conversation.id)" [disabled]="isSendingReply[conversation.id]" [class.button-disabled]="isSendingReply[conversation.id]">Reply</button>
             </div>
         </div>
     </ng-container>

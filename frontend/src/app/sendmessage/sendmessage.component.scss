@@ -32,6 +32,12 @@
     transition: background-color 0.3s;
 }
 
+#message-button.button-disabled,
+button.button-disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
 .tabs {
     display: flex;
     flex-wrap: wrap;

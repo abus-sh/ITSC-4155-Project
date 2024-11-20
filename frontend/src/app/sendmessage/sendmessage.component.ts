@@ -46,6 +46,9 @@ export class SendmessageComponent implements OnInit {
     conversations: Conversation[] = [];
     replyTexts: { [conversationId: number]: string } = {};
 
+    isSendingMessage = false;
+    isSendingReply: { [conversationId: number]: boolean } = {};
+
     constructor(private fb: FormBuilder, private http: HttpClient) {
         this.messageForm = this.fb.group({
             recipients: [this.recipientsIds, [Validators.minLength(1)]],
@@ -91,24 +94,53 @@ export class SendmessageComponent implements OnInit {
                 body: this.messageForm.controls['body'].value,
                 canvas_id: this.messageAssignment?.id,
             };
-
+            this.isSendingMessage = true;
+            
             this.http.post(getBackendURL() + '/api/v1/user/send_message', messageData, { withCredentials: true })
-                .subscribe(() => this.closeMessageForm());
+                .subscribe(() => {
+                    this.isSendingMessage = false;
+                    this.closeMessageForm();
+                }, () => {
+                    this.isSendingMessage = false;
+                });
         }
     }
 
     sendReply(conversationId: number) {
         const replyBody = this.replyTexts[conversationId];
         if (replyBody.trim()) {
+            this.isSendingReply[conversationId] = true;
+
             this.http.post(getBackendURL() + '/api/v1/user/reply_message', {
                 body: replyBody,
                 conversation_id: conversationId
             }, { withCredentials: true })
-                .subscribe(() => this.replyTexts[conversationId] = '');
+                .subscribe(() => {
+
+                    this.isSendingReply[conversationId] = false;
+                    // Clear the reply text
+                    this.replyTexts[conversationId] = '';
+
+                    // Find the conversation and add the new message at the top
+                    const conversation = this.conversations.find(conv => conv.id === conversationId);
+                    if (conversation) {
+                        conversation.messages.unshift({
+                            id: Date.now(), // Temporary ID, replace with actual ID if available
+                            author_id: -1, // Replace with actual author ID
+                            body: replyBody,
+                            created_at: new Date().toISOString()
+                        });
+                    }
+                }, () => {
+                    this.isSendingReply[conversationId] = false;
+                });
         }
     }
 
     getParticipantName(authorId: number, conversation: Conversation): string {
+        if (authorId === -1) {
+            return 'You';
+        }
         const participant = conversation.participants.find((p: any) => p.id === authorId);
         return participant ? participant.name : 'Unknown';
     }
