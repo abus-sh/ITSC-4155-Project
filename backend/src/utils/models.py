@@ -70,7 +70,7 @@ class User(UserMixin, ModelMixin, db.Model):
 
     # Info for login
     login_id = Column(String(100), unique=True, nullable=False)
-    username = Column(String(100), unique=False, nullable=False)
+    username = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), unique=False, nullable=False)
 
     # Canvas info for user

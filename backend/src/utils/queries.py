@@ -68,6 +68,16 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
         return False
 
 
+def does_username_exists(username: str) -> bool:
+    """
+    Check if a user with the given username exists in the database.
+
+    :param username: The username to check.
+    :return bool: Returns True if the user exists, False otherwise.
+    """
+    return models.User.query.filter_by(username=username).first() is not None
+
+
 def update_password(user: models.User, new_password: str, old_password: str):
     try:
         # Re-encrypt token with new password
@@ -398,6 +408,18 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]):
     except Exception as e:
         print("Subtask rollback", e)
         models.db.session.rollback()
+
+
+def send_task_invitation(owner: models.User, task: models.Task, recipient: str) -> bool:
+    """
+    Send an invitation to a user to join a task.
+
+    :param owner: The owner of the task.
+    :param task: The task to send the invitation for.
+    :param recipient: The username of the recipient.
+    :return bool: Returns True if the invitation was sent, False otherwise.
+    """
+    user = models.User.query.filter_by(username=recipient).first()
 
 #########################################################################
 #                                                                       #
