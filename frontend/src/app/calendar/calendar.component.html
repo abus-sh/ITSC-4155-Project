@@ -4,6 +4,7 @@
         <h2>{{ monthName }} {{ year }}</h2>
         <button (click)="nextMonth()" class="nav-button"><strong>&#9654;</strong></button>
     </div>
+    <button (click)="openFilterForm()" class="filters-button">Filters</button>
 
     <!-- Checkboxes for filtering -->
     <div class="filters">
@@ -26,7 +27,7 @@
             }">
             <div class="date">{{ day.date.getDate() }}</div>
             <div class="items">
-                <ng-container *ngFor="let item of day.items">
+                <ng-container *ngFor="let item of day.items | filter: this.filters">
                     <a *ngIf="(item.type === 'event' && showEvents) || (item.type === 'assignment' && showAssignments)"
                        [ngClass]="getClass(item)" 
                        class="item" 
@@ -39,4 +40,7 @@
             </div>
         </div>
     </div>
+
+    <!-- Add a filter -->
+    <app-addfilter class="modal" *ngIf="filterFormDisplay" (closeFormAction)="closeFilterForm()"></app-addfilter>
 </div>

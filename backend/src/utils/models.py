@@ -212,3 +212,23 @@ class Conversation(ModelMixin, db.Model):
     canvas_id = Column(Integer, nullable=False)
 
     user = relationship('User', back_populates='conversations')
+
+
+class Filter(ModelMixin, db.Model):
+    """
+    A new Filter instance.
+        :param id: The auto-generated table ID.
+        :type id: int
+        :param owner: The ID of the User that owns the filter.
+        :type owner: int
+        :param filter: The word or phrase to filter.
+        :type filter: str
+    """
+    __tablename__ = 'filters'
+    __table_args__ = (
+        db.UniqueConstraint('owner', 'filter'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    owner = Column(Integer, ForeignKey('users.id'), nullable=False)
+    filter = Column(String(50), nullable=False)

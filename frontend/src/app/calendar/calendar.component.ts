@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 import { CanvasService } from '../canvas.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AddfilterComponent } from '../addfilter/addfilter.component';
+import { FilterPipe } from '../pipes/filter.pipe';
+import { FilterService } from '../filter.service';
 
 
 
@@ -28,7 +31,7 @@ interface CalendarDay {
 @Component({
     selector: 'app-calendar',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, AddfilterComponent, FilterPipe],
     templateUrl: './calendar.component.html',
     styleUrls: ['./calendar.component.scss']
 })
@@ -43,10 +46,16 @@ export class CalendarComponent {
     showEvents = true;       
     showAssignments = true;  
 
-    constructor(private canvasService: CanvasService) {
+    filterFormDisplay = false;
+    filters: string[] = [];
+
+    constructor(private canvasService: CanvasService, private filterService: FilterService) {
         this.monthView = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
         this.todayString = this.monthView.toDateString();
         this.updateCalendar();
+
+        this.filterService.filters$.subscribe(filters => this.filters = filters);
+        this.filterService.getFilters();
     }
 
     /***********************************      
@@ -144,5 +153,21 @@ export class CalendarComponent {
 
     getClass(item: CalendarEvent) {
         return item.type + (item.user_submitted ? ' submitted' : '')
+    }
+
+    /***********************************      
+    * 
+    *       Filter Management
+    * 
+    ***********************************/
+    
+    openFilterForm() {
+        console.log('open');
+        this.filterFormDisplay = true;
+    }
+
+    closeFilterForm() {
+        console.log('close');
+        this.filterFormDisplay = false;
     }
 }
