@@ -410,16 +410,46 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]):
         models.db.session.rollback()
 
 
-def send_task_invitation(owner: models.User, task: models.Task, recipient: str) -> bool:
+def send_subtask_invitation(owner: models.User, recipient: str, task_id: int, subtask_id: int) -> bool:
     """
-    Send an invitation to a user to join a task.
-
+    Send an invitation to a user to join a subtask.
+    
     :param owner: The owner of the task.
-    :param task: The task to send the invitation for.
     :param recipient: The username of the recipient.
-    :return bool: Returns True if the invitation was sent, False otherwise.
+    :param task_id: The ID of the task.
+    :param subtask_id: The ID of the subtask.
+    :return bool: True if the invitation was sent, False otherwise.
     """
-    user = models.User.query.filter_by(username=recipient).first()
+    recipient = models.User.query.filter_by(username=recipient).first()
+    subtask = models.SubTask.query.get(subtask_id)
+    if not recipient or not subtask or subtask.owner != owner.id:
+        return False
+    
+    recipient_has_task = models.Task.query.filter_by(owner=recipient.id, canvas_id=subtask.task.canvas_id).first()
+    if not recipient_has_task:
+        return False
+    
+    task_invitation = models.SubTaskInvitation(owner=owner.id, recipient=recipient.id, task_id=task_id, subtask_id=subtask_id)    
+    models.db.session.add(task_invitation)
+    models.db.session.commit()
+
+
+
+def get_subtask_invitations(recipient: models.User, dict=False) -> list[models.SubTaskInvitation] | list[dict]:
+    """
+    Retrieve all subtask invitations for a user.
+    
+    :param recipient: The recipient of the subtask invitations.
+    :param dict: If True, return the subtask invitations as a list of dictionaries. Defaults to False.
+    :return list[TaskInvitation] or list[dict]: A list of subtask invitations or a list of dictionaries
+    if dict is True.
+    """
+    invitations = models.SubTaskInvitation.query.filter_by(recipient=recipient.id).all()
+    if dict:
+        return [invitation.to_dict() for invitation in invitations]
+    return invitations
+    
+    
 
 #########################################################################
 #                                                                       #
@@ -579,6 +609,7 @@ def valid_task_id(owner: models.User, canvas_id: int) -> tuple[int, bool] | None
         return None
     conv_exists = models.Conversation.query.filter_by(owner=owner.id, canvas_id=canvas_id).first()
     return canvas_id, True if conv_exists else None
+
 
 def get_conversation_by_canvas_id(owner: models.User, canvas_id: int) -> list[int]:
     """

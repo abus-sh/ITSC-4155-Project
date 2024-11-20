@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from argon2 import PasswordHasher
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Index
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Index, JSON
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import relationship
 import string
@@ -87,6 +87,7 @@ class User(UserMixin, ModelMixin, db.Model):
 
     tasks = relationship('Task', back_populates='user', cascade="all, delete-orphan")
     conversations = relationship('Conversation', back_populates='user', cascade="all, delete-orphan")
+    invitations_received = relationship('SubTaskInvitation', foreign_keys='SubTaskInvitation.recipient_id', back_populates='recipient', cascade="all, delete-orphan")
 
     # When the `login_manager.user_loader` is run for the login, this is the parameter it will use
     def get_id(self):
@@ -193,13 +194,46 @@ class SubTask(ModelMixin, db.Model):
     description = Column(String(500), nullable=True)
     status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.Incomplete)
     due_date = Column(String(12), nullable=True)
+    shared_with = Column(JSON, nullable=True, default=[])
 
     task = relationship('Task', back_populates='subtasks')
+    
+    
+class SubTaskShared(ModelMixin, db.Model):
+    """
+    A new SubTaskShared instance.
+    :param id: The auto-generated table ID.
+    :type id: int
+    :param owner: The ID of the User that owns the shared subtask.
+    :type owner: int
+    :param subtask_id: The ID of the SubTask that is shared.
+    :type subtask_id: int
+    :param todoist_id: The ID of the task in Todoist, if one exists.
+    :type todoist_id: str | None
+    """
+    __tablename__ = 'shared_subtasks'
+    __table_args__ = (
+        Index('idx_owner_subtask_id', 'subtask_id', 'owner'),
+    )
+    id = Column(Integer, primary_key=True)
+    owner = Column(Integer, ForeignKey('users.id'), nullable=False)
+    subtask_id = Column(Integer, ForeignKey('subtasks.id', ondelete='CASCADE'), nullable=False)
+    todoist_id = Column(String(15), unique=False, nullable=True)
+    
+    task = relationship('Task')
     
 
 class Conversation(ModelMixin, db.Model):
     """
-
+    A new Conversation instance.
+        :param id: The auto-generated table ID.
+        :type id: int
+        :param owner: The ID of the User that owns the conversation.
+        :type owner: int
+        :param conversation_id: The ID of the conversation.
+        :type conversation_id: int
+        :param canvas_id: The ID of the Canvas assignment.
+        :type canvas_id: int
     """
     __tablename__ = 'conversations'
     __table_args__ = (
@@ -212,6 +246,36 @@ class Conversation(ModelMixin, db.Model):
     canvas_id = Column(Integer, nullable=False)
 
     user = relationship('User', back_populates='conversations')
+    
+    
+class SubTaskInvitation(ModelMixin, db.Model):
+    """
+    A new SubTaskInvitation instance.
+        :param id: The auto-generated table ID.
+        :type id: int
+        :param owner: The ID of the User that owns the invitation.
+        :type owner: int
+        :param recipient_id: The ID of the User that the invitation is for.
+        :type recipient_id: int
+        :param task_id: The ID of the Task that the invitation is for.
+        :type task_id: int
+        :param subtask_id: The ID of the SubTask that the invitation is for.
+        :type subtask_id: int | None
+    """
+    __tablename__ = 'subtask_invitations'
+    __table_args__ = (
+        Index('idx_task_id_recipient', 'task_id', 'recipient_id'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    owner = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    recipient_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    task_id = Column(Integer, ForeignKey('tasks.id', ondelete='CASCADE'), nullable=True)
+    subtask_id = Column(Integer, ForeignKey('subtasks.id', ondelete='SET NULL'), nullable=True)
+    
+    task = relationship('Task')
+    recipient = relationship('User', foreign_keys=[recipient_id], back_populates='invitations_received')
+    
 
 
 class Filter(ModelMixin, db.Model):

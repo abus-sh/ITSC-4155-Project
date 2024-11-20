@@ -177,12 +177,12 @@ def update_description(task_id: str):
 
     return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
 
-@tasks.path('share_task/<task_id>')
+
+@tasks.post('send_invitation/<task_id>')
 def share_task(task_id: str):
     task = queries.get_task_by_id(current_user, task_id)
     if task is None:
         return jsonify({'success': False, 'message': 'No task with the given ID exists.'}), 404
     
     
-
     return jsonify({'success': True, 'message': 'OK.'}), 200
