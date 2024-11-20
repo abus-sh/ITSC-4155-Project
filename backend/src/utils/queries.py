@@ -503,6 +503,75 @@ def update_task_or_subtask_status(owner: models.User, task: models.Task | models
 
 #########################################################################
 #                                                                       #
+#                           CONVERSATION                                #
+#                                                                       #
+#########################################################################
+
+
+def create_new_conversation(owner: models.User, canvas_id: int, conv_id: int) -> bool:
+    """
+    Create a new conversation in the database.
+
+    :param owner: The User who owns the conversation.
+    :param canvas_id: The ID of the canvas assignment that the conversation is associated with.
+    :param conv_id: The ID of the conversation in the Canvas API.
+    :return bool: Returns True if the conversation was created, False otherwise.
+    """
+    try:
+        already_exists = models.Conversation.query.filter_by(owner=owner.id, canvas_id=canvas_id, conversation_id=conv_id).first()
+        if already_exists:
+            return True
+        new_conv = models.Conversation(owner=owner.id, canvas_id=canvas_id, conversation_id=conv_id)
+        models.db.session.add(new_conv) 
+        models.db.session.commit()
+        return True
+    except Exception as e:
+        models.db.session.rollback()
+        print(f"Error creating conversation: {e}")
+    return False
+
+
+def get_user_conversations(owner: models.User, dict: bool=False) -> list[models.Conversation] | list[dict]:
+    """
+    Retrieve all conversations for a user.
+
+    :param owner: The owner of the conversations.
+    :param dict: If True, return the conversations as a list of dictionaries. Defaults to False.
+    :return list[Conversation | dict]: A list of all conversations for the user.
+    """
+    if dict:
+        return [conv.to_dict() for conv in models.User.query.get(owner.id).conversations]
+    return models.User.query.get(owner.id).conversations
+
+
+def valid_task_id(owner: models.User, canvas_id: int) -> tuple[int, bool] | None:
+    """
+    Check if a task ID is valid for a given user to create a conversation.
+
+    :param owner: The owner of the task.
+    :param canvas_id: The ID of the canvas assignment to check.
+    :return (int, bool): The ID of the canvas assignment if it is valid, and if a conversation already exists for said task.
+    """
+    task = models.Task.query.filter_by(canvas_id=canvas_id, owner=owner.id).first()
+    if not task or not task.canvas_id:
+        return None
+    conv_exists = models.Conversation.query.filter_by(owner=owner.id, canvas_id=canvas_id).first()
+    return canvas_id, True if conv_exists else None
+
+def get_conversation_by_canvas_id(owner: models.User, canvas_id: int) -> list[int]:
+    """
+    This function retrieves a conversation by the Canvas ID.
+    
+    :param owner: The owner of the conversation.
+    :param canvas_id: The Canvas ID of the conversation.
+    :return list[int]: A list of conversations that match the Canvas ID.
+    """
+    conversations = models.Conversation.query.filter_by(owner=owner.id, canvas_id=canvas_id).all()
+    return [conv.conversation_id for conv in conversations]
+
+
+#########################################################################
+#                                                                       #
 #                                FILTERS                                #
 #                                                                       #
 #########################################################################

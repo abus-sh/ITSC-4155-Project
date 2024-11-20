@@ -368,6 +368,59 @@ def download_submissions_no_cache(submissions: list[Submission]):
     return download_dir
 
 
+def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
+    """
+    This function is used to get the id and name of all teachers and TAs for a course.
+    
+    :param canvas_key: The API key that should be used.
+    :param course_id: The ID of the course to retrieve the users from.
+    :return list[dict]: A list of dictionaries with the id and name of each teacher and TAs
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    user_list = canvas.get_course(course_id).get_users(enrollment_type=['teacher', 'ta'])
+    fields = ['id', 'name']
+    return [{field: getattr(user, field, None) for field in fields} for user in user_list]
+
+
+def send_message(canvas_key: str, recipients: list, subject: str, body: str, conv_exists: bool=False) -> int:
+    """
+    This function is used to send a message to a user in Canvas.
+    
+    :param canvas_key: The API key that should be used.
+    :param recipients: A list of user IDs to send the message to.
+    :param subject: The subject of the message.
+    :param body: The body of the message.
+    :param conv_exists: A boolean to determine if a new conversation should be created.
+    :return int: The ID of the conversation that the message was sent part of.
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    result = canvas.create_conversation(recipients=recipients, subject=subject, body=body, 
+                                        force_new=not conv_exists, group_conversation=True)
+
+    return result[0].id
+
+
+def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
+    """
+    This function is used to get all the conversations for a course.
+    
+    :param canvas_key: The API key that should be used.
+    :param convs_id: The ID of the conversations to retrieve.
+    :return list[dict]: A list of conversations.
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    all_conversations = []
+    for id in convs_id:
+        conv = canvas.get_conversation(id)
+        messages = getattr(conv, 'messages', None)
+        participants = getattr(conv, 'participants', None)
+        if not messages or not participants:
+            continue
+        all_conversations.append({ 'id': id, 'subject': getattr(conv, 'subject', None), 
+                                  'messages': messages, 'participants': participants})
+    return all_conversations
+
+
 def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:
     """
     Converts a course into a dict, taking only the fields specified in fields. If fields is None,

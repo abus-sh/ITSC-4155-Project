@@ -245,9 +245,15 @@ def get_course_assignment(courseid, assignmentid):
         return 'Unable to get field for courses', 404
     return jsonify(assignment_dict), 200
 
-# TO DO:
-# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions (List assignment
-# submissions)
-# GET /api/v1/courses/:course_id/students/submissions (List submissions for multiple assignments)
-# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id (Get a single
-# submission)
+@courses.route('/get_emails/<courseid>', methods=['GET'])
+def get_professor_ta_ids(courseid):
+    canvas_key = decrypt_canvas_key()
+
+    try:
+        professor_ta_ids = canvas_api.get_professor_info(canvas_key, courseid)
+        
+    except Exception:
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError:
+        return 'Unable to get field for users in course', 404
+    return jsonify(professor_ta_ids), 200

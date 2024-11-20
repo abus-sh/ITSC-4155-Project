@@ -5,6 +5,8 @@ import { OrderByPipe } from '../pipes/date.pipe';
 import { CanvasService } from '../canvas.service';
 import { AddtaskComponent } from "../addtask/addtask.component";
 import { TasknoteComponent } from '../tasknote/tasknote.component';
+import { SendmessageComponent } from '../sendmessage/sendmessage.component';
+
 import { AddfilterComponent } from '../addfilter/addfilter.component';
 import { FilterService } from '../filter.service';
 import { FilterPipe } from '../pipes/filter.pipe';
@@ -27,13 +29,14 @@ export interface Assignment {
     submission_types: string[] | string;
     html_url?: string;
     context_name?: string;
+    context_code?: string;
     id?: number;
     db_id?: number;
     points_possible?: number;
     graded_submissions_exist: boolean;
     due_at: string;
     subtasks: Subtask[];
-    user_submitted: boolean;
+    user_submitted?: boolean;
 }
 
 export type SubtasksDict = Record<number, Subtask[]>;
@@ -50,7 +53,7 @@ export interface AddSubtaskBody {
     selector: 'app-dashboard',
     standalone: true,
     imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent, TasknoteComponent,
-        AddfilterComponent, FilterPipe],
+        AddfilterComponent, FilterPipe, SendmessageComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })
@@ -66,6 +69,9 @@ export class DashboardComponent implements OnInit {
 
     noteFormDisplay = false;
     noteAssignment?: Assignment;
+
+    sendMessageFormDisplay = false;
+    sendMessageAssignment?: Assignment;
 
     filterFormDisplay = false;
     filters: string[] = [];
@@ -153,13 +159,13 @@ export class DashboardComponent implements OnInit {
         const button = event.target as HTMLElement;
         const card = button.parentElement?.parentElement as HTMLElement;
         const dropdown = button.parentElement?.nextElementSibling as HTMLElement;
-    
+
         // Hide the previously opened dropdown, if any
         if (this.previousDropdown && this.previousDropdown !== dropdown) {
             this.renderer.removeClass(this.previousDropdown, 'show');
             this.renderer.removeClass(this.previousDropdown.parentElement, 'show-dropdown');
         }
-    
+
         // Toggle the clicked dropdown
         if (this.previousDropdown == dropdown) {
             this.renderer.removeClass(dropdown, 'show');
@@ -176,7 +182,7 @@ export class DashboardComponent implements OnInit {
     async toggleSubtaskStatus(subtask: Subtask) {
         // If you send multiple toggle status rapidly to Todoist, 
         // they won't be processed in exact order, causing some to be ignored
-        if (this.cantToggle) { 
+        if (this.cantToggle) {
             return;
         }
         this.cantToggle = true;
@@ -204,6 +210,8 @@ export class DashboardComponent implements OnInit {
         this.subtaskAssignment = null;
     }
 
+    /*      ASSIGNMENT FORM         */
+
     openAssignmentForm() {
         this.assignmentFormDisplay = true;
     }
@@ -212,7 +220,9 @@ export class DashboardComponent implements OnInit {
         this.assignmentFormDisplay = false;
     }
 
-    openNoteForm(assignment: Assignment, event: MouseEvent|KeyboardEvent) {
+    /*      NOTE FORM         */
+
+    openNoteForm(assignment: Assignment, event: MouseEvent | KeyboardEvent) {
         if (event.target === null) {
             return;
         }
@@ -239,6 +249,20 @@ export class DashboardComponent implements OnInit {
     closeNoteForm() {
         this.noteFormDisplay = false;
     }
+
+    /*      SEND MESSAGE FORM         */
+
+    openSendMessageForm(assignment: Assignment) {
+        if (assignment.id !== undefined) {
+            this.sendMessageAssignment = assignment;
+            this.sendMessageFormDisplay = true;
+        }
+    }
+
+    closeSendMessageForm() {
+        this.sendMessageFormDisplay = false;
+    }
+
 
     openFilterForm() {
         this.filterFormDisplay = true;

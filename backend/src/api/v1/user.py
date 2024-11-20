@@ -68,7 +68,7 @@ def get_assignments_due_soon():  # noqa: C901
         assignments = canvas_api.get_calendar_events(canvas_key, start_date, end_date)
 
         fields = [
-            'title', 'type', 'submission_types', 'html_url', 'context_name',
+            'title', 'type', 'submission_types', 'html_url', 'context_name', 'context_code'
         ]
         extra_fields = [
             'id', 'points_possible', 'graded_submissions_exist', 'user_submitted'
@@ -203,3 +203,61 @@ def get_calendar_events():
     except AttributeError:
         return 'Unable to get field for calendar event', 404
     return jsonify(calendar_events), 200
+
+
+@user.route('/send_message', methods=['POST'])
+def send_message_to_professor_ta():
+    canvas_key = decrypt_canvas_key()
+    
+    try:
+        data = request.json
+
+        recipients = data.get('recipients')
+        subject = data.get('subject').strip()
+        body = data.get('body').strip()
+        canvas_id = int(data.get('canvas_id'))
+        
+        if not recipients or not subject or not body or not isinstance(recipients, list) or not canvas_id:
+            return 'Invalid payload', 400
+        
+        canvas_id, conv_exists = queries.valid_task_id(current_user, canvas_id)
+        if not canvas_id:
+            return 'Conversation associated with invalid task', 400
+        
+        conversation_id = canvas_api.send_message(canvas_key, recipients, subject, body, conv_exists)
+
+        if not conversation_id:
+            return 'Unable to send message', 400
+        result = queries.create_new_conversation(current_user, canvas_id, conversation_id)
+        if result is False:
+            return 'Unable to create conversation successfully', 400
+        
+    except Exception as e:
+        print(e)
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError:
+        return 'Unable to determine message fields', 404
+    return jsonify('Message sent successfully!'), 200
+
+
+@user.route('/get_conversations/<canvas_id>', methods=['GET'])
+def get_conversations(canvas_id):
+    canvas_key = decrypt_canvas_key()
+    
+    try:
+        canvas_id = int(canvas_id)
+        if not canvas_id:
+            return 'Invalid canvas id', 400
+
+        conv_ids = queries.get_conversation_by_canvas_id(current_user, canvas_id)
+        if len(conv_ids) < 1:
+            return jsonify([]), 200
+
+        conversations = canvas_api.get_conversations_from_ids(canvas_key, conv_ids)
+        
+    except ValueError:
+        return 'Canvas id needs to be an integer', 400
+    except Exception as e:
+        print(e)
+        return 'Unable to get conversations from the Canvas api', 400
+    return jsonify(conversations), 200

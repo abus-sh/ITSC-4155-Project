@@ -17,7 +17,7 @@
             <div class="title-holder">
                 <h3 class="assignment-title">{{ assignment.title }}</h3>
                 <p *ngIf="assignment.user_description && assignment.user_description !== ''"
-                title="A note exists for this assignment.">📝</p>
+                    title="A note exists for this assignment.">📝</p>
             </div>
             <p class="assignment-duedate">
                 <strong>Due Date</strong>:
@@ -27,9 +27,12 @@
             </p>
             <p class="assignment-course">{{ assignment.context_name }}</p>
             <div class="assignment-buttons">
-                <a class="assignment-link" [href]="assignment.html_url" target="_blank" *ngIf="assignment.html_url">View Assignment</a>
+                <button class="dropdown-toggle" (click)="openSendMessageForm(assignment)">Email</button>
+                <a class="assignment-link" [href]="assignment.html_url" target="_blank" *ngIf="assignment.html_url">View
+                    Assignment</a>
                 <!-- TODO: allow non-Canvas tasks to have subtasks -->
-                <button class="dropdown-toggle" (click)="toggleDropdown($event)" *ngIf="assignment.id">Sub Tasks</button>
+                <button class="dropdown-toggle" (click)="toggleDropdown($event)" *ngIf="assignment.id">Sub
+                    Tasks</button>
             </div>
             <!-- DROPDOWN SUBTASKS -->
             <div class="dropdown-content">
@@ -42,7 +45,9 @@
                     <div *ngFor="let subtask of assignment.subtasks | orderBy: 'due_date'" class="subtask-list">
                         <div class="subtask-card" title="{{ subtask.description }}">
                             <span class="subtask-name">{{ subtask.name }}</span>
-                            <span class="subtask-status {{ subtask.status ? 'complete' : 'incomplete' }}" (click)="toggleSubtaskStatus(subtask)" (keypress)="toggleSubtaskStatus(subtask)" tabindex="0">
+                            <span class="subtask-status {{ subtask.status ? 'complete' : 'incomplete' }}"
+                                (click)="toggleSubtaskStatus(subtask)" (keypress)="toggleSubtaskStatus(subtask)"
+                                tabindex="0">
                                 {{ subtask.status ? 'Complete' : 'Incomplete' }}
                             </span>
                             <span class="subtask-due-date">{{ subtask.due_date }}</span>
@@ -98,7 +103,12 @@
     <app-addtask class="modal" *ngIf="assignmentFormDisplay" (closeFormAction)="closeAssignmentForm()"></app-addtask>
 
     <!-- Add a note to an assignment -->
-    <app-tasknote class="modal" *ngIf="noteFormDisplay" (closeFormAction)="closeNoteForm()" [assignment]="noteAssignment"></app-tasknote>
+    <app-tasknote class="modal" *ngIf="noteFormDisplay" (closeFormAction)="closeNoteForm()"
+        [assignment]="noteAssignment"></app-tasknote>
+
+    <!-- Send a message to TA and/or Professor -->
+    <app-sendmessage class="modal" *ngIf="sendMessageFormDisplay" (closeFormAction)="closeSendMessageForm()"
+        [messageAssignment]="sendMessageAssignment"></app-sendmessage>
 
     <!-- Add a filter -->
     <app-addfilter class="modal" *ngIf="filterFormDisplay" (closeFormAction)="closeFilterForm()"></app-addfilter>

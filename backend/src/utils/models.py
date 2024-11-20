@@ -86,6 +86,7 @@ class User(UserMixin, ModelMixin, db.Model):
     todoist_token_session = None        # Placeholder for encrypted token with session key
 
     tasks = relationship('Task', back_populates='user', cascade="all, delete-orphan")
+    conversations = relationship('Conversation', back_populates='user', cascade="all, delete-orphan")
 
     # When the `login_manager.user_loader` is run for the login, this is the parameter it will use
     def get_id(self):
@@ -194,6 +195,23 @@ class SubTask(ModelMixin, db.Model):
     due_date = Column(String(12), nullable=True)
 
     task = relationship('Task', back_populates='subtasks')
+    
+
+class Conversation(ModelMixin, db.Model):
+    """
+
+    """
+    __tablename__ = 'conversations'
+    __table_args__ = (
+        Index('idx_conv_owner', 'canvas_id', 'owner'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    owner = Column(Integer, ForeignKey('users.id'), nullable=False)
+    conversation_id = Column(Integer, nullable=False)
+    canvas_id = Column(Integer, nullable=False)
+
+    user = relationship('User', back_populates='conversations')
 
 
 class Filter(ModelMixin, db.Model):
