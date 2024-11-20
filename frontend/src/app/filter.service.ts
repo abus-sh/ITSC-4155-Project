@@ -29,7 +29,7 @@ export class FilterService {
 
             this.filters = filters.filters;
             this.filters$.next(this.filters);
-        } catch (error) {
+        } catch {
             return false;
         }
         
@@ -47,7 +47,7 @@ export class FilterService {
                 await firstValueFrom(this.http.post(this.createFilterUrl, {
                     'filter': filter
                 }, { withCredentials: true }));
-            } catch (error) {
+            } catch {
                 // Remove it from the list on error
                 // Don't bother making an API call since the filter wasn't created
                 this.deleteFilter(filter, false);
@@ -71,7 +71,7 @@ export class FilterService {
                         'filter': filter
                     }
                 }));
-            } catch (error) {
+            } catch {
                 // In case of failure, un-delete the filter
                 this.filters.push(filter);
                 this.filters$.next(this.filters);
