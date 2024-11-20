@@ -35,7 +35,7 @@ export class AddfilterComponent {
         this.filterService.getFilters();
     }
 
-    addFilter() {
+    async addFilter() {
         const keyword = this.addFilterForm.controls['keyword'].value;
 
         if (!this.addFilterForm.valid) {
@@ -53,7 +53,7 @@ export class AddfilterComponent {
         // Clear the error message
         this.errorMsg = '';
         
-        if (!this.filterService.addFilter(keyword)) {
+        if (!await this.filterService.addFilter(keyword)) {
             this.errorMsg = 'An API error has occurred. Please try again.';
         }
 
