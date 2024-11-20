@@ -7,6 +7,9 @@ import { AddtaskComponent } from "../addtask/addtask.component";
 import { TasknoteComponent } from '../tasknote/tasknote.component';
 import { SendmessageComponent } from '../sendmessage/sendmessage.component';
 
+import { AddfilterComponent } from '../addfilter/addfilter.component';
+import { FilterService } from '../filter.service';
+import { FilterPipe } from '../pipes/filter.pipe';
 
 export interface Subtask {
     id: number;
@@ -49,8 +52,8 @@ export interface AddSubtaskBody {
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent,
-        SendmessageComponent, TasknoteComponent],
+    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent, TasknoteComponent,
+        AddfilterComponent, FilterPipe, SendmessageComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })
@@ -70,19 +73,25 @@ export class DashboardComponent implements OnInit {
     sendMessageFormDisplay = false;
     sendMessageAssignment?: Assignment;
 
+    filterFormDisplay = false;
+    filters: string[] = [];
+
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
     assignments: Assignment[] = [];
 
     constructor(private fb: FormBuilder, private canvasService: CanvasService,
-        private renderer: Renderer2) {
-
+        private renderer: Renderer2, private filterService: FilterService) {
+        
         this.addSubtaskForm = this.fb.group({
             name: ['', Validators.required],
             description: [''],
             due_date: [this.getFormattedDueDate()],
             status: ['0']
         });
+
+        this.filterService.filters$.subscribe(filters => this.filters = filters);
+        this.filterService.getFilters();
     }
 
     ngOnInit() {
@@ -254,6 +263,14 @@ export class DashboardComponent implements OnInit {
         this.sendMessageFormDisplay = false;
     }
 
+
+    openFilterForm() {
+        this.filterFormDisplay = true;
+    }
+
+    closeFilterForm() {
+        this.filterFormDisplay = false;
+    }
 
     // Get end of current day date
     getFormattedDueDate(): string {

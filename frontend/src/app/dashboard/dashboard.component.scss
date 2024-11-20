@@ -55,6 +55,12 @@ h2 {
     justify-content: space-between;
 }
 
+.button-holder {
+    button {
+        margin: 0 0.3em;
+    }
+}
+
 .assignment-card.show-dropdown {
     z-index: 25;
 }
