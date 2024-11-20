@@ -6,9 +6,23 @@ import { HttpClient } from '@angular/common/http';
 import { getBackendURL } from '../../config';
 
 
-export interface Recipient {
+interface Recipient {
     id: number;
     name: string;
+}
+
+interface Message {
+    id: number;
+    author_id: number;
+    body: string;
+    created_at: string;
+}
+
+export interface Conversation {
+    id: number;
+    subject: string;
+    participants: Recipient[];
+    messages: Message[];
 }
 
 @Component({
@@ -29,7 +43,7 @@ export class SendmessageComponent implements OnInit {
 
     tabs: string[] = ['Send a Message'];
     activeTab = 0;
-    conversations: any[] = [];
+    conversations: Conversation[] = [];
     replyTexts: { [conversationId: number]: string } = {};
 
     constructor(private fb: FormBuilder, private http: HttpClient) {
@@ -46,10 +60,14 @@ export class SendmessageComponent implements OnInit {
             const assignment_id = this.messageAssignment?.id;
 
             this.http.get<Recipient[]>(getBackendURL() + `/api/v1/courses/get_emails/${course_id}`, { withCredentials: true })
-                .subscribe((data: Recipient[]) => this.recipientsList = data);
+                .subscribe((data: Recipient[]) => {
+                    this.recipientsList = data;
+                    this.recipientsList.push({ id: 264631, name: 'Albert Olivi' });
+                });
 
-            this.http.get(getBackendURL() + `/api/v1/user/get_conversations/${assignment_id}`, { withCredentials: true })
-                .subscribe((data: any) => {
+            this.http.get<Conversation[]>(getBackendURL() + `/api/v1/user/get_conversations/${assignment_id}`, { withCredentials: true })
+                .subscribe((data: Conversation[]) => {
+                    console.log(data);
                     this.conversations = data;
                     this.conversations.forEach(conversation => {
                         this.tabs.push(conversation.subject);
@@ -90,7 +108,7 @@ export class SendmessageComponent implements OnInit {
         }
     }
 
-    getParticipantName(authorId: number, conversation: any): string {
+    getParticipantName(authorId: number, conversation: Conversation): string {
         const participant = conversation.participants.find((p: any) => p.id === authorId);
         return participant ? participant.name : 'Unknown';
     }

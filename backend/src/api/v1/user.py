@@ -240,6 +240,26 @@ def send_message_to_professor_ta():
     return jsonify('Message sent successfully!'), 200
 
 
+@user.route('/reply_message', methods=['POST'])
+def send_reply_conversation():
+    canvas_key = decrypt_canvas_key()
+    
+    try:
+        data = request.json
+        conv_id = int(data.get('conversation_id'))
+        reply_body = data.get('body').strip()
+        
+        conv_reply_id = canvas_api.send_reply(canvas_key, conv_id, reply_body)
+        if conv_reply_id is None:
+            return 'Unable to send reply to the Canvas api', 400
+        
+    except ValueError:
+        return 'Invalid conversation id', 400
+    except Exception:
+        return 'Error while sending reply to the Canvas api', 400
+    return jsonify('Reply sent successfully!'), 200
+
+
 @user.route('/get_conversations/<canvas_id>', methods=['GET'])
 def get_conversations(canvas_id):
     canvas_key = decrypt_canvas_key()
@@ -250,14 +270,14 @@ def get_conversations(canvas_id):
             return 'Invalid canvas id', 400
 
         conv_ids = queries.get_conversation_by_canvas_id(current_user, canvas_id)
+        # No conversation was found from the database
         if len(conv_ids) < 1:
             return jsonify([]), 200
-
+        # Get conversations from canvas using the ids
         conversations = canvas_api.get_conversations_from_ids(canvas_key, conv_ids)
         
     except ValueError:
         return 'Canvas id needs to be an integer', 400
-    except Exception as e:
-        print(e)
+    except Exception:
         return 'Unable to get conversations from the Canvas api', 400
     return jsonify(conversations), 200

@@ -399,6 +399,19 @@ def send_message(canvas_key: str, recipients: list, subject: str, body: str, con
 
     return result[0].id
 
+def send_reply(canvas_key: str, conv_id: str, body: str) -> int:
+    """
+    This function is used to send a reply to a conversation in Canvas.
+    
+    :param canvas_key: The API key that should be used.
+    :param conv_id: The ID of the conversation to reply to.
+    :param body: The body of the reply.
+    :return int: The ID of the conversation that the reply was sent part of.
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    result = canvas.get_conversation(conv_id).add_message(body=body)
+    return getattr(result, 'id', None)
+
 
 def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
     """

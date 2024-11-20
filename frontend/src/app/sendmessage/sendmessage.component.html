@@ -4,7 +4,7 @@
 
     <!-- Tabs -->
     <div class="tabs">
-        <button *ngFor="let tab of tabs; let i = index" [class.active]="activeTab === i" (click)="switchTab(i)">
+        <button class="tab-button" *ngFor="let tab of tabs; let i = index" [class.active]="activeTab === i" (click)="switchTab(i)">
             {{ tab }}
         </button>
     </div>
@@ -39,7 +39,7 @@
                 <label for="body">Message Body</label>
                 <textarea id="body" formControlName="body" rows="5" placeholder="Enter your message"></textarea>
             </div>
-            <button type="submit">Send Message</button>
+            <button class="send-message-button" type="submit">Send Message</button>
         </form>
     </div>
 
@@ -47,16 +47,16 @@
     <ng-container *ngFor="let conversation of conversations; let i = index">
         <div *ngIf="activeTab === i + 1">
             <!-- Conversation Tab -->
-            <h3>{{ conversation.subject }}</h3>
+            <h3 class="message-subject">Subject: {{ conversation.subject }}</h3>
             <div class="messages">
-                <div *ngFor="let message of conversation.messages">
+                <div class="single-message" *ngFor="let message of conversation.messages">
                     <p><strong>{{ getParticipantName(message.author_id, conversation) }}:</strong> {{ message.body }}</p>
                     <p class="timestamp">{{ message.created_at | date: 'short' }}</p>
                 </div>
             </div>
-            <div>
+            <div class="message-reply">
                 <textarea [(ngModel)]="replyTexts[conversation.id]" rows="3" placeholder="Type your reply"></textarea>
-                <button (click)="sendReply(conversation.id)">Reply</button>
+                <button class="send-message-button" (click)="sendReply(conversation.id)">Reply</button>
             </div>
         </div>
     </ng-container>
