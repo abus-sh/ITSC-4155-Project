@@ -733,7 +733,7 @@ def get_recipient_task(owner: models.User, subtask: models.SubTask) -> models.Ta
     return models.Task.query.filter_by(owner=owner.id, canvas_id=subtask.task.canvas_id).first()
 
 
-def create_shared_subtask(owner: models.User, subtask: models.SubTask, todoist_id: str) -> None:
+def create_shared_subtask(owner: models.User, subtask: models.SubTask, todoist_id: str) -> bool:
     """
     Creates a shared subtask.
     
@@ -745,8 +745,35 @@ def create_shared_subtask(owner: models.User, subtask: models.SubTask, todoist_i
     try:
         shared_subtask = models.SubTaskShared(owner=owner.id, subtask_id=subtask.id, 
                                                 todoist_original=subtask.todoist_id, todoist_id=todoist_id)
+        
+        original_subtask = models.SubTask.query.get(subtask.id)
+        new_list = original_subtask.shared_with
+        new_list.append(owner.id)
+        print(vars(original_subtask))
+        
+        models.db.session.add(original_subtask)
         models.db.session.add(shared_subtask)
         models.db.session.commit()
+        print('SUCCESS')
+        return True
+    except Exception as e:
+        models.db.session.rollback()
+        print(e)
+        return False
+   
+        
+def delete_invitation(owner: models.User, invitation_id: int) -> None:
+    """
+    Delete a subtask invitation.
+    
+    :param owner: The recipient of the invitation.
+    :param invitation_id: The ID of the invitation.
+    """
+    try:
+        invitation = models.SubTaskInvitation.query.get(invitation_id)
+        if invitation and invitation.recipient_id == owner.id:
+            models.db.session.delete(invitation)
+            models.db.session.commit()
     except Exception as e:
         models.db.session.rollback()
         print(e)

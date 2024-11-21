@@ -256,8 +256,10 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
 def add_shared_subtask(current_user: User, todoist_key: str, invitation_id: int, accept: bool) -> bool:
     subtask = queries.get_invitation_subtask(current_user, invitation_id)
     recipient_task = queries.get_recipient_task(current_user, subtask)
-    
-    if accept and subtask and recipient_task and current_user.id in subtask.shared_with:
+    subtask_status = subtask.status
+
+    if accept and subtask and recipient_task:
+
         try:
             header = {
                 "Authorization": f"Bearer {todoist_key}",
@@ -274,6 +276,7 @@ def add_shared_subtask(current_user: User, todoist_key: str, invitation_id: int,
             response_data = _send_post_todoist("https://api.todoist.com/rest/v2/tasks",
                                                json.dumps(body), header)
             if response_data:
+
                 todoist_id = response_data.get('id', None)
                 if not todoist_id:
                     return False
@@ -284,12 +287,14 @@ def add_shared_subtask(current_user: User, todoist_key: str, invitation_id: int,
                         f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close",
                         headers={"Authorization": f"Bearer {todoist_key}"}
                     )
-                    # Failure to mark subtask as complete
-                    if response.status_code != 204:
-                        subtask_status = TaskStatus.Incomplete
+                    # # Failure to mark subtask as complete
+                    # if response.status_code != 204:
+                    #     subtask_status = TaskStatus.Incomplete
+
 
                 # Create subtask in database
-                queries.create_shared_subtask(current_user, subtask, todoist_id)
+                result = queries.create_shared_subtask(current_user, subtask, todoist_id)
+                queries.delete_invitation(current_user, invitation_id)
                 return True
         except Exception as e:
             print(e)
@@ -378,6 +383,7 @@ def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> b
         return False
     
     if isinstance(task, SubTask) and current_user.id in task.shared_with:
+        print(1)
         user_todoist_ids = queries.get_shared_users_subtask(task)
         for user_id, todoist_id in user_todoist_ids:
             encrypted_todoist_api = queries.get_user_todoist_api(user_id)
