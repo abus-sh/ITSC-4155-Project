@@ -7,7 +7,7 @@ functions specific to this application.
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import scrypt
 from Crypto.Random import get_random_bytes
-import sys
+import sys, os
 
 # Import Self from the correct place depending on the Python version
 if sys.version_info[0] == 3 and sys.version_info[1] >= 11:
@@ -177,3 +177,12 @@ def _derive_key(password: str, salt: str | None = None) -> tuple[bytes, bytes]:
     # Values for scrypt chosen from:
     # https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#scrypt
     return (scrypt(password, salt, 32, N=2**17, r=8, p=1), salt)
+
+
+def get_todo_secret():
+    """
+    Retrieves the Todoist Secret from the file.
+    """
+    file = os.getenv('TODO_SECRET_FILE', '../../secrets/todoist_secret_encrypt.txt')
+    with open(file, 'r') as f:
+        return f.read().strip()

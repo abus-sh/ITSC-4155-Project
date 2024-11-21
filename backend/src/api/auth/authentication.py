@@ -9,7 +9,7 @@ from lru import LRU
 from utils.settings import time_it
 
 from utils.queries import get_user_by_username, get_user_by_login_id, add_user, update_password, does_username_exists
-from utils.crypto import reencrypt_str
+from utils.crypto import reencrypt_str, get_todo_secret
 from utils.models import User, password_hasher
 
 
@@ -132,7 +132,7 @@ def login():
             # Decrypt tokens with password and re-encrypt with session_id
             session_canvas_token = reencrypt_str(db_user.canvas_token_password, password,
                                                  session_id)
-            session_todoist_token = reencrypt_str(db_user.todoist_token_password, password,
+            session_todoist_token = reencrypt_str(db_user.todoist_token_password, get_todo_secret(),
                                                   session_id)
 
             # Cache API re-encrypted tokens for future requests

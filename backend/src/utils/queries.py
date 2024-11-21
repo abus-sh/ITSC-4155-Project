@@ -1,5 +1,5 @@
 import utils.models as models
-from utils.crypto import decrypt_str, encrypt_str
+from utils.crypto import decrypt_str, encrypt_str, get_todo_secret
 from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
@@ -50,7 +50,7 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
 
         # Encrypt canvas and todoist token with password
         canvas_token_password = encrypt_str(canvas_token, password).to_bytes()
-        todoist_token_password = encrypt_str(todoist_token, password).to_bytes()
+        todoist_token_password = encrypt_str(todoist_token, get_todo_secret()).to_bytes()
 
         # Hash the password
         pw_hash = models.password_hasher.hash(password)
