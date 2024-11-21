@@ -113,6 +113,7 @@ export class DashboardComponent implements OnInit {
 
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
+    sectionCollapseNotifications = false;
     assignments: Assignment[] = [];
     notifications: { invitation: InvitationNotification[], simple: SimpleNotification[] } = { invitation: [], simple: [] };
 
@@ -227,8 +228,10 @@ export class DashboardComponent implements OnInit {
     toggleSection(section: number) {
         if (section == 0) {
             this.sectionCollapseUpcoming = !this.sectionCollapseUpcoming;
-        } else {
+        } else if (section == 1) {
             this.sectionCollapseComplete = !this.sectionCollapseComplete;
+        } else if (section == 2) {
+            this.sectionCollapseNotifications = !this.sectionCollapseNotifications;
         }
     }
 

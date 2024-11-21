@@ -45,8 +45,8 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
 
         # This Canvas user is already associated with an existing user (prevents multiple account
         # with different tokens)
-        if models.User.query.filter_by(canvas_id=canvas_id).first():
-            return False
+        # if models.User.query.filter_by(canvas_id=canvas_id).first():
+        #     return False
 
         # Encrypt canvas and todoist token with password
         canvas_token_password = encrypt_str(canvas_token, password).to_bytes()
@@ -447,7 +447,7 @@ def compose_invitations(invitations: list[models.SubTaskInvitation]) -> list[dic
     return [{
             'title': title,
             'author_name': owners[invitation.owner],
-            'subtask_name': subtasks[invitation.task_id],
+            'subtask_name': subtasks[invitation.subtask_id],
             'invitation_id': invitation.id
         }
         for invitation in invitations
@@ -635,25 +635,27 @@ def send_subtask_invitation(owner: models.User, recipient: models.User, subtask_
     Send an invitation to a user to join a subtask.
     
     :param owner: The owner of the subtask.
+    :param recipient: The recipient of the invitation.
     :param task_id: The ID of the task.
     :param subtask_id: The ID of the subtask.
     :return bool: True if the invitation was sent, False otherwise.
     """
     try:
-        recipient = models.User.query.filter_by(username=recipient).first()
+
         subtask = models.SubTask.query.get(subtask_id)
         if not recipient or not subtask or subtask.owner != owner.id:
             return False
-        
+
         recipient_has_task = models.Task.query.filter_by(owner=recipient.id, canvas_id=subtask.task.canvas_id).first()
         if not recipient_has_task:
             return False
-        
-        task_invitation = models.SubTaskInvitation(owner=owner.id, recipient=recipient.id, subtask_id=subtask_id)    
+
+        task_invitation = models.SubTaskInvitation(owner=owner.id, recipient_id=recipient.id, subtask_id=subtask.id)    
         models.db.session.add(task_invitation)
         models.db.session.commit()
         return True
-    except Exception:
+    except Exception as e:
+        print(e)
         models.db.session.rollback()
         return False
 

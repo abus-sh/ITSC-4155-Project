@@ -1,4 +1,33 @@
-<div class="dashboard-full-page">
+<div>
+
+    <!-- NOTIFICATION CONTAINER -->
+    <div class="notification-container">
+        <h2 class="collapsible-title" (click)="toggleSection(2)" (keypress)="toggleSection(2)" tabindex="0">
+            {{ sectionCollapseNotifications ? '&#9662;' : '&#9652;' }} Notifications
+        </h2>
+        <hr>
+        <div class="notifications-grid" *ngIf="!sectionCollapseNotifications">
+            <p *ngIf="notifications.invitation.length === 0 && notifications.simple.length === 0">No notifications to display.</p>
+            <div *ngFor="let notification of notifications.invitation" class="notification-card">
+                <p class="notification-title">{{ notification.title }}</p>
+                <p class="notification-message">{{ notification?.author_name }} invited you to subtask: {{ notification?.subtask_name }}</p>
+                <div>
+                    <button (click)="respondInvitation(notification, true)">Accept</button>
+                    <button (click)="respondInvitation(notification, false)">Reject</button>
+                </div>
+            </div>
+            <div *ngFor="let notification of notifications.simple" class="notification-card">
+                <p class="notification-title">{{ notification.title }}</p>
+                <p class="notification-message">{{ notification.message }}</p>
+                <p class="notification-date">{{ notification.date }}</p>
+                <div>
+                    <button (click)="dismissNotification(notification)">Dismiss</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD CONTAINER -->
     <div class="dashboard-container">
         <div class="upcoming-header-container">
             <h2 class="collapsible-title" (click)="toggleSection(0)" (keypress)="toggleSection(0)" tabindex="0">
@@ -132,29 +161,5 @@
 
         <!-- Add a filter -->
         <app-addfilter class="modal" *ngIf="filterFormDisplay" (closeFormAction)="closeFilterForm()"></app-addfilter>
-    </div>
-
-    <div class="notification-container">
-        <h2>Notifications</h2>
-        <hr>
-        <div>
-            <p *ngIf="notifications.invitation.length === 0 && notifications.simple.length === 0">No notifications to display.</p>
-            <div *ngFor="let notification of notifications.invitation" class="notification-card">
-                <p class="notification-title">{{ notification.title }}</p>
-                <p class="notification-message">{{ notification?.author_name }} invited you to subtask: {{ notification?.subtask_name }}</p>
-                <div>
-                    <button (click)="respondInvitation(notification, true)">Accept</button>
-                    <button (click)="respondInvitation(notification, false)">Reject</button>
-                </div>
-            </div>
-            <div *ngFor="let notification of notifications.simple" class="notification-card">
-                <p class="notification-title">{{ notification.title }}</p>
-                <p class="notification-message">{{ notification.message }}</p>
-                <p class="notification-date">{{ notification.date }}</p>
-                <div>
-                    <button (click)="dismissNotification(notification)">Dismiss</button>
-                </div>
-            </div>
-        </div>
     </div>
 </div>

@@ -74,7 +74,7 @@ class User(UserMixin, ModelMixin, db.Model):
     password = Column(String(100), unique=False, nullable=False)
 
     # Canvas info for user
-    canvas_id = Column(String(150), unique=True, nullable=False)
+    canvas_id = Column(String(150), unique=False, nullable=False)
     canvas_name = Column(String(150), unique=False, nullable=False)
 
     # Tokens encrypted with password
@@ -257,8 +257,6 @@ class SubTaskInvitation(ModelMixin, db.Model):
         :type owner: int
         :param recipient_id: The ID of the User that the invitation is for.
         :type recipient_id: int
-        :param task_id: The ID of the Task that the invitation is for.
-        :type task_id: int
         :param subtask_id: The ID of the SubTask that the invitation is for.
         :type subtask_id: int | None
     """

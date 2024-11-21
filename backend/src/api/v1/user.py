@@ -292,7 +292,8 @@ def get_notifications():
         if invitations:
             invitations_list['invitation'] = queries.compose_invitations(invitations)
             
-    except Exception:
+    except Exception as e:
+        print(e)
         return 'Unable to retrieve notifications', 400
     return jsonify(invitations_list), 200
 
@@ -315,10 +316,11 @@ def send_invitation():
         if invited_user.id == current_user.id:
             return 'You cannot invite yourself', 400
         
-        sent = queries.send_subtask_invitation(current_user, subtask_id)
+        sent = queries.send_subtask_invitation(current_user, invited_user, subtask_id)
         if not sent:
             return 'Unable to send invitation', 400
         
-    except Exception:
-        return 'Unable to send invitation', 400
+    except Exception as e:
+        print(e)
+        return 'Error while sending invitation', 400
     return jsonify('Invitation sent!'), 200 
