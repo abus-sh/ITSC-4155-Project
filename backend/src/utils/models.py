@@ -220,7 +220,7 @@ class SubTaskShared(ModelMixin, db.Model):
     subtask_id = Column(Integer, ForeignKey('subtasks.id', ondelete='CASCADE'), nullable=False)
     todoist_id = Column(String(15), unique=False, nullable=True)
     
-    task = relationship('Task')
+    subtask = relationship('SubTask')
     
 
 class Conversation(ModelMixin, db.Model):

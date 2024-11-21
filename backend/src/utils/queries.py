@@ -541,6 +541,25 @@ def create_subtask(owner: models.User, task_id: int, subtask_name: str, todoist_
     return False
 
 
+def get_subtask_by_id(owner: models.User, id: int, dict=False) -> models.SubTask | dict | None:
+    """
+    Retrieve a subtask by its database ID.
+
+    :param owner: The owner of the subtask.
+    :param id: The database ID of a subtask.
+    :param dict: If True, return the subtask as a dictionary. Defaults to False.
+    :return SubTask or dict or None: A SubTask instance or a dictionary representation of the subtask
+    if dict is True. If no subtask with the given ID exists, None is returned.
+    """
+    subtask = models.SubTask.query.filter(
+        models.SubTask.id == id,
+        models.SubTask.owner == owner.id
+    ).first()
+    if dict and subtask:
+        return subtask.to_dict()
+    return subtask
+
+
 def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str],
                            format: bool = True) -> list[tuple] | dict:
     """
