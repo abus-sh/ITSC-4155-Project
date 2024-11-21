@@ -135,8 +135,8 @@ def get_course_assignments_no_cache(canvas_key: str, course: str | Course) -> li
     :param course: The ID of the course to retrieve assignments for or a Course.
     :return list[Assignment]: A list of canvasapi Assignments for the course.
     """
-    if type(course) is str:
-        course = Canvas(BASE_URL, canvas_key).get_course(course)
+    if type(course) is str or type(course) is int:
+        course = Canvas(BASE_URL, str(canvas_key)).get_course(course)
     course_assignments = course.get_assignments()
 
     return [assignment for assignment in course_assignments]
