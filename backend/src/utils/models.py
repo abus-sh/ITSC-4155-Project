@@ -155,6 +155,9 @@ class Task(ModelMixin, db.Model):
     # If it's complete
     status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.Incomplete)
 
+    # Custom due date set by user
+    custom_due_date = Column(String(20), unique=False, nullable=True)
+
     # Name and description for if the task is not associated with a Canvas assignment
     name = Column(String(100), unique=False, nullable=True)
     description = Column(String(500), unique=False, nullable=True)
