@@ -3,7 +3,7 @@ from utils.crypto import decrypt_str, encrypt_str
 from canvasapi import Canvas
 from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
-from sqlalchemy import select
+from sqlalchemy import select, or_
 import sqlalchemy.exc
 from datetime import datetime
 
@@ -335,8 +335,11 @@ def get_task_or_subtask_by_todoist_id(owner: models.User, todoist_id: str, dict=
 
     # Check for a matching subtask
     subtask = models.SubTask.query.filter(
-        models.SubTask.todoist_id == todoist_id,
-        models.SubTask.owner == owner.id
+        or_(
+            models.SubTask.owner == owner.id,
+            models.SubTask.shared_with.contains([owner.id])
+        ),
+        models.SubTask.todoist_id == todoist_id
     ).first()
     if subtask:
         if dict:
@@ -371,13 +374,14 @@ def get_descriptions_by_canvas_ids(owner: models.User, canvas_ids: list[int])\
     return description_lookup
 
 
-def sync_task_status(owner: models.User, open_task_ids: list[int]):
+def sync_task_status(owner: models.User, open_task_ids: list[int]) -> None | list[models.SubTask]:
     """
-    Sets the status for all tasks. Any task ID in completed_task_ids will be set to incomplete and
+    Sets the status for all tasks. Any task ID in open_task_ids will be set to incomplete and
     all others will be set to completed.
 
     :param owner: The owner of the tasks.
     :param open_task_ids: The IDs of the tasks that should be in progress.
+    :return None | SubTask: Shared subtasks that needs to be updated in Todoist, if not return None.
     """
     # Handle tasks
     try:
@@ -394,12 +398,21 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]):
         print("Task rollback", e)
         models.db.session.rollback()
 
+    shared_subtasks = []
+    
     # Handle subtasks
     try:
         tasks: list[tuple[models.SubTask]] = models.db.session\
             .execute(select(models.SubTask).where(models.SubTask.owner == owner.id))
         for (task,) in tasks:
             if task.todoist_id in open_task_ids:
+                # Unlike normal TASKS, shared subtasks needs to be synced with various other Users.
+                # So, instead of the status on Todoist overwriting the status in the database,
+                # the status in the database will overwrite the one in Todoist.
+                
+                # IN PROGRESS
+                if owner.id in task.shared_with:
+                    shared_subtasks.append(task)
                 task.status = models.TaskStatus.Incomplete
             else:
                 print(f'Marking task {task.todoist_id} as done')
@@ -449,6 +462,20 @@ def get_subtask_invitations(recipient: models.User, dict=False) -> list[models.S
         return [invitation.to_dict() for invitation in invitations]
     return invitations
     
+    
+def get_shared_subtask_todoist_id(owner: models.User, subtask: models.SubTask) -> str | None:
+    """
+    Returns the todoist ID of a shared subtask of the current user, not the orignal owner of the subtask.
+    
+    :param owner: The current user.
+    :param subtask: The subtask to get the todoist ID of.
+    :return str: The todoist ID of the subtask.
+    """
+    shared_subtask = models.SubTaskShared.query.filter_by(owner=owner.id, subtask_id=subtask.id).first()
+    if shared_subtask:
+        return shared_subtask.todoist_id
+    return None
+
     
 
 #########################################################################
@@ -534,7 +561,7 @@ def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str],
     return subtasks
 
 
-def update_task_or_subtask_status(owner: models.User, task: models.Task | models.SubTask,
+def update_task_or_subtask_status(task: models.Task | models.SubTask,
                                   status: models.TaskStatus) -> bool:
     """
     Change the status of a task or subtask to a new value.

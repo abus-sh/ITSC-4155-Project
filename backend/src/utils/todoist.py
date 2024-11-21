@@ -252,7 +252,7 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
     return False
 
 
-def close_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
+def close_task(current_user: User, todoist_key: str, todoist_task_id: str, shared_todoist_task_id: str=None) -> bool:
     """
     Marks a task or subtask as complete for the current user.
 
@@ -260,6 +260,7 @@ def close_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bo
         current_user (User): The user that owns the task or subtask.
         todoist_key (str): The Todoist API key for the current user.
         todoist_task_id (str): The ID of the task or subtask in Todoist.
+        shared_todoist_task_id (str, optional): The ID of the shared subtask in Todoist. Defaults to None.
 
     Returns:
         bool: True if the task or subtask was completed, False otherwise.
@@ -271,20 +272,22 @@ def close_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bo
         return False
 
     # Mark task as complete in Todoist
+    if shared_todoist_task_id:
+        todoist_task_id = shared_todoist_task_id
     response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_task_id}/close",
                              headers={"Authorization": f"Bearer {todoist_key}"})
 
     # Per documation, 204 indicates success
     if response.status_code == 204:
         # Complete task in database
-        queries.update_task_or_subtask_status(current_user, task, TaskStatus.Completed)
+        queries.update_task_or_subtask_status(task, TaskStatus.Completed)
 
         return True
 
     return False
 
 
-def open_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
+def open_task(current_user: User, todoist_key: str, todoist_task_id: str, shared_todoist_task_id: str=None) -> bool:
     """
     Marks a task or subtask as in progress for the current user.
 
@@ -304,10 +307,12 @@ def open_task(current_user: User, todoist_key: str, todoist_task_id: str) -> boo
         return False
 
     # Mark task as in progress in Todoist
+    if shared_todoist_task_id:
+        todoist_task_id = shared_todoist_task_id
     response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_task_id}/reopen",
                              headers={"Authorization": f"Bearer {todoist_key}"})
     if response.status_code == 204:
-        queries.update_task_or_subtask_status(current_user, task, TaskStatus.Incomplete)
+        queries.update_task_or_subtask_status(task, TaskStatus.Incomplete)
 
         return True
 
@@ -331,12 +336,18 @@ def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> b
                                                                             todoist_task_id)
     if task is None:
         return False
+    
+    shared_todoist_task_id = None
+    if isinstance(task, SubTask) and current_user.id in task.shared_with:
+        shared_todoist_task_id = queries.get_shared_subtask_todoist_id(current_user, task)
+        if not shared_todoist_task_id:
+            return False
 
     # Handle each enum seperately in case more states happen in the future
     if task.status == TaskStatus.Completed:
-        return open_task(current_user, todoist_key, todoist_task_id)
+        return open_task(current_user, todoist_key, todoist_task_id, shared_todoist_task_id)
     elif task.status == TaskStatus.Incomplete:
-        return close_task(current_user, todoist_key, todoist_task_id)
+        return close_task(current_user, todoist_key, todoist_task_id, shared_todoist_task_id)
 
     return False
 
@@ -389,7 +400,7 @@ def sync_task_status(current_user: User, todoist_key: str):
         print("exiting due to non ok response")
         return
 
-    # When updating this to properly sync, create two sets of open_tasks and closed_tasks
+    # When updating this to properly sync, create two sets of open_tasks
     # Anything not in the sets will remain unchanged
     open_tasks = set()
     for task in response.json()['items']:
