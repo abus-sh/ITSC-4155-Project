@@ -37,6 +37,7 @@ export interface Assignment {
     due_at?: string;
     subtasks: Subtask[];
     user_submitted?: boolean;
+    course_id?: number;
 }
 
 export type SubtasksDict = Record<number, Subtask[]>;

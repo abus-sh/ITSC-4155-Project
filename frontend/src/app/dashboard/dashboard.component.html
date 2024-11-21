@@ -77,7 +77,7 @@
             </div>
             <p class="assignment-course">{{ assignment.context_name }}</p>
             <div class="assignment-buttons">
-                <button class="dropdown-toggle" (click)="openSendMessageForm(assignment)">Email</button>
+                <button class="dropdown-toggle" (click)="openSendMessageForm(assignment)" *ngIf="assignment.id">Email</button>
                 <a class="assignment-link" [href]="assignment.html_url" target="_blank" *ngIf="assignment.html_url">View
                     Assignment</a>
             </div>
