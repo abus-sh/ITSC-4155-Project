@@ -264,16 +264,14 @@ class SubTaskInvitation(ModelMixin, db.Model):
     """
     __tablename__ = 'subtask_invitations'
     __table_args__ = (
-        Index('idx_task_id_recipient', 'task_id', 'recipient_id'),
+        Index('idx_task_id_recipient', 'subtask_id', 'recipient_id'),
     )
 
     id = Column(Integer, primary_key=True)
     owner = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     recipient_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    task_id = Column(Integer, ForeignKey('tasks.id', ondelete='CASCADE'), nullable=True)
     subtask_id = Column(Integer, ForeignKey('subtasks.id', ondelete='SET NULL'), nullable=True)
     
-    task = relationship('Task')
     recipient = relationship('User', foreign_keys=[recipient_id], back_populates='invitations_received')
     
 

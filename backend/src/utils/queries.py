@@ -453,7 +453,7 @@ def send_subtask_invitation(owner: models.User, recipient: str, task_id: int, su
     models.db.session.commit()
 
 
-def get_subtask_invitations(recipient: models.User, dict=False) -> list[models.SubTaskInvitation] | list[dict]:
+def  get_subtask_invitations(recipient: models.User, dict=False) -> list[models.SubTaskInvitation] | list[dict]:
     """
     Retrieve all subtask invitations for a user.
     
@@ -462,10 +462,35 @@ def get_subtask_invitations(recipient: models.User, dict=False) -> list[models.S
     :return list[TaskInvitation] or list[dict]: A list of subtask invitations or a list of dictionaries
     if dict is True.
     """
-    invitations = models.SubTaskInvitation.query.filter_by(recipient=recipient.id).all()
+    invitations = models.SubTaskInvitation.query.filter_by(recipient_id=recipient.id).all()
     if dict:
         return [invitation.to_dict() for invitation in invitations]
     return invitations
+
+
+def compose_invitations(invitations: list[models.SubTaskInvitation]) -> list[dict]:
+    """
+    Compose a list of invitations into a list of dictionaries.
+    
+    :param invitations: A list of subtask invitations.
+    :return list[dict]: A list of dictionaries representing the subtask invitations.
+    """
+    title = 'You received a subtask invitation!'
+    subtask_ids = [invitation.subtask_id for invitation in invitations]
+    owner_ids = [invitation.owner for invitation in invitations]
+
+    # Fetch all required SubTask and User data in bulk
+    subtasks = {subtask.id: subtask.name for subtask in models.SubTask.query.filter(models.SubTask.id.in_(subtask_ids))}
+    owners = {user.id: user.username for user in models.User.query.filter(models.User.id.in_(owner_ids))}
+
+    return [{
+            'title': title,
+            'author_name': owners[invitation.owner],
+            'subtask_name': subtasks[invitation.task_id],
+            'invitation_id': invitation.id
+        }
+        for invitation in invitations
+    ]
 
 
 def get_shared_subtasks(owner: models.User, dict=False) -> list[models.SubTask] | list[dict]:

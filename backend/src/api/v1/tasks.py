@@ -178,7 +178,7 @@ def update_description(task_id: str):
     return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
 
 
-@tasks.post('send_invitation/subtask')
+@tasks.post('/send_invitation/subtask')
 def share_subtask():
     data = request.json
     try:

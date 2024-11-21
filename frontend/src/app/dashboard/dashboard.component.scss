@@ -1,9 +1,27 @@
-.dashboard-container {
-    padding: 20px;
+.dashboard-full-page {
+    display: flex;
+    flex-wrap: wrap-reverse;
 }
 
-h2 {
-    margin-bottom: 5px;
+.dashboard-container {
+    padding: 10px;
+    min-width: 600px;
+    max-width: 85%;
+
+    h2 {
+        margin-bottom: 5px;
+    }
+}
+
+.notification-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 10px 10px;
+
+    h2 {
+        margin-bottom: 15px;
+    }
 }
 
 .collapsible-title {
@@ -57,8 +75,9 @@ h2 {
 
 .button-holder {
     button {
-        margin: 0 0.3em;
+        margin-left: 16px;
     }
+    margin-left: 30px;
 }
 
 .assignment-card.show-dropdown {

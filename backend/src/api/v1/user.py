@@ -281,3 +281,17 @@ def get_conversations(canvas_id):
     except Exception:
         return 'Unable to get conversations from the Canvas api', 400
     return jsonify(conversations), 200
+
+
+@user.route('/get_notifications', methods=['GET'])
+def get_notifications():
+    try:
+        invitations = queries.get_subtask_invitations(current_user)
+        invitations_list = {'invitation': [], 'simple': []}
+        
+        if invitations:
+            invitations_list['invitation'] = queries.compose_invitations(invitations)
+            
+    except Exception:
+        return 'Unable to retrieve notifications', 400
+    return jsonify(invitations_list), 200

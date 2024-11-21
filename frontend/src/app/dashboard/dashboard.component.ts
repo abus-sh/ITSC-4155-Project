@@ -10,6 +10,29 @@ import { SendmessageComponent } from '../sendmessage/sendmessage.component';
 import { AddfilterComponent } from '../addfilter/addfilter.component';
 import { FilterService } from '../filter.service';
 import { FilterPipe } from '../pipes/filter.pipe';
+import { HttpClient } from '@angular/common/http';
+import { getBackendURL } from '../../config';
+
+
+
+interface NotificationBase {
+    title: string;
+    message?: string;
+    type: string;
+}
+
+export interface InvitationNotification extends NotificationBase {
+    type: 'invitation';
+    invitation_id: number;
+    author_name: string;
+    subtask_name: string;
+}
+
+export interface SimpleNotification extends NotificationBase {
+    type: 'simple';
+    date: string;
+    id?: number;
+}
 
 export interface Subtask {
     id: number;
@@ -63,6 +86,10 @@ export class DashboardComponent implements OnInit {
     subtaskFormDisplay = false;
     subtaskAssignment: Assignment | null = null;
     addSubtaskForm: FormGroup;
+
+    subtaskShareDisplay = false;
+    subtaskShareAssignment: Subtask | null = null;
+
     private cantToggle = false;
 
     assignmentFormDisplay = false;
@@ -76,12 +103,20 @@ export class DashboardComponent implements OnInit {
     filterFormDisplay = false;
     filters: string[] = [];
 
+    notification_url = getBackendURL() + '/api/v1/user/get_notifications';
+    respond_invitation = getBackendURL() + '/api/v1/user/invitation-response';
+    notification_dismiss = getBackendURL() + '/api/v1/user/dismiss-notification';
+
+
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
     assignments: Assignment[] = [];
+    notifications: { invitation: InvitationNotification[], simple: SimpleNotification[] } = { invitation: [], simple: [] };
 
     constructor(private fb: FormBuilder, private canvasService: CanvasService,
-        private renderer: Renderer2, private filterService: FilterService) {
+        private renderer: Renderer2, private filterService: FilterService,
+        
+        private http: HttpClient) {
         
         this.addSubtaskForm = this.fb.group({
             name: ['', Validators.required],
@@ -102,6 +137,28 @@ export class DashboardComponent implements OnInit {
         this.canvasService.getDueAssignments().then(() => {
             this.canvasService.getSubTasks(this.assignments);
         });
+        this.fetchNotifications();
+    }
+
+    fetchNotifications() {
+        this.http.get<{ invitation: InvitationNotification[], simple: SimpleNotification[] }>(this.notification_url, { withCredentials: true })
+            .subscribe((data: { invitation: InvitationNotification[], simple: SimpleNotification[] }) => {
+                this.notifications = data;
+            });
+    }
+
+    respondInvitation(notification: InvitationNotification, accept: boolean) {
+        this.http.post(this.respond_invitation, { invitation_id: notification.invitation_id, accept: accept }, { withCredentials: true })
+            .subscribe(() => {
+                this.notifications.invitation = this.notifications.invitation.filter(n => n !== notification);
+            });
+    }
+
+    dismissNotification(notification: SimpleNotification) {
+        this.http.post(this.notification_dismiss, { notification_id: notification.id }, { withCredentials: true })
+            .subscribe(() => {
+                this.notifications.simple = this.notifications.simple.filter(n => n !== notification);
+            });
     }
 
 
@@ -136,7 +193,6 @@ export class DashboardComponent implements OnInit {
             this.closeForm();
         }
     }
-
 
 
     /********************************************
@@ -197,6 +253,8 @@ export class DashboardComponent implements OnInit {
 
         setTimeout(() => this.cantToggle = false, 1000); // Unlock status toggle
     }
+    
+    /*      ADD SUBTASK FORM         */
 
     // Open the creation subtask form
     openForm(assignment: Assignment) {
@@ -209,6 +267,20 @@ export class DashboardComponent implements OnInit {
         this.subtaskFormDisplay = false;
         this.subtaskAssignment = null;
     }
+
+    /*      SHARE SUBTASK FORM      */
+
+    openShareForm(subtask: Subtask) {
+        this.subtaskShareDisplay = true;
+        this.subtaskShareAssignment = subtask;
+    }
+
+    // Closes the creation subtask form
+    closeShareForm() {
+        this.subtaskShareDisplay = false;
+        this.subtaskShareAssignment = null;
+    }
+
 
     /*      ASSIGNMENT FORM         */
 
