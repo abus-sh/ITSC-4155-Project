@@ -232,6 +232,10 @@
     z-index: 1000;
 }
 
+.modal-content.share-subtask {
+    min-height: auto;
+}
+
 .modal-content {
     position: relative;
     min-width: 450px;
@@ -335,6 +339,13 @@
     flex-grow: 1;
     font-size: 16px;
     font-weight: bold;
+}
+
+.subtask-share {
+    font-size: 0.9em;
+    font-style: italic;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 .subtask-status {

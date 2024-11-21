@@ -47,7 +47,7 @@
                         <div *ngFor="let subtask of assignment.subtasks | orderBy: 'due_date'" class="subtask-list">
                             <div class="subtask-card" title="{{ subtask.description }}">
                                 <span class="subtask-name">{{ subtask.name }}</span>
-                                <span (click)="openShareForm(subtask)">+</span>
+                                <span class="subtask-share" (click)="openShareForm(subtask)">Share</span>
                                 <span class="subtask-status {{ subtask.status ? 'complete' : 'incomplete' }}"
                                     (click)="toggleSubtaskStatus(subtask)" (keypress)="toggleSubtaskStatus(subtask)"
                                     tabindex="0">
@@ -104,10 +104,17 @@
 
         <!-- Share a subtask with another user FORM -->
         <div class="modal" *ngIf="subtaskShareDisplay">
-            <div class="modal-content">
+            <div class="modal-content share-subtask">
                 <button class="close-button" (click)="closeShareForm()">&#10005;</button>
                 <h2>Share the Subtask</h2>
                 <hr>
+                <form [formGroup]="shareSubtaskForm" (ngSubmit)="shareSubtask()">
+                    <div>
+                        <label for="username">Username</label>
+                        <input type="text" id="username" formControlName="username" required>
+                    </div>
+                    <button type="submit">Share</button>
+                </form>
             </div>
         </div>
 

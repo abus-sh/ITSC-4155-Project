@@ -90,6 +90,8 @@ export class DashboardComponent implements OnInit {
     subtaskShareDisplay = false;
     subtaskShareAssignment: Subtask | null = null;
 
+    shareSubtaskForm: FormGroup;
+
     private cantToggle = false;
 
     assignmentFormDisplay = false;
@@ -103,6 +105,7 @@ export class DashboardComponent implements OnInit {
     filterFormDisplay = false;
     filters: string[] = [];
 
+    sendInvitation = getBackendURL() + '/api/v1/user/send_invitation';
     notification_url = getBackendURL() + '/api/v1/user/get_notifications';
     respond_invitation = getBackendURL() + '/api/v1/user/invitation-response';
     notification_dismiss = getBackendURL() + '/api/v1/user/dismiss-notification';
@@ -123,6 +126,10 @@ export class DashboardComponent implements OnInit {
             description: [''],
             due_date: [this.getFormattedDueDate()],
             status: ['0']
+        });
+
+        this.shareSubtaskForm = this.fb.group({
+            username: ['', Validators.required]
         });
 
         this.filterService.filters$.subscribe(filters => this.filters = filters);
@@ -191,6 +198,21 @@ export class DashboardComponent implements OnInit {
                 status: 0
             });
             this.closeForm();
+        }
+    }
+
+    shareSubtask() {
+        if (this.shareSubtaskForm.valid && this.subtaskShareAssignment) {
+            const formData = {
+                subtask_id: this.subtaskShareAssignment.id,
+                username: this.shareSubtaskForm.value.username
+            };
+
+            this.http.post(this.sendInvitation, formData, { withCredentials: true })
+                .subscribe(() => {
+                    this.closeShareForm();
+                    this.shareSubtaskForm.reset();
+                });
         }
     }
 

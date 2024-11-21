@@ -295,3 +295,30 @@ def get_notifications():
     except Exception:
         return 'Unable to retrieve notifications', 400
     return jsonify(invitations_list), 200
+
+
+@user.route('/send_invitation', methods=['POST'])
+def send_invitation():
+    try:
+        data = request.json
+        username = data.get('username')
+        subtask_id = data.get('subtask_id')
+        if not username or not subtask_id:
+            return 'Invalid payload', 400
+        
+        invited_user = queries.get_user_by_username(username)
+        # Return success if the user doesn't exists otherwise 
+        # that would give away the username of other people, and if they are in the system
+        if not invited_user:
+            return jsonify('Invitation sent!'), 200
+        
+        if invited_user.id == current_user.id:
+            return 'You cannot invite yourself', 400
+        
+        sent = queries.send_subtask_invitation(current_user, subtask_id)
+        if not sent:
+            return 'Unable to send invitation', 400
+        
+    except Exception:
+        return 'Unable to send invitation', 400
+    return jsonify('Invitation sent!'), 200 

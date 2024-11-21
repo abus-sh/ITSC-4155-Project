@@ -429,45 +429,6 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]) -> None:
         models.db.session.rollback()
 
 
-def send_subtask_invitation(owner: models.User, recipient: str, task_id: int, subtask_id: int) -> bool:
-    """
-    Send an invitation to a user to join a subtask.
-    
-    :param owner: The owner of the task.
-    :param recipient: The username of the recipient.
-    :param task_id: The ID of the task.
-    :param subtask_id: The ID of the subtask.
-    :return bool: True if the invitation was sent, False otherwise.
-    """
-    recipient = models.User.query.filter_by(username=recipient).first()
-    subtask = models.SubTask.query.get(subtask_id)
-    if not recipient or not subtask or subtask.owner != owner.id:
-        return False
-    
-    recipient_has_task = models.Task.query.filter_by(owner=recipient.id, canvas_id=subtask.task.canvas_id).first()
-    if not recipient_has_task:
-        return False
-    
-    task_invitation = models.SubTaskInvitation(owner=owner.id, recipient=recipient.id, task_id=task_id, subtask_id=subtask_id)    
-    models.db.session.add(task_invitation)
-    models.db.session.commit()
-
-
-def  get_subtask_invitations(recipient: models.User, dict=False) -> list[models.SubTaskInvitation] | list[dict]:
-    """
-    Retrieve all subtask invitations for a user.
-    
-    :param recipient: The recipient of the subtask invitations.
-    :param dict: If True, return the subtask invitations as a list of dictionaries. Defaults to False.
-    :return list[TaskInvitation] or list[dict]: A list of subtask invitations or a list of dictionaries
-    if dict is True.
-    """
-    invitations = models.SubTaskInvitation.query.filter_by(recipient_id=recipient.id).all()
-    if dict:
-        return [invitation.to_dict() for invitation in invitations]
-    return invitations
-
-
 def compose_invitations(invitations: list[models.SubTaskInvitation]) -> list[dict]:
     """
     Compose a list of invitations into a list of dictionaries.
@@ -667,6 +628,50 @@ def invert_subtask_status(subtask: models.SubTask) -> bool:
         models.db.session.rollback()
         print(f"Error updating subtask status: {e}")
     return False
+
+
+def send_subtask_invitation(owner: models.User, recipient: models.User, subtask_id: int) -> bool:
+    """
+    Send an invitation to a user to join a subtask.
+    
+    :param owner: The owner of the subtask.
+    :param task_id: The ID of the task.
+    :param subtask_id: The ID of the subtask.
+    :return bool: True if the invitation was sent, False otherwise.
+    """
+    try:
+        recipient = models.User.query.filter_by(username=recipient).first()
+        subtask = models.SubTask.query.get(subtask_id)
+        if not recipient or not subtask or subtask.owner != owner.id:
+            return False
+        
+        recipient_has_task = models.Task.query.filter_by(owner=recipient.id, canvas_id=subtask.task.canvas_id).first()
+        if not recipient_has_task:
+            return False
+        
+        task_invitation = models.SubTaskInvitation(owner=owner.id, recipient=recipient.id, subtask_id=subtask_id)    
+        models.db.session.add(task_invitation)
+        models.db.session.commit()
+        return True
+    except Exception:
+        models.db.session.rollback()
+        return False
+
+
+def get_subtask_invitations(recipient: models.User, dict=False) -> list[models.SubTaskInvitation] | list[dict]:
+    """
+    Retrieve all subtask invitations for a user.
+    
+    :param recipient: The recipient of the subtask invitations.
+    :param dict: If True, return the subtask invitations as a list of dictionaries. Defaults to False.
+    :return list[TaskInvitation] or list[dict]: A list of subtask invitations or a list of dictionaries
+    if dict is True.
+    """
+    invitations = models.SubTaskInvitation.query.filter_by(recipient_id=recipient.id).all()
+    if dict:
+        return [invitation.to_dict() for invitation in invitations]
+    return invitations
+
 
 #########################################################################
 #                                                                       #
