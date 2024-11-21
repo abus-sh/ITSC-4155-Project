@@ -155,6 +155,40 @@ def get_course_submissions(courseid):
         return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
 
 
+@courses.get('/<courseid>/undated_assignments')
+def get_undated_assignments(courseid):
+    try:
+        canvas_key = decrypt_canvas_key()
+
+        assignments = canvas_api.get_undated_assignments(canvas_key, courseid)
+
+        # Filter for relevant fields
+        """ fields = [
+            'context_code', 'context_name', 'graded_submissions_exist', 'html_url', 'id',
+            'points_possible', 'submission_types', 'title', 'type', 'user_submitted'
+        ]
+        assignments = [
+            {field: getattr(assignment, field, None) for field in fields}
+            for assignment in assignments
+        ] """
+        assignments = [canvas_api.assignment_to_dict(assignment) for assignment in assignments]
+
+        for assignment in assignments:
+            # Translate 'name' to 'title' for the API
+            assignment['title'] = assignment['name']
+            del assignment['name']
+
+            # Set it to be an assignment
+            assignment['type'] = 'assignment'
+
+            # Override the description to be None to save on bandwidth
+            assignment['description'] = None
+
+        return jsonify(assignments), 200
+    except Exception as e:
+        raise e
+
+
 @courses.route('/graded_assignments', methods=['GET', 'POST'])
 def get_graded_assignments():
     try:
