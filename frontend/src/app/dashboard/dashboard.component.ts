@@ -42,6 +42,7 @@ export interface Subtask {
     due_date: string;
     status: number;
     todoist_id?: string;
+    author?: boolean;
 }
 
 export interface Assignment {
@@ -107,8 +108,8 @@ export class DashboardComponent implements OnInit {
 
     sendInvitation = getBackendURL() + '/api/v1/user/send_invitation';
     notification_url = getBackendURL() + '/api/v1/user/get_notifications';
-    respond_invitation = getBackendURL() + '/api/v1/user/invitation-response';
-    notification_dismiss = getBackendURL() + '/api/v1/user/dismiss-notification';
+    respond_invitation = getBackendURL() + '/api/v1/user/invitation_response';
+    notification_dismiss = getBackendURL() + '/api/v1/user/dismiss_notification';
 
 
     sectionCollapseUpcoming = false;
@@ -152,20 +153,6 @@ export class DashboardComponent implements OnInit {
         this.http.get<{ invitation: InvitationNotification[], simple: SimpleNotification[] }>(this.notification_url, { withCredentials: true })
             .subscribe((data: { invitation: InvitationNotification[], simple: SimpleNotification[] }) => {
                 this.notifications = data;
-            });
-    }
-
-    respondInvitation(notification: InvitationNotification, accept: boolean) {
-        this.http.post(this.respond_invitation, { invitation_id: notification.invitation_id, accept: accept }, { withCredentials: true })
-            .subscribe(() => {
-                this.notifications.invitation = this.notifications.invitation.filter(n => n !== notification);
-            });
-    }
-
-    dismissNotification(notification: SimpleNotification) {
-        this.http.post(this.notification_dismiss, { notification_id: notification.id }, { withCredentials: true })
-            .subscribe(() => {
-                this.notifications.simple = this.notifications.simple.filter(n => n !== notification);
             });
     }
 
@@ -215,6 +202,20 @@ export class DashboardComponent implements OnInit {
                     this.shareSubtaskForm.reset();
                 });
         }
+    }
+
+    respondInvitation(notification: InvitationNotification, accept: boolean) {
+        this.http.post(this.respond_invitation, { invitation_id: notification.invitation_id, accept: accept }, { withCredentials: true })
+            .subscribe(() => {
+                this.notifications.invitation = this.notifications.invitation.filter(n => n !== notification);
+            });
+    }
+
+    dismissNotification(notification: SimpleNotification) {
+        this.http.post(this.notification_dismiss, { notification_id: notification.id }, { withCredentials: true })
+            .subscribe(() => {
+                this.notifications.simple = this.notifications.simple.filter(n => n !== notification);
+            });
     }
 
 
@@ -407,5 +408,9 @@ export class DashboardComponent implements OnInit {
         const daysDifference = timeDifference / (1000 * 3600 * 24);
 
         return Math.floor(daysDifference);
+    }
+
+    isAuthor(subtask: Subtask): boolean {
+        return subtask.author === true;
     }
 }

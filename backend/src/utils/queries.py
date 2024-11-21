@@ -5,6 +5,7 @@ from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
 from sqlalchemy import select, or_
 import sqlalchemy.exc
+import requests
 from datetime import datetime
 
 #########################################################################
@@ -410,20 +411,24 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]) -> None:
         print("Task rollback", e)
         models.db.session.rollback()
 
-    shared_subtasks = []
+
     
     # Handle subtasks
     try:
         tasks: list[tuple[models.SubTask]] = models.db.session\
             .execute(select(models.SubTask).where(models.SubTask.owner == owner.id))
         for (task,) in tasks:
+            if len(task.shared_with) > 0:
+                continue
             if task.todoist_id in open_task_ids:
                 task.status = models.TaskStatus.Incomplete
             else:
                 print(f'Marking task {task.todoist_id} as done')
                 task.status = models.TaskStatus.Completed
         models.db.session.commit()
-        return shared_subtasks
+        
+        shared_subtasks = get_shared_subtasks(owner)
+        
     except Exception as e:
         print("Subtask rollback", e)
         models.db.session.rollback()
@@ -474,12 +479,9 @@ def get_shared_users_subtask(subtask: models.SubTask) -> list[int, str] | None:
     This function retrieve all the users a shared subtask has been shared with (including the original owner).
     Together with their todoist ID for the shared subtask in their todoist.
     
+    :param subtask: The subtask to retrieve the shared users for.
+    :return list[int, str] | None: A list of user IDs and their todoist ID for the shared subtask.
     """
-    all_users = subtask.shared_with
-    if not isinstance(all_users, list):
-        return None
-    all_users.append(subtask.owner)
-    
     user_todoist = []
     shared_subtasks = models.SubTaskShared.query.filter_by(subtask_id=subtask.id).all()
     for shared_subtask in shared_subtasks:
@@ -487,7 +489,17 @@ def get_shared_users_subtask(subtask: models.SubTask) -> list[int, str] | None:
     user_todoist.append((subtask.owner, subtask.todoist_id))
     
     return user_todoist
-    
+
+
+def get_original_from_shared_subtask(owner: models.User) -> models.SubTask | None:
+    """
+    Get all the subtasks that have been shared with the user, and of those shared subtasks returns the original subtask.
+    """
+    shared_subtasks = models.SubTaskShared.query.filter_by(owner=owner.id).all()
+    for shared_subtask in shared_subtasks:
+        if shared_subtask.todoist_id is None:
+            return models.SubTask.query.get(shared_subtask.subtask_id)
+    return None
 
 #########################################################################
 #                                                                       #
@@ -560,11 +572,15 @@ def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str],
     :return: A list of tuple with subtasks info.
     :rtype: list[tuple]
     """
+    shared_subtask_ids = [shared_subtask.subtask_id for shared_subtask in models.SubTaskShared.query.filter_by(owner=current_user.id).all()]
 
     subtasks = models.SubTask.query\
         .join(models.Task, models.SubTask.task_id == models.Task.id).filter(
             models.Task.canvas_id.in_(canvas_ids),
-            models.SubTask.owner == current_user.id
+            or_(
+                models.SubTask.owner == current_user.id,
+                models.SubTask.id.in_(shared_subtask_ids)
+            )
         ).with_entities(
             models.SubTask.id,
             models.SubTask.name,
@@ -572,12 +588,13 @@ def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str],
             models.SubTask.status,
             models.SubTask.due_date,
             models.Task.canvas_id,
-            models.SubTask.todoist_id
+            models.SubTask.todoist_id,
+            models.SubTask.owner
         ).all()
 
     if format:
         subtasks_dict = {}
-        for subtask_id, name, description, status, due_date, canvas_id, todoist_id in subtasks:
+        for subtask_id, name, description, status, due_date, canvas_id, todoist_id, owner in subtasks:
             subtasks_dict.setdefault(canvas_id, []).append({
                 'id': subtask_id,
                 'canvas_id': canvas_id,
@@ -585,7 +602,8 @@ def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str],
                 'description': description,
                 'status': status.value or 0,
                 'due_date': due_date,
-                'todoist_id': todoist_id
+                'todoist_id': todoist_id,
+                'author': current_user.id == owner
             })
         return subtasks_dict
     return subtasks
@@ -675,6 +693,64 @@ def get_subtask_invitations(recipient: models.User, dict=False) -> list[models.S
     return invitations
 
 
+def get_invitation_original(owner: models.User, invitation_id: int) -> models.User | None:
+    """
+    Get the original owner that an invitation is associated with.
+    
+    :param owner: The recipient of the invitation.
+    :param invitation_id: The ID of the invitation.
+    :return SubTask | None: The original subtask that the invitation is associated with.
+    """
+    invitation = models.SubTaskInvitation.query.get(invitation_id)
+    if not invitation or invitation.recipient_id != owner.id:
+        return None
+    return models.User.query.get(invitation.owner)
+
+
+def get_invitation_subtask(owner: models.User, invitation_id: int) -> models.SubTask | None:
+    """
+    Get the subtask that an invitation is associated with.
+    
+    :param owner: The recipient of the invitation.
+    :param invitation_id: The ID of the invitation.
+    :return SubTask | None: The subtask that the invitation is associated with.
+    """
+    invitation = models.SubTaskInvitation.query.get(invitation_id)
+    if not invitation or invitation.recipient_id != owner.id:
+        print('Invalid Recipient')
+        return None
+    return models.SubTask.query.get(invitation.subtask_id)
+
+
+def get_recipient_task(owner: models.User, subtask: models.SubTask) -> models.Task | None:
+    """
+    Get the task that a subtask is associated with for the recipient.
+    
+    :param owner: The recipient of the subtask.
+    :param subtask: The subtask to get the task for.
+    :return Task | None: The task that the subtask is associated with.
+    """
+    return models.Task.query.filter_by(owner=owner.id, canvas_id=subtask.task.canvas_id).first()
+
+
+def create_shared_subtask(owner: models.User, subtask: models.SubTask, todoist_id: str) -> None:
+    """
+    Creates a shared subtask.
+    
+    :param owner: The person accepnting or regecting the invitation.
+    :param subtask: The subtask to share.
+    :param todoist_id: The todoist ID of the shared subtask.
+    :return bool: True if the shared subtask was created, False otherwise.
+    """
+    try:
+        shared_subtask = models.SubTaskShared(owner=owner.id, subtask_id=subtask.id, 
+                                                todoist_original=subtask.todoist_id, todoist_id=todoist_id)
+        models.db.session.add(shared_subtask)
+        models.db.session.commit()
+    except Exception as e:
+        models.db.session.rollback()
+        print(e)
+
 #########################################################################
 #                                                                       #
 #                           CONVERSATION                                #
@@ -702,7 +778,7 @@ def create_new_conversation(owner: models.User, canvas_id: int, conv_id: int) ->
     except Exception as e:
         models.db.session.rollback()
         print(f"Error creating conversation: {e}")
-    return False
+        return False
 
 
 def get_user_conversations(owner: models.User, dict: bool=False) -> list[models.Conversation] | list[dict]:

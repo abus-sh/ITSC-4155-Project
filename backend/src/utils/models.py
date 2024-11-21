@@ -208,8 +208,10 @@ class SubTaskShared(ModelMixin, db.Model):
     :type owner: int
     :param subtask_id: The ID of the SubTask that is shared.
     :type subtask_id: int
+    :param todoist_original: The ID of the original task in Todoist, if one exists.
+    :type todoist_original: str
     :param todoist_id: The ID of the task in Todoist, if one exists.
-    :type todoist_id: str | None
+    :type todoist_id: str
     """
     __tablename__ = 'shared_subtasks'
     __table_args__ = (
@@ -218,7 +220,8 @@ class SubTaskShared(ModelMixin, db.Model):
     id = Column(Integer, primary_key=True)
     owner = Column(Integer, ForeignKey('users.id'), nullable=False)
     subtask_id = Column(Integer, ForeignKey('subtasks.id', ondelete='CASCADE'), nullable=False)
-    todoist_id = Column(String(15), unique=False, nullable=True)
+    todoist_original = Column(String(15), unique=False, nullable=False)
+    todoist_id = Column(String(15), unique=False, nullable=False)
     
     subtask = relationship('SubTask')
     

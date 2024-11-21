@@ -253,6 +253,49 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
     return False
 
 
+def add_shared_subtask(current_user: User, todoist_key: str, invitation_id: int, accept: bool) -> bool:
+    subtask = queries.get_invitation_subtask(current_user, invitation_id)
+    recipient_task = queries.get_recipient_task(current_user, subtask)
+    
+    if accept and subtask and recipient_task and current_user.id in subtask.shared_with:
+        try:
+            header = {
+                "Authorization": f"Bearer {todoist_key}",
+                "Content-Type": "application/json"
+                }
+            body = {
+                "content": subtask.name,
+                "description": subtask.description,
+                "due_date": subtask.due_date,
+                "parent_id": recipient_task.todoist_id,
+            }
+
+            # Create subtask and receive the todoist id
+            response_data = _send_post_todoist("https://api.todoist.com/rest/v2/tasks",
+                                               json.dumps(body), header)
+            if response_data:
+                todoist_id = response_data.get('id', None)
+                if not todoist_id:
+                    return False
+
+                # If subtask is already marked as complete, close it
+                if subtask_status == TaskStatus.Completed:
+                    response = requests.post(
+                        f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close",
+                        headers={"Authorization": f"Bearer {todoist_key}"}
+                    )
+                    # Failure to mark subtask as complete
+                    if response.status_code != 204:
+                        subtask_status = TaskStatus.Incomplete
+
+                # Create subtask in database
+                queries.create_shared_subtask(current_user, subtask, todoist_id)
+                return True
+        except Exception as e:
+            print(e)
+    return False
+
+
 def close_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bool:
     """
     Marks a task or subtask as complete for the current user.
@@ -334,15 +377,17 @@ def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> b
     if task is None:
         return False
     
-    if isinstance(task, SubTask) and (task.owner == current_user.id or current_user.id in task.shared_with):
+    if isinstance(task, SubTask) and current_user.id in task.shared_with:
         user_todoist_ids = queries.get_shared_users_subtask(task)
         for user_id, todoist_id in user_todoist_ids:
             encrypted_todoist_api = queries.get_user_todoist_api(user_id)
             todoist_key = decrypt_str(encrypted_todoist_api, get_todo_secret())
+            
             results = []
             results.append(toggle_shared_subtask(todoist_key, todoist_id, task))
             if any(results):
                 return queries.invert_subtask_status(task)
+        return False
             
             
             
@@ -366,11 +411,14 @@ def toggle_shared_subtask(todoist_key: str, todoist_task_id: str, task: Task) ->
     if task.status == TaskStatus.Completed:
         response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_task_id}/reopen",
                             headers={"Authorization": f"Bearer {todoist_key}"})
+        if response.status_code == 204:
+            return True
+        
     elif task.status == TaskStatus.Incomplete:
         response = requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_task_id}/close",
                             headers={"Authorization": f"Bearer {todoist_key}"})
-    if response.status_code == 204:
-        return True
+        if response.status_code == 204:
+            return True
     return False
     
 
