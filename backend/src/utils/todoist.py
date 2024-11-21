@@ -287,9 +287,9 @@ def add_shared_subtask(current_user: User, todoist_key: str, invitation_id: int,
                         f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close",
                         headers={"Authorization": f"Bearer {todoist_key}"}
                     )
-                    # # Failure to mark subtask as complete
-                    # if response.status_code != 204:
-                    #     subtask_status = TaskStatus.Incomplete
+                    # Failure to mark subtask as complete
+                    if response.status_code != 204:
+                        subtask_status = TaskStatus.Incomplete
 
 
                 # Create subtask in database
@@ -501,7 +501,26 @@ def sync_task_status(current_user: User, todoist_key: str):
         if not task['checked']:
             open_tasks.add(task['id'])
 
-    queries.sync_task_status(current_user, open_tasks)
+    shared_todoists = queries.sync_task_status(current_user, open_tasks)
+    update_shared_todoist_status(todoist_key, shared_todoists, open_tasks)
+    
+
+def update_shared_todoist_status(todoist_key: str, shared_tasks: list[tuple[str, TaskStatus]], open_tasks: set):
+    """
+    Update the status of shared subtasks in Todoist for the current user based 
+    on the status of the subtask in the database.
+
+    Args:
+        current_user (User): The current user.
+        todoist_key (str): The Todoist API key for the current user.
+        shared_tasks (list[tuple[str, TaskStatus]]): A list of tuples containing the Todoist ID and
+        the status of the shared subtask.
+    """
+    header = {"Authorization": f"Bearer {todoist_key}"}
+    for todoist_id, status in shared_tasks:
+        if todoist_id in open_tasks and status == TaskStatus.Completed:
+            requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close", headers=header)
+            
 
 
 def _send_post_todoist(todoist_url, body, headers):

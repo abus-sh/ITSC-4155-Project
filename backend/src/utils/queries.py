@@ -388,13 +388,14 @@ def get_descriptions_by_canvas_ids(owner: models.User, canvas_ids: list[int])\
     return description_lookup
 
 
-def sync_task_status(owner: models.User, open_task_ids: list[int]) -> None:
+def sync_task_status(owner: models.User, open_task_ids: list[int]) -> list[tuple[str, models.TaskStatus]] | None:
     """
     Sets the status for all tasks. Any task ID in open_task_ids will be set to incomplete and
     all others will be set to completed.
 
     :param owner: The owner of the tasks.
     :param open_task_ids: The IDs of the tasks that should be in progress.
+    :return list[str] | None: A list of shared subtasks that were found, or None if an error occurred.
     """
     # Handle tasks
     try:
@@ -411,7 +412,9 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]) -> None:
         print("Task rollback", e)
         models.db.session.rollback()
 
-
+    # Shared subtasks are not overwriten by the Todoist's status
+    # Instead, the database status determine the Todoist's status
+    shared_subtasks = get_all_shared_todoist_status(owner)
     
     # Handle subtasks
     try:
@@ -419,6 +422,7 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]) -> None:
             .execute(select(models.SubTask).where(models.SubTask.owner == owner.id))
         for (task,) in tasks:
             if len(task.shared_with) > 0:
+                shared_subtasks.append((task.todoist_id, task.status))
                 continue
             if task.todoist_id in open_task_ids:
                 task.status = models.TaskStatus.Incomplete
@@ -427,11 +431,12 @@ def sync_task_status(owner: models.User, open_task_ids: list[int]) -> None:
                 task.status = models.TaskStatus.Completed
         models.db.session.commit()
         
-        shared_subtasks = get_shared_subtasks(owner)
-        
+        return shared_subtasks
+            
     except Exception as e:
         print("Subtask rollback", e)
         models.db.session.rollback()
+        return None
 
 
 def compose_invitations(invitations: list[models.SubTaskInvitation]) -> list[dict]:
@@ -459,11 +464,26 @@ def compose_invitations(invitations: list[models.SubTaskInvitation]) -> list[dic
     ]
 
 
+def get_all_shared_todoist_status(owner: models.User) -> list[tuple[str, models.TaskStatus]]:
+    """
+    Retrieve all shared subtasks for a user and return the todoist ID and status of all 
+    shared subtask with owner as the recipient
+
+    :param owner: The owner of the shared subtasks.
+    :return tuple[str, TaskStatus]: The todoist ID and status of all shared subtask with owner as the recipient.
+    """
+    todoist_status = []
+    shared_subtasks = models.SubTaskShared.query.filter_by(owner=owner.id).all()
+    for shared_subtask in shared_subtasks:
+        todoist_status.append((shared_subtask.todoist_id, shared_subtask.subtask.status))
+    return todoist_status
+
+
 def get_shared_subtasks(owner: models.User, dict=False) -> list[models.SubTask] | list[dict]:
     """
     Retrieve all shared subtasks for a user.
     
-    :param owner: The owner of the subtasks.
+    :param owner: The owner of the shared subtasks.
     :param dict: If True, return the subtasks as a list of dictionaries. Defaults to False.
     :return list[SubTask] or list[dict]: A list of shared subtasks or a list of dictionaries
     if dict is True.
