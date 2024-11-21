@@ -382,19 +382,9 @@ def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> b
     if task is None:
         return False
     
-    if isinstance(task, SubTask) and current_user.id in task.shared_with:
-        print(1)
-        user_todoist_ids = queries.get_shared_users_subtask(task)
-        for user_id, todoist_id in user_todoist_ids:
-            encrypted_todoist_api = queries.get_user_todoist_api(user_id)
-            todoist_key = decrypt_str(encrypted_todoist_api, get_todo_secret())
-            
-            results = []
-            results.append(toggle_shared_subtask(todoist_key, todoist_id, task))
-            if any(results):
-                return queries.invert_subtask_status(task)
-        return False
-            
+    # If this is a shared subtast, toggle the status for all shared users
+    if isinstance(task, SubTask) and len(task.shared_with) > 0 and (current_user.id in task.shared_with or current_user.id == task.owner):
+        return toggle_shared_subtask(current_user, todoist_key, task)
             
             
     # Handle each enum seperately in case more states happen in the future
@@ -406,7 +396,35 @@ def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> b
     return False
 
 
-def toggle_shared_subtask(todoist_key: str, todoist_task_id: str, task: Task) -> bool:
+def toggle_shared_subtask(current_user: User, todoist_key: str, task: SubTask) -> bool:
+    """
+    Toggle a shared subtask's status in the database and in todoist for every shared user.
+    
+    :param current_user: The current user.
+    :param todoist_key: The Todoist API key for the current user.
+    :param task: The shared subtask object.
+    :return: True if the shared subtask's status was toggled, False otherwise.
+    """
+    if isinstance(task, SubTask) and len(task.shared_with) > 0 and (current_user.id in task.shared_with or current_user.id == task.owner):
+        # Get all users part of the shared subtask
+        user_todoist_ids = queries.get_shared_users_subtask(task)
+        print(user_todoist_ids)
+        
+        results = []
+        for user_id, todoist_id in user_todoist_ids:
+            encrypted_todoist_api = queries.get_user_todoist_api(user_id) # Get the todoist id of their subtask on todoist
+            todoist_key = decrypt_str(encrypted_todoist_api, get_todo_secret())
+            
+            # Toggle the status of the shared subtask for each user in todoist
+            results.append(toggle_shared_subtask_todoist(todoist_key, todoist_id, task))
+        print(results)
+        if any(results):
+            return queries.invert_subtask_status(task)
+        else:
+            return False
+
+
+def toggle_shared_subtask_todoist(todoist_key: str, todoist_task_id: str, task: Task) -> bool:
     """
     Toggles a shared subtask's status in the database and in todoist for every shared user.
     

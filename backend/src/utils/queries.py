@@ -746,9 +746,11 @@ def create_shared_subtask(owner: models.User, subtask: models.SubTask, todoist_i
         shared_subtask = models.SubTaskShared(owner=owner.id, subtask_id=subtask.id, 
                                                 todoist_original=subtask.todoist_id, todoist_id=todoist_id)
         
+        # SQLalchemy is stupid and doesn't realize a change was made to a list
         original_subtask = models.SubTask.query.get(subtask.id)
-        new_list = original_subtask.shared_with
+        new_list = original_subtask.shared_with.copy()
         new_list.append(owner.id)
+        original_subtask.shared_with = new_list 
         print(vars(original_subtask))
         
         models.db.session.add(original_subtask)
