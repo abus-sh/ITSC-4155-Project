@@ -157,7 +157,7 @@ def add_task(current_user: User, todoist_key: str, task_name: str,  due_date: st
         canvas_id (str | None): The ID of the assignment in Canvas, optional.
 
     Returns:
-        int | Literal[False]: The Todoist ID if the task was added and False otherwise.
+        int | Literal[False]: The database ID if the task was added and False otherwise.
     """
     body = {'content': task_name, 'due_string': due_date, 'labels': ['assignment']}
 
@@ -178,9 +178,10 @@ def add_task(current_user: User, todoist_key: str, task_name: str,  due_date: st
 
     task_id = resp.json()['id']
 
-    queries.add_or_return_task(current_user, None, task_id, due_date, task_name, task_desc)
+    task = queries.add_or_return_task(current_user, None, task_id, due_date, task_name, task_desc)
 
-    return task_id
+    #return task_id
+    return task.id
 
 
 def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_name: str,
