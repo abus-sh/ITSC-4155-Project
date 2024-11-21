@@ -162,6 +162,47 @@ export class CanvasService {
         this.dueAssignments$.next(this.dueAssignments);
     }
 
+    async addFakeAssignment(assignment: Assignment) {
+        if (assignment.due_at) {
+            this.dueAssignments.push(assignment);
+            this.dueAssignments.sort(this.compareAssignments);
+
+            this.dueAssignments$.next(this.dueAssignments);
+        } else {
+            this.undatedAssignments.push(assignment);
+            this.undatedAssignments.sort(this.compareAssignments);
+
+            this.undatedAssignments$.next(this.undatedAssignments);
+        }
+    }
+
+    private compareAssignments(a1: Assignment, a2: Assignment) {
+        // See if sorting by due date works. An assignment w/ a due date is always above one that
+        // doesn't have one
+        if (a1.due_at && a2.due_at) {
+            if (a1.due_at > a2.due_at) {
+                return 1;
+            } else if (a1.due_at < a2.due_at) {
+                return -1;
+            }
+        }
+        if (a1.due_at && !a2.due_at) {
+            return 1;
+        }
+        if (!a1.due_at && a2.due_at) {
+            return -1;
+        }
+
+        // Sort by title otherwise
+        if (a1.title > a2.title) {
+            return 1;
+        } else if (a1.title < a2.title) {
+            return -1;
+        }
+
+        return 0;
+    }
+
     private async fetchDueAssignments(): Promise<Assignment[]> {
         let assignments = await firstValueFrom(this.http.get<Assignment[]>(this.dueSoonUrl,
             { withCredentials: true }));
