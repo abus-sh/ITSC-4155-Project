@@ -31,6 +31,7 @@ export class CanvasService {
     private addSubTaskUrl = getBackendURL() + '/api/v1/tasks/add_subtask';
     private subTaskUrl = getBackendURL() + '/api/v1/tasks';
     private downloadSubmissionUrl = getBackendURL() + '/api/v1/courses/ID/submissions';
+    private undatedAssignmentsUrl = getBackendURL() + '/api/v1/courses/ID/undated_assignments';
 
     courses$ = new Subject<Course[]>();
     private courses: Course[] = [];
@@ -39,6 +40,10 @@ export class CanvasService {
     dueAssignments$ = new Subject<Assignment[]>();
     private dueAssignments: Assignment[] = [];
     private dueAssignmentsLastUpdated = 0;
+
+    undatedAssignments$ = new Subject<Assignment[]>();
+    private undatedAssignments: Assignment[] = [];
+    private undatedAssignmentsLastUpdated = 0;
 
     constructor(private http: HttpClient) {}
 
@@ -75,6 +80,34 @@ export class CanvasService {
         });
 
         return transformedCourses;
+    }
+
+    async getUndatedAssignments() {
+        // Only fetch new data if enough time has passwed
+        const now = new Date().getTime();
+        if ((now - this.undatedAssignmentsLastUpdated) > getCanvasCacheTime()) {
+            this.undatedAssignments$.next(this.undatedAssignments);
+            this.undatedAssignments = await this.fetchUndatedAssignments();
+            this.undatedAssignmentsLastUpdated = now;
+        }
+
+        this.undatedAssignments$.next(this.undatedAssignments);
+    }
+
+    async fetchUndatedAssignments() {
+        const assignments = await this.courses.map(async course => {
+            return await firstValueFrom(this.http.get<Assignment[]>(
+                this.undatedAssignmentsUrl.replace('ID', course.id.toString()),
+                { withCredentials: true }
+            ));
+        }).reduce(async (assignsP, aP) => {
+            const assigns = await assignsP;
+            const a = await aP;
+
+            return assigns.concat(a);
+        });
+
+        return assignments;
     }
 
     async getGradedAssignmentsForCourse(courseId: number) {

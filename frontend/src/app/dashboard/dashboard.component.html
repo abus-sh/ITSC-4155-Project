@@ -62,10 +62,27 @@
         </div>
     </div>
     <br>
-    <h2 class="collapsible-title" (click)="toggleSection(1)" (keypress)="toggleSection(1)" tabindex="0">
-        {{ sectionCollapseComplete ? '&#9662;' : '&#9652;' }} Completed Assignments
+    <h2 class="collapsible-title" (click)="toggleSection(2)" (keypress)="toggleSection(2)" tabindex="0">
+        {{ sectionCollapseComplete ? '&#9662;' : '&#9652;' }} Undated Assignments
     </h2>
     <hr>
+    <div class="assignments-container" *ngIf="!sectionCollapseUndated">
+        <div *ngFor="let assignment of undatedAssignments | orderBy: 'title' | filter: this.filters" class="assignment-card"
+        (click)="openNoteForm(assignment, $event)" (keypress)="openNoteForm(assignment, $event)"
+        tabindex="0">
+            <div class="title-holder">
+                <h3 class="assignment-title">{{ assignment.title }}</h3>
+                <p *ngIf="assignment.user_description && assignment.user_description !== ''"
+                    title="A note exists for this assignment.">📝</p>
+            </div>
+            <p class="assignment-course">{{ assignment.context_name }}</p>
+            <div class="assignment-buttons">
+                <button class="dropdown-toggle" (click)="openSendMessageForm(assignment)">Email</button>
+                <a class="assignment-link" [href]="assignment.html_url" target="_blank" *ngIf="assignment.html_url">View
+                    Assignment</a>
+            </div>
+        </div>
+    </div>
 
     <!-- Add a Subtask to an Assignment/Task FORM -->
     <div class="modal" *ngIf="subtaskFormDisplay">

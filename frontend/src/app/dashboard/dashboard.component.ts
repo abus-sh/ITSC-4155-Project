@@ -23,8 +23,8 @@ export interface Subtask {
 
 export interface Assignment {
     title: string;
-    description: string;
-    user_description?: string | null;
+    description: string | null;
+    user_description: string | null;
     type: string;
     submission_types: string[] | string;
     html_url?: string;
@@ -34,7 +34,7 @@ export interface Assignment {
     db_id?: number;
     points_possible?: number;
     graded_submissions_exist: boolean;
-    due_at: string;
+    due_at?: string;
     subtasks: Subtask[];
     user_submitted?: boolean;
 }
@@ -80,6 +80,9 @@ export class DashboardComponent implements OnInit {
     sectionCollapseComplete = false;
     assignments: Assignment[] = [];
 
+    sectionCollapseUndated = false;
+    undatedAssignments: Assignment[] = [];
+
     constructor(private fb: FormBuilder, private canvasService: CanvasService,
         private renderer: Renderer2, private filterService: FilterService) {
         
@@ -99,8 +102,16 @@ export class DashboardComponent implements OnInit {
             this.assignments = assignments;
         });
 
+        this.canvasService.undatedAssignments$.subscribe(assignments => {
+            this.undatedAssignments = assignments;
+        })
+
         this.canvasService.getDueAssignments().then(() => {
             this.canvasService.getSubTasks(this.assignments);
+        });
+
+        this.canvasService.getCourses().then(() => {
+            this.canvasService.getUndatedAssignments();
         });
     }
 
@@ -149,8 +160,10 @@ export class DashboardComponent implements OnInit {
     toggleSection(section: number) {
         if (section == 0) {
             this.sectionCollapseUpcoming = !this.sectionCollapseUpcoming;
-        } else {
+        } else if (section == 1) {
             this.sectionCollapseComplete = !this.sectionCollapseComplete;
+        } else if (section == 2) {
+            this.sectionCollapseUndated = !this.sectionCollapseUndated;
         }
     }
 
