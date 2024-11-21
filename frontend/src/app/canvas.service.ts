@@ -11,6 +11,7 @@ interface AddSubtaskResponse {
     message?: string,
     id?: number,
     todoist_id?: string
+    author?: boolean
 }
 
 
@@ -204,7 +205,8 @@ export class CanvasService {
             status: subtaskData.status,
             due_date: subtaskData.due_date,
             id: resp.id,
-            todoist_id: resp.todoist_id
+            todoist_id: resp.todoist_id,
+            author: resp.author
         }
 
         this.dueAssignments.filter(assignment => {

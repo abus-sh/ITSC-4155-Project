@@ -70,7 +70,8 @@ export interface AddSubtaskBody {
     description: string,
     due_date: string,
     status: number,
-    canvas_id: number
+    canvas_id: number,
+    author?: boolean
 }
 
 @Component({
@@ -208,6 +209,7 @@ export class DashboardComponent implements OnInit {
         this.http.post(this.respond_invitation, { invitation_id: notification.invitation_id, accept: accept }, { withCredentials: true })
             .subscribe(() => {
                 this.notifications.invitation = this.notifications.invitation.filter(n => n !== notification);
+                this.canvasService.getSubTasks(this.assignments);
             });
     }
 
