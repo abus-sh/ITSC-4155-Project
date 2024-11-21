@@ -98,6 +98,7 @@ def exchange_token(code: str, state: str, session):
     response_data = response.json()
 
     if response_data.get('error'):
+        print(response_data.get('error'))
         return None
     else:
         access_token = response_data.get('access_token')     # Access token
