@@ -518,8 +518,12 @@ def update_shared_todoist_status(todoist_key: str, shared_tasks: list[tuple[str,
     """
     header = {"Authorization": f"Bearer {todoist_key}"}
     for todoist_id, status in shared_tasks:
-        if todoist_id in open_tasks and status == TaskStatus.Completed:
-            requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close", headers=header)
+        if todoist_id in open_tasks:
+            if status == TaskStatus.Completed:
+                requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close", headers=header)
+        elif status == TaskStatus.Incomplete:
+            requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/reopen", headers=header)
+                
             
 
 

@@ -121,9 +121,9 @@ export class DashboardComponent implements OnInit {
 
     constructor(private fb: FormBuilder, private canvasService: CanvasService,
         private renderer: Renderer2, private filterService: FilterService,
-        
+
         private http: HttpClient) {
-        
+
         this.addSubtaskForm = this.fb.group({
             name: ['', Validators.required],
             description: [''],
@@ -279,9 +279,16 @@ export class DashboardComponent implements OnInit {
             subtask.status = subtask.status ? 0 : 1;
         }
 
-        setTimeout(() => this.cantToggle = false, 1000); // Unlock status toggle
+        setTimeout(() => this.cantToggle = false, 3000); // Unlock status toggle
     }
-    
+
+    /********************************************
+    *
+    *           OPEN CLOSE FORM
+    *   
+    *********************************************/
+
+
     /*      ADD SUBTASK FORM         */
 
     // Open the creation subtask form
@@ -371,6 +378,14 @@ export class DashboardComponent implements OnInit {
     closeFilterForm() {
         this.filterFormDisplay = false;
     }
+
+
+    /********************************************
+    *
+    *             FORMATTERS
+    *   
+    *********************************************/
+
 
     // Get end of current day date
     getFormattedDueDate(): string {
