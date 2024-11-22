@@ -461,9 +461,9 @@ export class DashboardComponent implements OnInit {
             return;
         }
         const due_date = (element.children[1].children[1] as HTMLInputElement).value;
-        this.canvasService.setCustomDueDate(assignment, due_date);\
+        this.canvasService.setCustomDueDate(assignment, due_date);
     }
-    
+
     isAuthor(subtask: Subtask): boolean {
         return subtask.author === true;
     }
