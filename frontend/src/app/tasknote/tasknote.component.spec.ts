@@ -12,6 +12,7 @@ describe('TasknoteComponent Canvas, No Desc', () => {
     const assignment: Assignment = {
         title: 'title',
         description: 'desc',
+        user_description: null,
         type: 'assignment',
         submission_types: [],
         id: 1,
@@ -130,6 +131,7 @@ describe('TasknoteComponent Native, No Desc', () => {
     const assignment: Assignment = {
         title: 'title',
         description: 'desc',
+        user_description: null,
         type: 'assignment',
         submission_types: [],
         db_id: 2,

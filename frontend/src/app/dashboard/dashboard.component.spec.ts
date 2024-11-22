@@ -43,7 +43,7 @@ describe('DashboardComponent', () => {
     });
 
     it('Open and close subtask form', () => {
-        const assignment = { id: 1, title: 'Test Assignment', description: '', type: '', submission_types: [], graded_submissions_exist: false, due_at: '', subtasks: [], user_submitted: false };
+        const assignment = { id: 1, title: 'Test Assignment', description: '', user_description: null, type: '', submission_types: [], graded_submissions_exist: false, due_at: '', subtasks: [], user_submitted: false };
         component.openForm(assignment);
         expect(component.subtaskFormDisplay).toBeTrue();
         expect(component.subtaskAssignment).toEqual(assignment);
@@ -62,7 +62,7 @@ describe('DashboardComponent', () => {
     });
 
     it('Adding a new subtask', () => {
-        const assignment = { id: 1, title: 'Test Assignment', description: '', type: '', submission_types: [], graded_submissions_exist: false, due_at: '', subtasks: [], user_submitted: false  };
+        const assignment = { id: 1, title: 'Test Assignment', description: '', user_description: null, type: '', submission_types: [], graded_submissions_exist: false, due_at: '', subtasks: [], user_submitted: false  };
         component.openForm(assignment);
         component.addSubtaskForm.setValue({
             name: 'Test Subtask',
