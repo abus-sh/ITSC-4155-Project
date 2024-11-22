@@ -300,7 +300,7 @@ def set_custom_due_date(courseid, assignmentid):
         return jsonify({'success': False, 'message': 'ID does not exist.'}), 404
     except:
         return jsonify({'success': False, 'message': 'An unknown error has occurred.'}), 500
-    
+
     return jsonify({'success': True, 'message': 'Update custom due date.'})
 
 
@@ -310,7 +310,7 @@ def get_professor_ta_ids(courseid):
 
     try:
         professor_ta_ids = canvas_api.get_professor_info(canvas_key, courseid)
-        
+
     except Exception:
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
@@ -321,12 +321,12 @@ def get_professor_ta_ids(courseid):
 @courses.route('/get_grade_simulation/<courseid>', methods=['GET'])
 def get_grade_simulation(courseid):
     canvas_key = decrypt_canvas_key()
-    
+
     try:
         grade_weight_group = canvas_api.get_weighted_graded_assignments_for_course(canvas_key, courseid)
         if grade_weight_group is None:
             return "Invalid course id", 400
-        
+
         grade_log = []
         for section in grade_weight_group:
             grade_section = {
@@ -343,11 +343,10 @@ def get_grade_simulation(courseid):
                 ]
             }
             grade_log.append(grade_section)
-            
+
     except Exception:
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to get field for assignment', 404
     return jsonify(grade_log), 200
-    
-    
+

@@ -409,7 +409,7 @@ def download_submissions_no_cache(submissions: list[Submission]):
 def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
     """
     This function is used to get the id and name of all teachers and TAs for a course.
-    
+
     :param canvas_key: The API key that should be used.
     :param course_id: The ID of the course to retrieve the users from.
     :return list[dict]: A list of dictionaries with the id and name of each teacher and TAs
@@ -423,7 +423,7 @@ def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
 def send_message(canvas_key: str, recipients: list, subject: str, body: str, conv_exists: bool=False) -> int:
     """
     This function is used to send a message to a user in Canvas.
-    
+
     :param canvas_key: The API key that should be used.
     :param recipients: A list of user IDs to send the message to.
     :param subject: The subject of the message.
@@ -440,7 +440,7 @@ def send_message(canvas_key: str, recipients: list, subject: str, body: str, con
 def send_reply(canvas_key: str, conv_id: str, body: str) -> int:
     """
     This function is used to send a reply to a conversation in Canvas.
-    
+
     :param canvas_key: The API key that should be used.
     :param conv_id: The ID of the conversation to reply to.
     :param body: The body of the reply.
@@ -454,7 +454,7 @@ def send_reply(canvas_key: str, conv_id: str, body: str) -> int:
 def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
     """
     This function is used to get all the conversations for a course.
-    
+
     :param canvas_key: The API key that should be used.
     :param convs_id: The ID of the conversations to retrieve.
     :return list[dict]: A list of conversations.
@@ -475,7 +475,7 @@ def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
 def get_weighted_graded_assignments_for_course(canvas_key: str, course_id: str) -> list[object] | None:
     """
     This function is used to get all the graded assignments for a course with their grade weight.
-    
+
     :param canvas_key: The API key that should be used.
     :param course_id: The ID of the course to retrieve the graded assignments from.
     :return list[dict]: A list of graded assignments.
@@ -486,7 +486,7 @@ def get_weighted_graded_assignments_for_course(canvas_key: str, course_id: str) 
         return None
     grade_weight_group = course.get_assignment_groups(include=['assignments', 'submission'])
     return grade_weight_group
-        
+
 
 def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:
     """

@@ -200,8 +200,8 @@ class SubTask(ModelMixin, db.Model):
     shared_with = Column(JSON, nullable=True, default=[])
 
     task = relationship('Task', back_populates='subtasks')
-    
-    
+
+
 class SubTaskShared(ModelMixin, db.Model):
     """
     A new SubTaskShared instance.
@@ -225,9 +225,9 @@ class SubTaskShared(ModelMixin, db.Model):
     subtask_id = Column(Integer, ForeignKey('subtasks.id', ondelete='CASCADE'), nullable=False)
     todoist_original = Column(String(15), unique=False, nullable=False)
     todoist_id = Column(String(15), unique=False, nullable=False)
-    
+
     subtask = relationship('SubTask')
-    
+
 
 class Conversation(ModelMixin, db.Model):
     """
@@ -252,8 +252,8 @@ class Conversation(ModelMixin, db.Model):
     canvas_id = Column(Integer, nullable=False)
 
     user = relationship('User', back_populates='conversations')
-    
-    
+
+
 class SubTaskInvitation(ModelMixin, db.Model):
     """
     A new SubTaskInvitation instance.
@@ -275,9 +275,9 @@ class SubTaskInvitation(ModelMixin, db.Model):
     owner = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     recipient_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     subtask_id = Column(Integer, ForeignKey('subtasks.id', ondelete='SET NULL'), nullable=True)
-    
+
     recipient = relationship('User', foreign_keys=[recipient_id], back_populates='invitations_received')
-    
+
 
 
 class Filter(ModelMixin, db.Model):

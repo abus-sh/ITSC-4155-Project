@@ -161,7 +161,7 @@ def sign_up():
         print('Invalid username')
         abort(HTTPStatus.BAD_REQUEST)
         return
-    
+
     # Check if the username already exists
     if does_username_exists(username):
         print('Username already exists')
