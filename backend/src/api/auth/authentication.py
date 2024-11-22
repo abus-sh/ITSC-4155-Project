@@ -8,7 +8,8 @@ from http import HTTPStatus
 from lru import LRU
 from utils.settings import time_it
 
-from utils.queries import get_user_by_username, get_user_by_login_id, add_user, update_password, does_username_exists
+from utils.queries import get_user_by_username, get_user_by_login_id, add_user, update_password,\
+    does_username_exists
 from utils.crypto import reencrypt_str, get_todo_secret
 from utils.models import User, password_hasher
 

@@ -254,7 +254,8 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
     return False
 
 
-def add_shared_subtask(current_user: User, todoist_key: str, invitation_id: int, accept: bool) -> bool:
+def add_shared_subtask(current_user: User, todoist_key: str, invitation_id: int, accept: bool)\
+        -> bool:
     subtask = queries.get_invitation_subtask(current_user, invitation_id)
     recipient_task = queries.get_recipient_task(current_user, subtask)
     subtask_status = subtask.status
@@ -310,7 +311,8 @@ def close_task(current_user: User, todoist_key: str, todoist_task_id: str) -> bo
         current_user (User): The user that owns the task or subtask.
         todoist_key (str): The Todoist API key for the current user.
         todoist_task_id (str): The ID of the task or subtask in Todoist.
-        shared_todoist_task_id (str, optional): The ID of the shared subtask in Todoist. Defaults to None.
+        shared_todoist_task_id (str, optional): The ID of the shared subtask in Todoist. Defaults to
+        None.
 
     Returns:
         bool: True if the task or subtask was completed, False otherwise.
@@ -384,7 +386,8 @@ def toggle_task(current_user: User, todoist_key: str, todoist_task_id: str) -> b
         return False
 
     # If this is a shared subtast, toggle the status for all shared users
-    if isinstance(task, SubTask) and len(task.shared_with) > 0 and (current_user.id in task.shared_with or current_user.id == task.owner):
+    if isinstance(task, SubTask) and len(task.shared_with) > 0 and\
+        (current_user.id in task.shared_with or current_user.id == task.owner):
         return toggle_shared_subtask(current_user, todoist_key, task)
 
 
@@ -406,14 +409,16 @@ def toggle_shared_subtask(current_user: User, todoist_key: str, task: SubTask) -
     :param task: The shared subtask object.
     :return: True if the shared subtask's status was toggled, False otherwise.
     """
-    if isinstance(task, SubTask) and len(task.shared_with) > 0 and (current_user.id in task.shared_with or current_user.id == task.owner):
+    if isinstance(task, SubTask) and len(task.shared_with) > 0 and\
+        (current_user.id in task.shared_with or current_user.id == task.owner):
         # Get all users part of the shared subtask
         user_todoist_ids = queries.get_shared_users_subtask(task)
         print(user_todoist_ids)
 
         results = []
         for user_id, todoist_id in user_todoist_ids:
-            encrypted_todoist_api = queries.get_user_todoist_api(user_id) # Get the todoist id of their subtask on todoist
+            # Get the todoist id of their subtask on todoist
+            encrypted_todoist_api = queries.get_user_todoist_api(user_id)
             todoist_key = decrypt_str(encrypted_todoist_api, get_todo_secret())
 
             # Toggle the status of the shared subtask for each user in todoist
@@ -506,7 +511,8 @@ def sync_task_status(current_user: User, todoist_key: str):
     update_shared_todoist_status(todoist_key, shared_todoists, open_tasks)
 
 
-def update_shared_todoist_status(todoist_key: str, shared_tasks: list[tuple[str, TaskStatus]], open_tasks: set):
+def update_shared_todoist_status(todoist_key: str, shared_tasks: list[tuple[str, TaskStatus]],
+                                 open_tasks: set):
     """
     Update the status of shared subtasks in Todoist for the current user based 
     on the status of the subtask in the database.
@@ -521,9 +527,11 @@ def update_shared_todoist_status(todoist_key: str, shared_tasks: list[tuple[str,
     for todoist_id, status in shared_tasks:
         if todoist_id in open_tasks:
             if status == TaskStatus.Completed:
-                requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close", headers=header)
+                requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/close",
+                              headers=header)
         elif status == TaskStatus.Incomplete:
-            requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/reopen", headers=header)
+            requests.post(f"https://api.todoist.com/rest/v2/tasks/{todoist_id}/reopen",
+                          headers=header)
 
 
 

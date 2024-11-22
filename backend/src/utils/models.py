@@ -86,8 +86,11 @@ class User(UserMixin, ModelMixin, db.Model):
     todoist_token_session = None        # Placeholder for encrypted token with session key
 
     tasks = relationship('Task', back_populates='user', cascade="all, delete-orphan")
-    conversations = relationship('Conversation', back_populates='user', cascade="all, delete-orphan")
-    invitations_received = relationship('SubTaskInvitation', foreign_keys='SubTaskInvitation.recipient_id', back_populates='recipient', cascade="all, delete-orphan")
+    conversations = relationship('Conversation', back_populates='user',
+                                 cascade="all, delete-orphan")
+    invitations_received = relationship('SubTaskInvitation',
+                                        foreign_keys='SubTaskInvitation.recipient_id',
+                                        back_populates='recipient', cascade="all, delete-orphan")
 
     # When the `login_manager.user_loader` is run for the login, this is the parameter it will use
     def get_id(self):
@@ -276,7 +279,8 @@ class SubTaskInvitation(ModelMixin, db.Model):
     recipient_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     subtask_id = Column(Integer, ForeignKey('subtasks.id', ondelete='SET NULL'), nullable=True)
 
-    recipient = relationship('User', foreign_keys=[recipient_id], back_populates='invitations_received')
+    recipient = relationship('User', foreign_keys=[recipient_id],
+                             back_populates='invitations_received')
 
 
 

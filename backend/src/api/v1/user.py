@@ -216,14 +216,16 @@ def send_message_to_professor_ta():
         body = data.get('body').strip()
         canvas_id = int(data.get('canvas_id'))
 
-        if not recipients or not subject or not body or not isinstance(recipients, list) or not canvas_id:
+        if not recipients or not subject or not body or not isinstance(recipients, list) or\
+            not canvas_id:
             return 'Invalid payload', 400
 
         canvas_id, conv_exists = queries.valid_task_id(current_user, canvas_id)
         if not canvas_id:
             return 'Conversation associated with invalid task', 400
 
-        conversation_id = canvas_api.send_message(canvas_key, recipients, subject, body, conv_exists)
+        conversation_id = canvas_api.send_message(canvas_key, recipients, subject, body,
+                                                  conv_exists)
 
         if not conversation_id:
             return 'Unable to send message', 400

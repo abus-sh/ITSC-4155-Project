@@ -420,7 +420,8 @@ def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
     return [{field: getattr(user, field, None) for field in fields} for user in user_list]
 
 
-def send_message(canvas_key: str, recipients: list, subject: str, body: str, conv_exists: bool=False) -> int:
+def send_message(canvas_key: str, recipients: list, subject: str, body: str,
+                 conv_exists: bool=False) -> int:
     """
     This function is used to send a message to a user in Canvas.
 
@@ -472,7 +473,8 @@ def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
     return all_conversations
 
 
-def get_weighted_graded_assignments_for_course(canvas_key: str, course_id: str) -> list[object] | None:
+def get_weighted_graded_assignments_for_course(canvas_key: str, course_id: str)\
+        -> list[object] | None:
     """
     This function is used to get all the graded assignments for a course with their grade weight.
 

@@ -90,7 +90,8 @@ def add_subtask_user():
                                                  subtask_name, subtask_desc, subtask_status,
                                                  subtask_date)
         if result:
-            return jsonify({'success': True, 'id': result, "todoist_id": todoist_id, "author": True}), 200
+            return jsonify({'success': True, 'id': result, "todoist_id": todoist_id,
+                            "author": True}), 200
         else:
             return jsonify({'success': False, 'message': 'Failed to create subtask'}), 400
     except Exception as e:
