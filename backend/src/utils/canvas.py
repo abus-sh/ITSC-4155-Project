@@ -433,7 +433,7 @@ def send_message(canvas_key: str, recipients: list, subject: str, body: str,
     :return int: The ID of the conversation that the message was sent part of.
     """
     canvas = Canvas(BASE_URL, canvas_key)
-    result = canvas.create_conversation(recipients=recipients, subject=subject, body=body, 
+    result = canvas.create_conversation(recipients=recipients, subject=subject, body=body,
                                         force_new=not conv_exists, group_conversation=True)
 
     return result[0].id
@@ -468,7 +468,7 @@ def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
         participants = getattr(conv, 'participants', None)
         if not messages or not participants:
             continue
-        all_conversations.append({ 'id': id, 'subject': getattr(conv, 'subject', None), 
+        all_conversations.append({ 'id': id, 'subject': getattr(conv, 'subject', None),
                                   'messages': messages, 'participants': participants})
     return all_conversations
 

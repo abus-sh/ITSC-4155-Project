@@ -309,7 +309,7 @@ def send_invitation():
             return 'Invalid payload', 400
 
         invited_user = queries.get_user_by_username(username)
-        # Return success if the user doesn't exists otherwise 
+        # Return success if the user doesn't exists otherwise
         # that would give away the username of other people, and if they are in the system
         if not invited_user:
             return jsonify('Invitation sent!'), 200
@@ -324,7 +324,7 @@ def send_invitation():
     except Exception as e:
         print(e)
         return 'Error while sending invitation', 400
-    return jsonify('Invitation sent!'), 200 
+    return jsonify('Invitation sent!'), 200
 
 
 @user.route('/invitation_response', methods=['POST'])
@@ -345,4 +345,4 @@ def respond_invitation():
     except Exception as e:
         print(e)
         return 'Error while sending invitation', 400
-    return jsonify('Responded to invitation successfully!'), 200 
+    return jsonify('Responded to invitation successfully!'), 200

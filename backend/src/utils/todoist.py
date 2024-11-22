@@ -514,7 +514,7 @@ def sync_task_status(current_user: User, todoist_key: str):
 def update_shared_todoist_status(todoist_key: str, shared_tasks: list[tuple[str, TaskStatus]],
                                  open_tasks: set):
     """
-    Update the status of shared subtasks in Todoist for the current user based 
+    Update the status of shared subtasks in Todoist for the current user based
     on the status of the subtask in the database.
 
     Args:

@@ -514,7 +514,7 @@ def compose_invitations(invitations: list[models.SubTaskInvitation]) -> list[dic
 
 def get_all_shared_todoist_status(owner: models.User) -> list[tuple[str, models.TaskStatus]]:
     """
-    Retrieve all shared subtasks for a user and return the todoist ID and status of all 
+    Retrieve all shared subtasks for a user and return the todoist ID and status of all
     shared subtask with owner as the recipient
 
     :param owner: The owner of the shared subtasks.
@@ -745,7 +745,7 @@ def send_subtask_invitation(owner: models.User, recipient: models.User, subtask_
             return False
 
         task_invitation = models.SubTaskInvitation(owner=owner.id, recipient_id=recipient.id,
-                                                   subtask_id=subtask.id)    
+                                                   subtask_id=subtask.id)
         models.db.session.add(task_invitation)
         models.db.session.commit()
         return True
@@ -822,7 +822,7 @@ def create_shared_subtask(owner: models.User, subtask: models.SubTask, todoist_i
     :return bool: True if the shared subtask was created, False otherwise.
     """
     try:
-        shared_subtask = models.SubTaskShared(owner=owner.id, subtask_id=subtask.id, 
+        shared_subtask = models.SubTaskShared(owner=owner.id, subtask_id=subtask.id,
                                                 todoist_original=subtask.todoist_id,
                                                 todoist_id=todoist_id)
 
@@ -830,7 +830,7 @@ def create_shared_subtask(owner: models.User, subtask: models.SubTask, todoist_i
         original_subtask = models.SubTask.query.get(subtask.id)
         new_list = original_subtask.shared_with.copy()
         new_list.append(owner.id)
-        original_subtask.shared_with = new_list 
+        original_subtask.shared_with = new_list
         print(vars(original_subtask))
 
         models.db.session.add(original_subtask)
@@ -882,7 +882,7 @@ def create_new_conversation(owner: models.User, canvas_id: int, conv_id: int) ->
         if already_exists:
             return True
         new_conv = models.Conversation(owner=owner.id, canvas_id=canvas_id, conversation_id=conv_id)
-        models.db.session.add(new_conv) 
+        models.db.session.add(new_conv)
         models.db.session.commit()
         return True
     except Exception as e:
