@@ -8,7 +8,7 @@ from http import HTTPStatus
 from lru import LRU
 from utils.settings import time_it
 
-from utils.queries import get_user_by_username, get_user_by_login_id, add_user, update_password,\
+from utils.queries import get_user_by_username, get_user_by_login_id, add_user, update_password, \
     does_username_exists
 from utils.crypto import reencrypt_str, get_todo_secret
 from utils.models import User, password_hasher
@@ -166,7 +166,7 @@ def sign_up():
     # Check if the username already exists
     if does_username_exists(username):
         print('Username already exists')
-        return jsonify({'success': False, 'message': f"Username already exists"}), 400
+        return jsonify({'success': False, 'message': "Username already exists"}), 400
 
     # If the password is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
