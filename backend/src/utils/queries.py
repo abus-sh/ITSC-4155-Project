@@ -506,9 +506,9 @@ def compose_invitations(invitations: list[models.SubTaskInvitation]) -> list[dic
             'author_name': owners[invitation.owner],
             'subtask_name': subtasks[invitation.subtask_id],
             'invitation_id': invitation.id
-        }
-        for invitation in invitations
-    ]
+            }
+            for invitation in invitations
+            ]
 
 
 def get_all_shared_todoist_status(owner: models.User) -> list[tuple[str, models.TaskStatus]]:
@@ -667,7 +667,7 @@ def get_subtasks_for_tasks(current_user: models.User, canvas_ids: list[str],
     if format:
         subtasks_dict = {}
         for subtask_id, name, description, status, due_date, canvas_id, todoist_id, owner\
-            in subtasks:
+                in subtasks:
             subtasks_dict.setdefault(canvas_id, []).append({
                 'id': subtask_id,
                 'canvas_id': canvas_id,
@@ -822,8 +822,8 @@ def create_shared_subtask(owner: models.User, subtask: models.SubTask, todoist_i
     """
     try:
         shared_subtask = models.SubTaskShared(owner=owner.id, subtask_id=subtask.id,
-                                                todoist_original=subtask.todoist_id,
-                                                todoist_id=todoist_id)
+                                              todoist_original=subtask.todoist_id,
+                                              todoist_id=todoist_id)
 
         # SQLalchemy is stupid and doesn't realize a change was made to a list
         original_subtask = models.SubTask.query.get(subtask.id)
@@ -890,7 +890,7 @@ def create_new_conversation(owner: models.User, canvas_id: int, conv_id: int) ->
         return False
 
 
-def get_user_conversations(owner: models.User, dict: bool=False)\
+def get_user_conversations(owner: models.User, dict: bool = False)\
         -> list[models.Conversation] | list[dict]:
     """
     Retrieve all conversations for a user.
