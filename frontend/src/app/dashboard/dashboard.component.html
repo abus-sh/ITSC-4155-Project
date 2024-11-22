@@ -105,7 +105,7 @@
                 <p *ngIf="assignment.user_description && assignment.user_description !== ''"
                     title="A note exists for this assignment.">📝</p>
             </div>
-            <p class="assignment-duedate" *ngIf="assignment.due_at">
+            <p class="assignment-duedate">
                 <label for="due-date"><strong>Custom Due Date</strong>:</label>
                 <input type="datetime-local" maxlength="20" [value]="assignment.due_at" name="due-date">
             </p>
