@@ -57,4 +57,8 @@ export class GradesimComponent implements OnInit {
     calculatePotentialScores(): void {
         this.gradeSim.forEach((course) => this.calculatePotentialScore(course));
     }
+
+    closeGradeSimForm() {
+        this.closeGradeSimAction.emit();
+    }
 }
