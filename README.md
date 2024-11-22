@@ -23,9 +23,10 @@ is sufficient.
 creating an app [here](https://developer.todoist.com/appconsole.html).
   - In the Todoist app, "OAuth redirect URL" must be set to
   "http://localhost:5000/api/auth/todoist/get_token_info" and "App service URL" must be set to
-  "http://itsc4155.abus.sh:5000/".
+  "http://localhost:5000/".
   - The environment variable 'TODOIST_CLIENT' must be set to the
   app's "Client ID".
+- todoist_secret_encrypt.txt - the secret used to encrypt Todoist API keys on the server.
 
 ## Deployment
 This project can be deployed with Docker Compose. By default, the frontend is exposed on port 4200
@@ -41,7 +42,9 @@ automatically update the project on new commits to main. The steps to do this ar
   - db_root_password.txt - the root password for the database root user
   - site.crt - a certificate for the site. May be self-signed
   - site.key - the private key for the site.
-  - todoist_production_secret.txt - the OAuth client secret for the Todoist application
+  - todoist_production_secret.txt - the OAuth client secret for the Todoist application.
+  - todoist_prod_secret_encrypt.txt - the secret used to encrypt Todoist API keys.
 
 From there, the repo will be updated every minute. If there is a change, the Docker images will be
-rebuilt and redeployed.
+rebuilt and redeployed. If a new secret is added, it must be manually added to the host machine
+before the commit that requires the new secret is merged with main.
