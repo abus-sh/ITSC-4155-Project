@@ -322,7 +322,7 @@ export class CanvasService {
                 // The format should be "inline; filename=filename.zip", so extract "filename.zip"
                 const splitHeader = contentHeader.split('=');
                 if (splitHeader.length == 2) {
-                    fileName = contentHeader.split('=')[1];
+                    fileName = contentHeader.split('=')[1].replaceAll('"', '');
                 }
             }
             
