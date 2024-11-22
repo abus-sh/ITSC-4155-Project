@@ -1,13 +1,22 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CanvasService } from '../canvas.service';
+import { GradesimComponent } from '../gradesim/gradesim.component';
+import { getBackendURL } from '../../config';
 
-interface Assignment {
-    assignment_id: string;
-    html_url: string;
+
+
+interface GradeAssignment {
     name: string;
-    score: string | number;
-    points_possible?: number;
+    max_score: number;
+    score: number;
+    omit_from_final_grade: boolean;
+}
+
+export interface CourseLog {
+    name: string;
+    weight: number;
+    assignments: GradeAssignment[];
 }
 
 export interface Course {
@@ -15,8 +24,7 @@ export interface Course {
     name: string;
     image_download_url: string | null;
     computed_current_score: string | number | null;
-    assignments: Assignment[];
-    showAssignments?: boolean;
+    gradelog?: CourseLog;
 }
 
 interface Enrollment {
@@ -38,12 +46,14 @@ export interface APIAssignment {
 @Component({
     selector: 'app-courses',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, GradesimComponent],
     templateUrl: './courses.component.html',
     styleUrls: ['./courses.component.scss']
 })
 export class CoursesComponent {
     public courses: Course[] = [];
+    simulationFormDisplay = false;
+    simulationGradelog?: CourseLog;
 
     constructor(private canvasService: CanvasService) {
         this.canvasService.courses$.subscribe((courses) => {
@@ -55,10 +65,39 @@ export class CoursesComponent {
 
     async initializeCourses() {
         await this.canvasService.getCourses();
-        await this.canvasService.getGradedAssignments();
+        for (const course of this.courses) {
+            try {
+                const gradeLog = await this.fetchGradeSimulation(course.id);
+                course.gradelog = gradeLog;
+            } catch (error) {
+                console.error(`Failed to fetch grade simulation for course ${course.id}`, error);
+            }
+        }
     }
 
-    toggleAssignments(course: Course): void {
-        course.showAssignments = !course.showAssignments;
+    private async fetchGradeSimulation(courseId: number): Promise<CourseLog> {
+        const response = await fetch(`${getBackendURL()}/api/v1/courses/get_grade_simulation/${courseId}`, {
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    }
+
+    
+    /*      GRADE SIMULATION FORM         */
+
+    // Open the grade simulation form
+    openSimulationForm(gradeLog: CourseLog | undefined) {
+        if (gradeLog !== undefined) {
+            this.simulationFormDisplay = true;
+            this.simulationGradelog = gradeLog;
+        }
+    }
+
+    // Closes the grade simulation form
+    closeSimulationForm() {
+        this.simulationFormDisplay = false;
     }
 }

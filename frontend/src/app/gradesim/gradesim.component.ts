@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CanvasService } from '../canvas.service';
+import { CourseLog } from '../courses/courses.component';
+
 
 interface Assignment {
     assignment_id: string;
@@ -23,9 +24,18 @@ export interface Course {
     templateUrl: './gradesim.component.html',
     styleUrls: ['./gradesim.component.scss']
 })
-export class GradesimComponent {
+export class GradesimComponent implements OnInit {
+    @Input() courseLog?: CourseLog;
+    @Output() closeGradeSimAction = new EventEmitter();
+
     public gradeSim: Course[] = [];
     public potentialScores: { [courseId: number]: number } = {};
+
+    constructor() {
+
+    }
+
+    ngOnInit(): void {}
 
     toggleAssignments(course: Course): void {
         course.showAssignments = !course.showAssignments;

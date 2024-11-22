@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { getBackendURL, getCanvasCacheTime } from '../config';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { APIAssignment, APICourse, Course } from './courses/courses.component';
+import { APICourse, Course } from './courses/courses.component';
 import { firstValueFrom, Subject } from 'rxjs';
 import { AddSubtaskBody, Assignment, Subtask, SubtasksDict } from './dashboard/dashboard.component';
 import { CalendarEvent } from './calendar/calendar.component';
@@ -25,7 +25,6 @@ interface ToggleSubtaskResponse {
 })
 export class CanvasService {
     private coursesUrl = getBackendURL() + '/api/v1/courses/all';
-    private courseGradedAssignmentsUrl = getBackendURL() + '/api/v1/courses/graded_assignments';
     private dueSoonUrl = getBackendURL() + '/api/v1/user/due_soon';
     private calendarEventsUrl = getBackendURL() + '/api/v1/user/calendar_events';
     private getSubTasksUrl = getBackendURL() + '/api/v1/tasks/get_subtasks';
@@ -76,42 +75,6 @@ export class CanvasService {
         });
 
         return transformedCourses;
-    }
-
-    async getGradedAssignmentsForCourse(courseId: number) {
-        // Try to find the course that is being referenced
-        let courseIndex = -1;
-        for (let i = 0; i < this.courses.length; i++) {
-            if (this.courses[i].id == courseId) {
-                courseIndex = i;
-                break;
-            }
-        }
-
-        // If the course wasn't found, do nothing
-        if (courseIndex === -1) {
-            return;
-        }
-
-        const body = { course_id: courseId };
-        const assignments = await firstValueFrom(this.http
-            .post<APIAssignment[]>(this.courseGradedAssignmentsUrl, body,
-            { withCredentials: true }));
-        this.courses[courseIndex].assignments = assignments;
-
-        this.courses$.next(this.courses);
-    }
-
-    async getGradedAssignments(): Promise<void> {
-        for (const course of this.courses) {
-            const body = { course_id: course.id };
-            const assignments = await firstValueFrom(this.http
-                .post<APIAssignment[]>(this.courseGradedAssignmentsUrl, body,
-                { withCredentials: true }));
-
-            course.assignments = assignments;
-        }
-        this.courses$.next(this.courses);
     }
 
     async getDueAssignments() {

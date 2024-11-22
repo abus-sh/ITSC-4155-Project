@@ -371,6 +371,8 @@ export class DashboardComponent implements OnInit {
     }
 
 
+    /*      FILTER FORM         */
+
     openFilterForm() {
         this.filterFormDisplay = true;
     }
