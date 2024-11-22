@@ -329,7 +329,7 @@ export class CanvasService {
             } else {
                 throw Error('No file provided by server.');
             }
-        } catch (error) {
+        } catch {
             return false;
         }
 

@@ -76,7 +76,7 @@ export class RegisterComponent implements OnInit {
             // Make HTTP POST request to the registration endpoint
             this.http.post(getBackendURL() + '/api/auth/signup', body, { withCredentials: true })
                 .subscribe(
-                    response => {
+                    () => {
                         // Redirect to login or another page after successful registration
                         this.router.navigate(['/login']);
                     },
