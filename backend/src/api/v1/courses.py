@@ -283,27 +283,6 @@ def get_course_assignment(courseid, assignmentid):
     return jsonify(assignment_dict), 200
 
 
-@courses.post('/<courseid>/assignments/<assignmentid>/custom_due_date')
-def set_custom_due_date(courseid, assignmentid):
-    due_date = request.json.get('due_date', None)
-    if due_date is None or type(due_date) is not str:
-        return jsonify({'success': False, 'message': 'Missing or invalid due_date.'}), 400
-    if len(due_date) > 20:
-        return jsonify({'success': False, 'message': 'due_date is 20 characters at most.'}), 400
-
-    try:
-        canvas_key = decrypt_canvas_key()
-
-        assignment = canvas_api.get_course_assignment(canvas_key, courseid, assignmentid)
-        queries.set_custom_due_date_by_id(current_user, assignment.id, due_date)
-    except ValueError:
-        return jsonify({'success': False, 'message': 'ID does not exist.'}), 404
-    except Exception:
-        return jsonify({'success': False, 'message': 'An unknown error has occurred.'}), 500
-
-    return jsonify({'success': True, 'message': 'Update custom due date.'})
-
-
 @courses.route('/get_emails/<courseid>', methods=['GET'])
 def get_professor_ta_ids(courseid):
     canvas_key = decrypt_canvas_key()

@@ -4,7 +4,7 @@ from datetime import datetime
 import utils.canvas as canvas_api
 from utils.session import decrypt_canvas_key, decrypt_todoist_key
 from utils.settings import get_canvas_url, get_date_range, localize_date, date_passed
-from utils.todoist import add_shared_subtask
+from utils.todoist import add_shared_subtask, todoist_update_duedate
 import utils.queries as queries
 import utils.models as models
 
@@ -343,3 +343,28 @@ def respond_invitation():
     except Exception:
         return 'Error while sending invitation', 400
     return jsonify('Responded to invitation successfully!'), 200
+
+
+@user.post('/<courseid>/assignments/<assignmentid>/custom_due_date')
+def set_custom_due_date(courseid, assignmentid):
+    due_date = request.json.get('due_date', None)
+    if due_date is None or type(due_date) is not str:
+        return jsonify({'success': False, 'message': 'Missing or invalid due_date.'}), 400
+    if len(due_date) > 20:
+        return jsonify({'success': False, 'message': 'due_date is 20 characters at most.'}), 400
+
+    try:
+        canvas_key = decrypt_canvas_key()
+        todoist_key = decrypt_todoist_key()
+
+        assignment = canvas_api.get_course_assignment(canvas_key, courseid, assignmentid)
+        task = queries.set_custom_due_date_by_id(current_user, assignment.id, due_date)
+        result = todoist_update_duedate(todoist_key, task)
+        if not result:
+            return jsonify({'success': False, 'message': 'Unable to update due date in Todoist.'}), 400
+    except ValueError:
+        return jsonify({'success': False, 'message': 'ID does not exist.'}), 404
+    except Exception:
+        return jsonify({'success': False, 'message': 'An unknown error has occurred.'}), 500
+
+    return jsonify({'success': True, 'message': 'Update custom due date.'})

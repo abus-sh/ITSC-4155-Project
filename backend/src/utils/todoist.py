@@ -446,6 +446,33 @@ def toggle_shared_subtask_todoist(todoist_key: str, todoist_task_id: str, task: 
     return False
 
 
+def todoist_update_duedate(todoist_key: str, task: Task) -> bool:
+    """
+    Updates a task's due date in Todoist.
+
+    Args:
+        todoist_key (str): The Todoist API key for the current user.
+        task (Task): The task to be updated.
+
+    Returns:
+        bool: True if the task's due date was updated successfully, False otherwise
+    """
+    try:
+        data = {'due_string': task.custom_due_date}
+        response = requests.post(
+            f'https://api.todoist.com/rest/v2/tasks/{task.todoist_id}',
+            data=json.dumps(data),
+            headers={"Authorization": f"Bearer {todoist_key}", "Content-Type": "application/json"}
+        )
+
+        if response.status_code != 200:
+            return False
+
+    except Exception:
+        return False
+
+    return True
+
 def update_task_description(todoist_key: str, task: Task, description: str) -> bool:
     """
     Updates a task's description in Todoist and in the database.

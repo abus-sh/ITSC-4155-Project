@@ -405,7 +405,7 @@ def get_custom_due_dates_by_ids(owner: models.User, canvas_ids: list[int]) -> di
     return due_date_lookup
 
 
-def set_custom_due_date_by_id(owner: models.User, canvas_id: int, due_date: str):
+def set_custom_due_date_by_id(owner: models.User, canvas_id: int, due_date: str) -> models.Task:
     """
     Sets a custom due date for the task with the given Canvas ID.
 
@@ -421,9 +421,9 @@ def set_custom_due_date_by_id(owner: models.User, canvas_id: int, due_date: str)
     try:
         task.custom_due_date = due_date
         models.db.session.commit()
+        return task
     except Exception as e:
         models.db.session.rollback()
-
         raise e
 
 

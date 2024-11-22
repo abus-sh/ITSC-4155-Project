@@ -33,7 +33,7 @@ export class CanvasService {
     private downloadSubmissionUrl = getBackendURL() + '/api/v1/courses/ID/submissions';
     private undatedAssignmentsUrl = getBackendURL() + '/api/v1/courses/ID/undated_assignments';
     private customDueDateUrl = getBackendURL() +
-        '/api/v1/courses/CID/assignments/AID/custom_due_date';
+        '/api/v1/user/CID/assignments/AID/custom_due_date';
 
     courses$ = new Subject<Course[]>();
     private courses: Course[] = [];
