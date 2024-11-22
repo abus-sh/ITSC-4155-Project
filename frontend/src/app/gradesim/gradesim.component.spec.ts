@@ -65,7 +65,9 @@ describe('GradesimComponent', () => {
             return;
         }
         const assignment = component.log_course.gradelog[0].assignments[0];
-        const event = { target: { value: '80' } };
+        // Overwrite readonly event.target property for testing
+        const event = new InputEvent('testing');
+        Object.defineProperty(event, 'target', {writable: false, value: {value: '80'}});
         component.onScoreChange(assignment, event);
         expect(assignment.score).toBe(80);
         const finalGrade = component.calculateFinalGrade(component.log_course.gradelog);

@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { DashboardComponent, Subtask } from './dashboard.component';
 import { provideHttpClient } from '@angular/common/http';
 import { CanvasService } from '../canvas.service';
