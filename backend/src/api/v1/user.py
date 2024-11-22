@@ -217,7 +217,7 @@ def send_message_to_professor_ta():
         canvas_id = int(data.get('canvas_id'))
 
         if not recipients or not subject or not body or not isinstance(recipients, list) or\
-            not canvas_id:
+                not canvas_id:
             return 'Invalid payload', 400
 
         canvas_id, conv_exists = queries.valid_task_id(current_user, canvas_id)
