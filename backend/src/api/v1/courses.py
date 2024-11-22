@@ -337,8 +337,8 @@ def get_grade_simulation(courseid):
                     {
                         'name': assignment.get('name', None),
                         'max_score': assignment.get('points_possible', None),
-                        'score': assignment.get('submission', {}).get('score', None)\
-                            if assignment.get('submission') else None,
+                        'score': assignment.get('submission', {}).get('score', None)
+                        if assignment.get('submission') else None,
                         'omit_from_final_grade': assignment.get('omit_from_final_grade', None)
                     }
                     for assignment in getattr(section, 'assignments', [])
@@ -351,4 +351,3 @@ def get_grade_simulation(courseid):
     except AttributeError:
         return 'Unable to get field for assignment', 404
     return jsonify(grade_log), 200
-
