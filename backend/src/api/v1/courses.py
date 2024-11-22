@@ -137,7 +137,7 @@ def get_course_submissions(courseid):
             try:
                 os.remove(zip_file)
             except Exception as e:
-                print(e)
+
 
             return response
 
@@ -221,7 +221,7 @@ def get_graded_assignments():
 
             graded_assignments.append(one_graded)
     except Exception as e:
-        print(e)
+
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to get field for graded assignments', 404
@@ -254,12 +254,12 @@ def get_course_assignments(courseid, canvas_key: str | None = None):
 
     except AttributeError:
         if raw_data:
-            print(f'Attribute error while getting assignments for {courseid}..')
+
             return []
         return 'Unable to get field for courses', 404
     except Exception:
         if raw_data:
-            print(f'Exception while getting assignments for {courseid}..')
+
             return []
         return 'Unable to make request to Canvas API', 400
     if raw_data:

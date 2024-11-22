@@ -112,10 +112,10 @@ def get_assignments_due_soon():  # noqa: C901
             canvas_assignments[id]['user_description'] = descriptions[id]
 
     except Exception as e:
-        print(e)
+
         return 'Unable to make request to Canvas API', 400
     except AttributeError as e:
-        print(e)
+
         return 'Unable to get field for courses', 404
     return jsonify(assignments_due_soon), 200
 
@@ -151,10 +151,10 @@ def get_missing_submissions():
             miss_assignment = {field: getattr(assignment, field, None) for field in fields}
             miss_assignments_list.append(miss_assignment)
     except Exception as e:
-        print(e)
+
         return 'Unable to make request to Canvas API', 400
     except AttributeError as e:
-        print(e)
+
         return 'Unable to get field for courses', 404
     return jsonify(miss_assignments_list), 200
 
@@ -197,7 +197,7 @@ def get_calendar_events():
             calendar_events.append(single_event)
 
     except Exception as e:
-        print(e)
+
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to get field for calendar event', 404
@@ -234,7 +234,7 @@ def send_message_to_professor_ta():
             return 'Unable to create conversation successfully', 400
 
     except Exception as e:
-        print(e)
+
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to determine message fields', 404
@@ -294,7 +294,7 @@ def get_notifications():
             invitations_list['invitation'] = queries.compose_invitations(invitations)
 
     except Exception as e:
-        print(e)
+
         return 'Unable to retrieve notifications', 400
     return jsonify(invitations_list), 200
 
@@ -322,7 +322,7 @@ def send_invitation():
             return 'Unable to send invitation', 400
 
     except Exception as e:
-        print(e)
+
         return 'Error while sending invitation', 400
     return jsonify('Invitation sent!'), 200
 
@@ -343,6 +343,6 @@ def respond_invitation():
             return 'Unable to respond to invitation', 400
 
     except Exception as e:
-        print(e)
+
         return 'Error while sending invitation', 400
     return jsonify('Responded to invitation successfully!'), 200

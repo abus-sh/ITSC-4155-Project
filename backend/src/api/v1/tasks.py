@@ -24,13 +24,13 @@ def update_tasks():
 
         todoist.add_update_tasks(current_user.id, canvas_token, todoist_token)
     except Exception as e:
-        print('Error synching assignments to Todoist from Canvas: ', e)
+
         return jsonify({'success': False}), 400
 
     try:
         todoist.sync_task_status(current_user, todoist_token)
     except Exception as e:
-        print('Error updating task completion:', e)
+
         return jsonify({'success': False}), 400
 
     return jsonify({'success': True}), 200
@@ -95,7 +95,7 @@ def add_subtask_user():
         else:
             return jsonify({'success': False, 'message': 'Failed to create subtask'}), 400
     except Exception as e:
-        print('Error adding a subtask: ', e)
+
         return jsonify({'success': False, 'message': 'Unable to create subtask'}), 400
 
 
@@ -113,7 +113,7 @@ def get_subtasks():
             return jsonify({'success': False, 'message': 'No IDs were provided'}), 400
 
     except Exception as e:
-        print(e)
+
         return jsonify({'success': False, 'message': 'Error while getting subtasks'}), 400
     return jsonify({'success': False, 'message': 'Unable to get subtasks'}), 404
 

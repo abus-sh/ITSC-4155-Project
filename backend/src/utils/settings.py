@@ -18,7 +18,7 @@ def time_it(info: str, end_text: str = ' seconds'):
     start_time = time.time()
     yield
     end_time = time.time()
-    print(f"{info} {end_time - start_time:.4f}{end_text}")
+
 
 
 def get_date_range(start_date: datetime = None, months=0, days=0, hours=0) -> tuple[str, str]:

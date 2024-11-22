@@ -64,7 +64,7 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
         return True
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error adding user: {e}")
+
         return False
 
 
@@ -94,7 +94,7 @@ def update_password(user: models.User, new_password: str, old_password: str):
         models.db.session.commit()
     except Exception as e:
         models.db.session.rollback()
-        print("Error: ", e)
+
 
 
 def get_all_users() -> list[models.User]:
@@ -205,7 +205,7 @@ def add_or_return_task(owner: models.User | int, canvas_id: str | None,
         return new_task
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error adding task: {e}")
+
         raise e
 
 
@@ -223,7 +223,7 @@ def update_task_id(primary_key: str, todoist_id: str) -> None:
             models.db.session.commit()
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error updating task: {e}")
+
         raise e
 
 
@@ -239,7 +239,7 @@ def update_task_description(task: models.Task, description: str) -> None:
         models.db.session.commit()
     except Exception as e:
         models.db.session.rollback()
-        print('Error updating description', {e})
+
         raise e
 
 
@@ -255,7 +255,7 @@ def set_task_duedate(task: models.Task, due_date: str) -> None:
         models.db.session.commit()
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error updating task: {e}")
+
         raise e
 
 
@@ -427,7 +427,7 @@ def set_custom_due_date_by_id(owner: models.User, canvas_id: int, due_date: str)
         models.db.session.commit()
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error updating task: {e}")
+
         raise e
 
 
@@ -450,11 +450,11 @@ def sync_task_status(owner: models.User, open_task_ids: list[int])\
             if task.todoist_id in open_task_ids:
                 task.status = models.TaskStatus.Incomplete
             else:
-                print(f'Marking task {task.todoist_id} as done')
+
                 task.status = models.TaskStatus.Completed
         models.db.session.commit()
     except Exception as e:
-        print("Task rollback", e)
+
         models.db.session.rollback()
 
     # Shared subtasks are not overwriten by the Todoist's status
@@ -472,14 +472,14 @@ def sync_task_status(owner: models.User, open_task_ids: list[int])\
             if task.todoist_id in open_task_ids:
                 task.status = models.TaskStatus.Incomplete
             else:
-                print(f'Marking task {task.todoist_id} as done')
+
                 task.status = models.TaskStatus.Completed
         models.db.session.commit()
 
         return shared_subtasks
 
     except Exception as e:
-        print("Subtask rollback", e)
+
         models.db.session.rollback()
         return None
 
@@ -605,7 +605,7 @@ def create_subtask(owner: models.User, task_id: int, subtask_name: str, todoist_
         return new_subtask.id
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error setting subtask task: {e}")
+
     return False
 
 
@@ -697,7 +697,7 @@ def update_task_or_subtask_status(task: models.Task | models.SubTask,
         return True
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error updating task status: {e}")
+
     return False
 
 
@@ -718,7 +718,7 @@ def invert_subtask_status(subtask: models.SubTask) -> bool:
         return True
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error updating subtask status: {e}")
+
     return False
 
 
@@ -749,7 +749,7 @@ def send_subtask_invitation(owner: models.User, recipient: models.User, subtask_
         models.db.session.commit()
         return True
     except Exception as e:
-        print(e)
+
         models.db.session.rollback()
         return False
 
@@ -795,7 +795,7 @@ def get_invitation_subtask(owner: models.User, invitation_id: int) -> models.Sub
     """
     invitation = models.SubTaskInvitation.query.get(invitation_id)
     if not invitation or invitation.recipient_id != owner.id:
-        print('Invalid Recipient')
+
         return None
     return models.SubTask.query.get(invitation.subtask_id)
 
@@ -830,16 +830,16 @@ def create_shared_subtask(owner: models.User, subtask: models.SubTask, todoist_i
         new_list = original_subtask.shared_with.copy()
         new_list.append(owner.id)
         original_subtask.shared_with = new_list
-        print(vars(original_subtask))
+
 
         models.db.session.add(original_subtask)
         models.db.session.add(shared_subtask)
         models.db.session.commit()
-        print('SUCCESS')
+
         return True
     except Exception as e:
         models.db.session.rollback()
-        print(e)
+
         return False
 
 
@@ -857,7 +857,7 @@ def delete_invitation(owner: models.User, invitation_id: int) -> None:
             models.db.session.commit()
     except Exception as e:
         models.db.session.rollback()
-        print(e)
+
 
 #########################################################################
 #                                                                       #
@@ -886,7 +886,7 @@ def create_new_conversation(owner: models.User, canvas_id: int, conv_id: int) ->
         return True
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error creating conversation: {e}")
+
         return False
 
 
@@ -983,7 +983,7 @@ def create_filter(owner: models.User, filter: str) -> bool:
         return True
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error creating filter: {e}")
+
 
     return False
 
@@ -1022,7 +1022,7 @@ def delete_filter(owner: models.User, filter: str) -> int | None:
         raise ValueError
     except Exception as e:
         models.db.session.rollback()
-        print(f"Error deleting filter: {e}")
+
 
     return None
 
