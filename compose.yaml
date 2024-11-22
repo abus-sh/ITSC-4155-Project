@@ -15,6 +15,7 @@ services:
       TODOIST_CLIENT: 12fde679cfe84cff92c3a6c3e7e3beaf
       TODOIST_SECRET: /run/secrets/todoist_secret.txt
       TODO_SECRET_FILE: /run/secrets/todoist_secret_encrypt.txt
+      FRONTEND_URL: https://itsc4155.abus.sh:4200
     expose:
       - 5000
     secrets:
