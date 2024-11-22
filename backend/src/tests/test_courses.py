@@ -121,7 +121,13 @@ def fake_login(client):
     }
 
     resp = client.post(url_for('authentication.sign_up'), json=test_user)
-    assert resp.status_code == 200 or resp.status_code == 500
+    if resp.status_code != 200:
+        assert resp.status_code == 400
+        assert resp.json is not None
+        assert 'success' in resp.json
+        assert not resp.json['success']
+        assert 'message' in resp.json
+        assert resp.json['message'] == 'Username already exists'
 
     resp = client.post(url_for('authentication.login'), json=test_user)
     assert resp.status_code == 200

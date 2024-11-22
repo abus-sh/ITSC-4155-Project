@@ -2,7 +2,7 @@ import argon2
 import flask_login.utils
 import pytest
 
-from utils.crypto import encrypt_str
+from utils.crypto import encrypt_str, get_todo_secret
 
 #################################################################
 #                                                               #
@@ -42,9 +42,9 @@ class MockUser:
         else:
             self.canvas_token_password = encrypt_str(ctoken, password)
         if ttoken is None:
-            self.todoist_token_password = encrypt_str('a'*40, password)
+            self.todoist_token_password = encrypt_str('a'*40, get_todo_secret())
         else:
-            self.todoist_token_password = encrypt_str(ttoken, password)
+            self.todoist_token_password = encrypt_str(ttoken, get_todo_secret())
 
     # Allow conversion to dict
     def __iter__(self):
@@ -340,6 +340,7 @@ def test_sign_up(monkeypatch):
     # Return objects as objects not strs
     monkeypatch.setattr(authentication, "jsonify", lambda x: x)
     monkeypatch.setattr(authentication, "exchange_token", mock_exchange_token)
+    monkeypatch.setattr(authentication, "does_username_exists", lambda uname: uname == "user")
 
     # Test sign up missing username
     monkeypatch.setattr(authentication, "request",
@@ -425,7 +426,7 @@ def test_sign_up(monkeypatch):
                         MockRequest({"username": "user", "password": "passwordpassword",
                                      "canvasToken": "ctoken", "todoistToken": "ttoken"}))
     authentication.sign_up()
-    assert abort_status == 500
+    assert abort_status == 400
 
     # Test valid sign up with OAuth Todoist
     toauth = {"code": "code", "state": "state"}
