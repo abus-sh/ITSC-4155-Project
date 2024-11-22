@@ -71,7 +71,6 @@ export class SendmessageComponent implements OnInit {
 
             this.http.get<Conversation[]>(getBackendURL() + `/api/v1/user/get_conversations/${assignment_id}`, { withCredentials: true })
                 .subscribe((data: Conversation[]) => {
-                    console.log(data);
                     this.conversations = data;
                     this.conversations.forEach(conversation => {
                         this.tabs.push(conversation.subject);

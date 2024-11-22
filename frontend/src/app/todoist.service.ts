@@ -41,8 +41,7 @@ export class TodoistService {
                 },
                 { withCredentials: true }
             ));
-        } catch (error) {
-            console.log(error);
+        } catch {
             return false;
         }
 

@@ -2,7 +2,6 @@ from contextlib import contextmanager
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 import os
-import time
 import string
 import pytz
 import random
@@ -15,10 +14,7 @@ CHARLOTTE_TZ = pytz.timezone('America/New_York')
 @contextmanager
 def time_it(info: str, end_text: str = ' seconds'):
     """Time the time it takes for the `with` block to execute fully in seconds"""
-    start_time = time.time()
     yield
-    end_time = time.time()
-    print(f"{info} {end_time - start_time:.4f}{end_text}")
 
 
 def get_date_range(start_date: datetime = None, months=0, days=0, hours=0) -> tuple[str, str]:

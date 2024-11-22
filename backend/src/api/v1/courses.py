@@ -136,8 +136,8 @@ def get_course_submissions(courseid):
             # Delete the archive
             try:
                 os.remove(zip_file)
-            except Exception as e:
-                print(e)
+            except Exception:
+                pass
 
             return response
 
@@ -220,8 +220,8 @@ def get_graded_assignments():
                     one_graded[extra_field] = assignment_details.get(extra_field, None)
 
             graded_assignments.append(one_graded)
-    except Exception as e:
-        print(e)
+    except Exception:
+
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to get field for graded assignments', 404
@@ -254,12 +254,12 @@ def get_course_assignments(courseid, canvas_key: str | None = None):
 
     except AttributeError:
         if raw_data:
-            print(f'Attribute error while getting assignments for {courseid}..')
+
             return []
         return 'Unable to get field for courses', 404
     except Exception:
         if raw_data:
-            print(f'Exception while getting assignments for {courseid}..')
+
             return []
         return 'Unable to make request to Canvas API', 400
     if raw_data:
@@ -298,9 +298,9 @@ def set_custom_due_date(courseid, assignmentid):
         queries.set_custom_due_date_by_id(current_user, assignment.id, due_date)
     except ValueError:
         return jsonify({'success': False, 'message': 'ID does not exist.'}), 404
-    except:
+    except Exception:
         return jsonify({'success': False, 'message': 'An unknown error has occurred.'}), 500
-    
+
     return jsonify({'success': True, 'message': 'Update custom due date.'})
 
 
@@ -310,7 +310,7 @@ def get_professor_ta_ids(courseid):
 
     try:
         professor_ta_ids = canvas_api.get_professor_info(canvas_key, courseid)
-        
+
     except Exception:
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
@@ -321,12 +321,13 @@ def get_professor_ta_ids(courseid):
 @courses.route('/get_grade_simulation/<courseid>', methods=['GET'])
 def get_grade_simulation(courseid):
     canvas_key = decrypt_canvas_key()
-    
+
     try:
-        grade_weight_group = canvas_api.get_weighted_graded_assignments_for_course(canvas_key, courseid)
+        grade_weight_group = canvas_api.get_weighted_graded_assignments_for_course(canvas_key,
+                                                                                   courseid)
         if grade_weight_group is None:
             return "Invalid course id", 400
-        
+
         grade_log = []
         for section in grade_weight_group:
             grade_section = {
@@ -336,18 +337,17 @@ def get_grade_simulation(courseid):
                     {
                         'name': assignment.get('name', None),
                         'max_score': assignment.get('points_possible', None),
-                        'score': assignment.get('submission', {}).get('score', None) if assignment.get('submission') else None,
+                        'score': assignment.get('submission', {}).get('score', None)
+                        if assignment.get('submission') else None,
                         'omit_from_final_grade': assignment.get('omit_from_final_grade', None)
                     }
                     for assignment in getattr(section, 'assignments', [])
                 ]
             }
             grade_log.append(grade_section)
-            
+
     except Exception:
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to get field for assignment', 404
     return jsonify(grade_log), 200
-    
-    

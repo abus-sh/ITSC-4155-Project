@@ -179,7 +179,6 @@ export class DashboardComponent implements OnInit {
     // SEND POST REQUEST for creating a new Subtask
     addSubtask(assignment: Assignment | null) {
         if (this.addSubtaskForm.valid && assignment != null) {
-            console.log(assignment.id);
 
             const formData: AddSubtaskBody = {
                 ...this.addSubtaskForm.value,

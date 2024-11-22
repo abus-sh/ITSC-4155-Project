@@ -7,7 +7,8 @@ functions specific to this application.
 from Crypto.Cipher import AES
 from Crypto.Protocol.KDF import scrypt
 from Crypto.Random import get_random_bytes
-import sys, os
+import sys
+import os
 
 # Import Self from the correct place depending on the Python version
 if sys.version_info[0] == 3 and sys.version_info[1] >= 11:

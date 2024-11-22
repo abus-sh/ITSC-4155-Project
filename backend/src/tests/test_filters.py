@@ -42,7 +42,7 @@ def mock_get_filters(owner):
 def mock_create_filter(owner, filter):
     if filter == '':
         return False
-    
+
     if filter not in mock_filters:
         mock_filters.append(filter)
 
@@ -52,12 +52,12 @@ def mock_create_filter(owner, filter):
 def mock_delete_filter(owner, filter):
     if filter not in mock_filters:
         raise ValueError
-    
+
     for i, f in enumerate(mock_filters):
         if f == filter:
             mock_filters.remove(filter)
             return i
-    
+
     return None
 
 
@@ -111,7 +111,7 @@ def test_post_missing(client):
 
     # Test that a filter won't be created if one isn't specified
     resp = client.post(url_for('api_v1.filters.create_filter'), json={})
-    
+
     # Check the response
     assert resp.status_code == 400
     assert resp.json is not None
@@ -131,7 +131,7 @@ def test_post_invalid(client):
     resp = client.post(url_for('api_v1.filters.create_filter'), json={
         'filter': 1
     })
-    
+
     # Check the response
     assert resp.status_code == 400
     assert resp.json is not None
@@ -208,7 +208,7 @@ def test_delete_missing(client):
 
     # Test that a filter won't be deleted if one isn't specified
     resp = client.delete(url_for('api_v1.filters.delete_filter'), json={})
-    
+
     # Check the response
     assert resp.status_code == 400
     assert resp.json is not None

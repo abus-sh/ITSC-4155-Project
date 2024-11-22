@@ -60,7 +60,6 @@ export class AddtaskComponent {
         } else {
             // Set an appropriate error message based on what is invalid
             if (!this.addTaskForm.controls['name'].valid) {
-                console.log(this.addTaskForm.controls['name'].value);
                 this.errorMsg = 'Please provide an assignment name.';
             } else if (!this.addTaskForm.controls['due_at'].valid) {
                 this.errorMsg = 'Please provide a valid due date.';

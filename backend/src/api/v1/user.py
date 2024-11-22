@@ -111,11 +111,11 @@ def get_assignments_due_soon():  # noqa: C901
         for id in descriptions:
             canvas_assignments[id]['user_description'] = descriptions[id]
 
-    except Exception as e:
-        print(e)
+    except Exception:
+
         return 'Unable to make request to Canvas API', 400
-    except AttributeError as e:
-        print(e)
+    except AttributeError:
+
         return 'Unable to get field for courses', 404
     return jsonify(assignments_due_soon), 200
 
@@ -150,11 +150,11 @@ def get_missing_submissions():
         for assignment in missing_submissions:
             miss_assignment = {field: getattr(assignment, field, None) for field in fields}
             miss_assignments_list.append(miss_assignment)
-    except Exception as e:
-        print(e)
+    except Exception:
+
         return 'Unable to make request to Canvas API', 400
-    except AttributeError as e:
-        print(e)
+    except AttributeError:
+
         return 'Unable to get field for courses', 404
     return jsonify(miss_assignments_list), 200
 
@@ -196,8 +196,8 @@ def get_calendar_events():
 
             calendar_events.append(single_event)
 
-    except Exception as e:
-        print(e)
+    except Exception:
+
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to get field for calendar event', 404
@@ -207,7 +207,7 @@ def get_calendar_events():
 @user.route('/send_message', methods=['POST'])
 def send_message_to_professor_ta():
     canvas_key = decrypt_canvas_key()
-    
+
     try:
         data = request.json
 
@@ -215,24 +215,26 @@ def send_message_to_professor_ta():
         subject = data.get('subject').strip()
         body = data.get('body').strip()
         canvas_id = int(data.get('canvas_id'))
-        
-        if not recipients or not subject or not body or not isinstance(recipients, list) or not canvas_id:
+
+        if not recipients or not subject or not body or not isinstance(recipients, list) or\
+                not canvas_id:
             return 'Invalid payload', 400
-        
+
         canvas_id, conv_exists = queries.valid_task_id(current_user, canvas_id)
         if not canvas_id:
             return 'Conversation associated with invalid task', 400
-        
-        conversation_id = canvas_api.send_message(canvas_key, recipients, subject, body, conv_exists)
+
+        conversation_id = canvas_api.send_message(canvas_key, recipients, subject, body,
+                                                  conv_exists)
 
         if not conversation_id:
             return 'Unable to send message', 400
         result = queries.create_new_conversation(current_user, canvas_id, conversation_id)
         if result is False:
             return 'Unable to create conversation successfully', 400
-        
-    except Exception as e:
-        print(e)
+
+    except Exception:
+
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to determine message fields', 404
@@ -242,16 +244,16 @@ def send_message_to_professor_ta():
 @user.route('/reply_message', methods=['POST'])
 def send_reply_conversation():
     canvas_key = decrypt_canvas_key()
-    
+
     try:
         data = request.json
         conv_id = int(data.get('conversation_id'))
         reply_body = data.get('body').strip()
-        
+
         conv_reply_id = canvas_api.send_reply(canvas_key, conv_id, reply_body)
         if conv_reply_id is None:
             return 'Unable to send reply to the Canvas api', 400
-        
+
     except ValueError:
         return 'Invalid conversation id', 400
     except Exception:
@@ -262,7 +264,7 @@ def send_reply_conversation():
 @user.route('/get_conversations/<canvas_id>', methods=['GET'])
 def get_conversations(canvas_id):
     canvas_key = decrypt_canvas_key()
-    
+
     try:
         canvas_id = int(canvas_id)
         if not canvas_id:
@@ -274,7 +276,7 @@ def get_conversations(canvas_id):
             return jsonify([]), 200
         # Get conversations from canvas using the ids
         conversations = canvas_api.get_conversations_from_ids(canvas_key, conv_ids)
-        
+
     except ValueError:
         return 'Canvas id needs to be an integer', 400
     except Exception:
@@ -287,12 +289,11 @@ def get_notifications():
     try:
         invitations = queries.get_subtask_invitations(current_user)
         invitations_list = {'invitation': [], 'simple': []}
-        
+
         if invitations:
             invitations_list['invitation'] = queries.compose_invitations(invitations)
-            
-    except Exception as e:
-        print(e)
+
+    except Exception:
         return 'Unable to retrieve notifications', 400
     return jsonify(invitations_list), 200
 
@@ -305,24 +306,23 @@ def send_invitation():
         subtask_id = data.get('subtask_id')
         if not username or not subtask_id:
             return 'Invalid payload', 400
-        
+
         invited_user = queries.get_user_by_username(username)
-        # Return success if the user doesn't exists otherwise 
+        # Return success if the user doesn't exists otherwise
         # that would give away the username of other people, and if they are in the system
         if not invited_user:
             return jsonify('Invitation sent!'), 200
-        
+
         if invited_user.id == current_user.id:
             return 'You cannot invite yourself', 400
-        
+
         sent = queries.send_subtask_invitation(current_user, invited_user, subtask_id)
         if not sent:
             return 'Unable to send invitation', 400
-        
-    except Exception as e:
-        print(e)
+
+    except Exception:
         return 'Error while sending invitation', 400
-    return jsonify('Invitation sent!'), 200 
+    return jsonify('Invitation sent!'), 200
 
 
 @user.route('/invitation_response', methods=['POST'])
@@ -332,15 +332,14 @@ def respond_invitation():
         data = request.json
         invitation_id = data.get('invitation_id')
         accept = data.get('accept')
-        
+
         if not isinstance(accept, bool) or not invitation_id:
             return 'Invalid payload', 400
-        
+
         result = add_shared_subtask(current_user, todoist_key, invitation_id, accept)
         if not result:
             return 'Unable to respond to invitation', 400
-        
-    except Exception as e:
-        print(e)
+
+    except Exception:
         return 'Error while sending invitation', 400
-    return jsonify('Responded to invitation successfully!'), 200 
+    return jsonify('Responded to invitation successfully!'), 200

@@ -5,7 +5,6 @@ from canvasapi.calendar_event import CalendarEvent
 from canvasapi.course import Course
 from canvasapi.current_user import CurrentUser
 from canvasapi.submission import Submission
-from functools import reduce
 import os.path
 import tempfile
 
@@ -409,7 +408,7 @@ def download_submissions_no_cache(submissions: list[Submission]):
 def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
     """
     This function is used to get the id and name of all teachers and TAs for a course.
-    
+
     :param canvas_key: The API key that should be used.
     :param course_id: The ID of the course to retrieve the users from.
     :return list[dict]: A list of dictionaries with the id and name of each teacher and TAs
@@ -420,10 +419,11 @@ def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
     return [{field: getattr(user, field, None) for field in fields} for user in user_list]
 
 
-def send_message(canvas_key: str, recipients: list, subject: str, body: str, conv_exists: bool=False) -> int:
+def send_message(canvas_key: str, recipients: list, subject: str, body: str,
+                 conv_exists: bool = False) -> int:
     """
     This function is used to send a message to a user in Canvas.
-    
+
     :param canvas_key: The API key that should be used.
     :param recipients: A list of user IDs to send the message to.
     :param subject: The subject of the message.
@@ -432,15 +432,16 @@ def send_message(canvas_key: str, recipients: list, subject: str, body: str, con
     :return int: The ID of the conversation that the message was sent part of.
     """
     canvas = Canvas(BASE_URL, canvas_key)
-    result = canvas.create_conversation(recipients=recipients, subject=subject, body=body, 
+    result = canvas.create_conversation(recipients=recipients, subject=subject, body=body,
                                         force_new=not conv_exists, group_conversation=True)
 
     return result[0].id
 
+
 def send_reply(canvas_key: str, conv_id: str, body: str) -> int:
     """
     This function is used to send a reply to a conversation in Canvas.
-    
+
     :param canvas_key: The API key that should be used.
     :param conv_id: The ID of the conversation to reply to.
     :param body: The body of the reply.
@@ -454,7 +455,7 @@ def send_reply(canvas_key: str, conv_id: str, body: str) -> int:
 def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
     """
     This function is used to get all the conversations for a course.
-    
+
     :param canvas_key: The API key that should be used.
     :param convs_id: The ID of the conversations to retrieve.
     :return list[dict]: A list of conversations.
@@ -467,15 +468,16 @@ def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
         participants = getattr(conv, 'participants', None)
         if not messages or not participants:
             continue
-        all_conversations.append({ 'id': id, 'subject': getattr(conv, 'subject', None), 
+        all_conversations.append({'id': id, 'subject': getattr(conv, 'subject', None),
                                   'messages': messages, 'participants': participants})
     return all_conversations
 
 
-def get_weighted_graded_assignments_for_course(canvas_key: str, course_id: str) -> list[object] | None:
+def get_weighted_graded_assignments_for_course(canvas_key: str, course_id: str)\
+        -> list[object] | None:
     """
     This function is used to get all the graded assignments for a course with their grade weight.
-    
+
     :param canvas_key: The API key that should be used.
     :param course_id: The ID of the course to retrieve the graded assignments from.
     :return list[dict]: A list of graded assignments.
@@ -486,7 +488,7 @@ def get_weighted_graded_assignments_for_course(canvas_key: str, course_id: str) 
         return None
     grade_weight_group = course.get_assignment_groups(include=['assignments', 'submission'])
     return grade_weight_group
-        
+
 
 def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:
     """

@@ -64,18 +64,15 @@ export class GradesimComponent implements OnInit {
         /*
         * This function is called whenever the user changes the score of an assignment.
         */
-        const inputElement = event.target as HTMLInputElement;
-        let newScore = +inputElement.value;
+        let newScore = +(event.target as HTMLInputElement).value;
         if (newScore < 0) {
             newScore = 0;
-            inputElement.value = '0';
+            (event.target as HTMLInputElement).value = '0';
         }
         assignment.score = newScore;
         if (this.log_course && this.log_course.gradelog) {
             const finalGrade = this.calculateFinalGrade(this.log_course.gradelog);
-            console.log(`Final Grade: ${finalGrade.toFixed(2)}%`);
             document.getElementById('potentialScore')!.innerText = `Final Grade: ${finalGrade.toFixed(2)}%`;
         }
-        console.log('Score changed');
     }
 }

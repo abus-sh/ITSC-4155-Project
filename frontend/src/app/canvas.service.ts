@@ -246,8 +246,6 @@ export class CanvasService {
     async addSubtask(subtaskData: AddSubtaskBody) {
         const resp = await firstValueFrom(this.http.post<AddSubtaskResponse>(this.addSubTaskUrl,
             subtaskData, { withCredentials: true }));
-        console.log(resp);
-        console.log(subtaskData);
 
         if (resp.id == undefined || resp.id == undefined) {
             return;
@@ -331,8 +329,7 @@ export class CanvasService {
             } else {
                 throw Error('No file provided by server.');
             }
-        } catch (error) {
-            console.log(error);
+        } catch {
             return false;
         }
 

@@ -14,12 +14,14 @@ services:
       SESSION_SECRET_FILE: /run/secrets/session_secret.txt
       TODOIST_CLIENT: 12fde679cfe84cff92c3a6c3e7e3beaf
       TODOIST_SECRET: /run/secrets/todoist_secret.txt
+      TODO_SECRET_FILE: /run/secrets/todoist_secret_encrypt.txt
     expose:
       - 5000
     secrets:
       - database_conn.txt
       - session_secret.txt
       - todoist_secret.txt
+      - todoist_secret_encrypt.txt
   # RDS databases are expensive, just run this as part of Docker
   database:
     image: mariadb:11.5
@@ -56,3 +58,5 @@ secrets:
     file: ./secrets/db_root_password.txt
   todoist_secret.txt:
     file: ./secrets/todoist_production_secret.txt
+  todoist_secret_encrypt.txt:
+    file: ./secrets/todoist_prod_secret_encrypt.txt
