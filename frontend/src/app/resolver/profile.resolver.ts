@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { getBackendURL } from '../../config';
 import { UserProfile } from '../profile/profile.component';
 
+// CURRENTLY NOT IN USE: may need to be used in the future
 
 @Injectable({
     providedIn: 'root'

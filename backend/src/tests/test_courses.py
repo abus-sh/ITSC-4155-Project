@@ -24,6 +24,9 @@ class MockCanvas:
         return mock_courses
 
     def get_course(self, course_id, include: list[str] = []):
+        if not course_id.isnumeric():
+            raise TypeError
+
         for course in mock_courses:
             if course.id == course_id:
                 return course
@@ -45,7 +48,9 @@ class MockCourse:
         self.term = term
         self.concluded = concluded
         self.assignments = [
-            MockAssignment('1', '1', self.id, 100, 'now'),
+            MockAssignment('1', '1', self.id, 100, 'now', attachments=[
+                MockAttachment()
+            ]),
             MockAssignment('2', '2', self.id, 90, 'past'),
             MockAssignment('3', '3', self.id, 80, 'future'),
         ]
@@ -65,12 +70,19 @@ class MockCourse:
 
 
 class MockAssignment:
-    def __init__(self, id, assignment_id, course_id, score, due_at):
+    def __init__(self, id, assignment_id, course_id, score, due_at, attachments=[]):
         self.id = id
         self.assignment_id = assignment_id
         self.course_id = course_id
         self.score = score
         self.due_at = due_at
+        self.attachments = attachments
+
+
+class MockAttachment:
+    def download(self, path: str):
+        # Intentional no-op
+        pass
 
 
 mock_courses = [
@@ -109,7 +121,13 @@ def fake_login(client):
     }
 
     resp = client.post(url_for('authentication.sign_up'), json=test_user)
-    assert resp.status_code == 200 or resp.status_code == 500
+    if resp.status_code != 200:
+        assert resp.status_code == 400
+        assert resp.json is not None
+        assert 'success' in resp.json
+        assert not resp.json['success']
+        assert 'message' in resp.json
+        assert resp.json['message'] == 'Username already exists'
 
     resp = client.post(url_for('authentication.login'), json=test_user)
     assert resp.status_code == 200
@@ -266,3 +284,32 @@ def test_get_course_assignment(client):
     assignment = resp.json
     assert assignment['course_id'] is None
     assert assignment['id'] is None
+
+
+def test_get_course_submissions(client, monkeypatch):
+    # Check that an unauthenticated user can't download submissions
+    resp = client.get(url_for('api_v1.courses.get_course_submissions', courseid=1))
+    assert resp.status_code == 401
+    assert resp.json is None
+
+    fake_login(client)
+
+    # Check a non-existent course
+    resp = client.get(url_for('api_v1.courses.get_course_submissions', courseid=100))
+    assert resp.status_code == 404
+    assert resp.json is not None
+    assert not resp.json['success']
+    assert resp.json['message'] == 'Course not found.'
+
+    # Check a bad course
+    resp = client.get(url_for('api_v1.courses.get_course_submissions', courseid='a'))
+    assert resp.status_code == 400
+    assert resp.json is not None
+    assert not resp.json['success']
+    assert resp.json['message'] == 'Course ID must be an integer.'
+
+    # Check that a ZIP is returned for a valid course
+    resp = client.get(url_for('api_v1.courses.get_course_submissions', courseid=1))
+    assert resp.status_code == 200
+    assert resp.json is None
+    assert resp.text.startswith('PK')  # Check magic bytes for ZIP file

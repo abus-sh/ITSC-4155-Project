@@ -32,7 +32,8 @@ with open(os.environ.get('SESSION_SECRET_FILE', '../../secrets/session_secret.tx
 # SQLite will create the .db file if it doesn't exist; if it does, it will connect to it (in the
 # /database/ folder).
 if USING_SQLITE:
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(app.root_path, "../..", "database", "canvas_hub.db")}'  # noqa: E501
+    app.config['SQLALCHEMY_DATABASE_URI'] =\
+        f'sqlite:///{os.path.join(app.root_path, "../..", "database", "canvas_hub.db")}'
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -59,7 +60,7 @@ CORS(app, supports_credentials=True, origins=[
     'http://localhost:4200',
     'https://localhost:4200',
     'https://itsc4155.abus.sh:4200'
-])
+], expose_headers='Content-Disposition')
 
 
 # Create all missing tables based on the table models in `backend/src/utils/models.py`

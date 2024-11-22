@@ -6,6 +6,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { ProfileComponent } from './profile/profile.component';
 import { CoursesComponent } from './courses/courses.component';
 import { CalendarComponent } from './calendar/calendar.component';
+import { GradesimComponent } from './gradesim/gradesim.component';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },       // Route for login page
@@ -28,6 +29,11 @@ export const routes: Routes = [
 
     {
         path: 'calendar', component: CalendarComponent,
+        canActivate: [AuthGuard]
+    },
+
+    {
+        path: 'gradesim', component: GradesimComponent,
         canActivate: [AuthGuard]
     },
 

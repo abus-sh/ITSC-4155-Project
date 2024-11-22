@@ -4,6 +4,35 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { OrderByPipe } from '../pipes/date.pipe';
 import { CanvasService } from '../canvas.service';
 import { AddtaskComponent } from "../addtask/addtask.component";
+import { TasknoteComponent } from '../tasknote/tasknote.component';
+import { SendmessageComponent } from '../sendmessage/sendmessage.component';
+
+import { AddfilterComponent } from '../addfilter/addfilter.component';
+import { FilterService } from '../filter.service';
+import { FilterPipe } from '../pipes/filter.pipe';
+import { HttpClient } from '@angular/common/http';
+import { getBackendURL } from '../../config';
+
+
+
+interface NotificationBase {
+    title: string;
+    message?: string;
+    type: string;
+}
+
+export interface InvitationNotification extends NotificationBase {
+    type: 'invitation';
+    invitation_id: number;
+    author_name: string;
+    subtask_name: string;
+}
+
+export interface SimpleNotification extends NotificationBase {
+    type: 'simple';
+    date: string;
+    id?: number;
+}
 
 export interface Subtask {
     id: number;
@@ -13,20 +42,26 @@ export interface Subtask {
     due_date: string;
     status: number;
     todoist_id?: string;
+    author?: boolean;
 }
 
 export interface Assignment {
     title: string;
-    description: string;
+    description: string | null;
+    user_description: string | null;
     type: string;
-    submission_types: string[];
+    submission_types: string[] | string;
     html_url?: string;
     context_name?: string;
+    context_code?: string;
     id?: number;
+    db_id?: number;
     points_possible?: number;
     graded_submissions_exist: boolean;
-    due_at: string;
+    due_at?: string;
     subtasks: Subtask[];
+    user_submitted?: boolean;
+    course_id?: number;
 }
 
 export type SubtasksDict = Record<number, Subtask[]>;
@@ -36,13 +71,15 @@ export interface AddSubtaskBody {
     description: string,
     due_date: string,
     status: number,
-    canvas_id: number
+    canvas_id: number,
+    author?: boolean
 }
 
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent],
+    imports: [CommonModule, ReactiveFormsModule, OrderByPipe, AddtaskComponent, TasknoteComponent,
+        AddfilterComponent, FilterPipe, SendmessageComponent],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss',
 })
@@ -52,23 +89,58 @@ export class DashboardComponent implements OnInit {
     subtaskFormDisplay = false;
     subtaskAssignment: Assignment | null = null;
     addSubtaskForm: FormGroup;
+
+    subtaskShareDisplay = false;
+    subtaskShareAssignment: Subtask | null = null;
+
+    shareSubtaskForm: FormGroup;
+
     private cantToggle = false;
 
     assignmentFormDisplay = false;
 
+    noteFormDisplay = false;
+    noteAssignment?: Assignment;
+
+    sendMessageFormDisplay = false;
+    sendMessageAssignment?: Assignment;
+
+    filterFormDisplay = false;
+    filters: string[] = [];
+
+    sendInvitation = getBackendURL() + '/api/v1/user/send_invitation';
+    notification_url = getBackendURL() + '/api/v1/user/get_notifications';
+    respond_invitation = getBackendURL() + '/api/v1/user/invitation_response';
+    notification_dismiss = getBackendURL() + '/api/v1/user/dismiss_notification';
+
+
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
+    sectionCollapseNotifications = false;
     assignments: Assignment[] = [];
+    notifications: { invitation: InvitationNotification[], simple: SimpleNotification[] } = { invitation: [], simple: [] };
+
+    sectionCollapseUndated = false;
+    undatedAssignments: Assignment[] = [];
 
     constructor(private fb: FormBuilder, private canvasService: CanvasService,
-        private renderer: Renderer2) {
-        
+        private renderer: Renderer2, private filterService: FilterService,
+
+        private http: HttpClient) {
+
         this.addSubtaskForm = this.fb.group({
             name: ['', Validators.required],
             description: [''],
             due_date: [this.getFormattedDueDate()],
             status: ['0']
         });
+
+        this.shareSubtaskForm = this.fb.group({
+            username: ['', Validators.required]
+        });
+
+        this.filterService.filters$.subscribe(filters => this.filters = filters);
+        this.filterService.getFilters();
     }
 
     ngOnInit() {
@@ -76,9 +148,25 @@ export class DashboardComponent implements OnInit {
             this.assignments = assignments;
         });
 
+        this.canvasService.undatedAssignments$.subscribe(assignments => {
+            this.undatedAssignments = assignments;
+        })
+
         this.canvasService.getDueAssignments().then(() => {
             this.canvasService.getSubTasks(this.assignments);
         });
+
+        this.canvasService.getCourses().then(() => {
+            this.canvasService.getUndatedAssignments();
+        });
+        this.fetchNotifications();
+    }
+
+    fetchNotifications() {
+        this.http.get<{ invitation: InvitationNotification[], simple: SimpleNotification[] }>(this.notification_url, { withCredentials: true })
+            .subscribe((data: { invitation: InvitationNotification[], simple: SimpleNotification[] }) => {
+                this.notifications = data;
+            });
     }
 
 
@@ -91,7 +179,6 @@ export class DashboardComponent implements OnInit {
     // SEND POST REQUEST for creating a new Subtask
     addSubtask(assignment: Assignment | null) {
         if (this.addSubtaskForm.valid && assignment != null) {
-            console.log(assignment.id);
 
             const formData: AddSubtaskBody = {
                 ...this.addSubtaskForm.value,
@@ -114,6 +201,35 @@ export class DashboardComponent implements OnInit {
         }
     }
 
+    shareSubtask() {
+        if (this.shareSubtaskForm.valid && this.subtaskShareAssignment) {
+            const formData = {
+                subtask_id: this.subtaskShareAssignment.id,
+                username: this.shareSubtaskForm.value.username
+            };
+
+            this.http.post(this.sendInvitation, formData, { withCredentials: true })
+                .subscribe(() => {
+                    this.closeShareForm();
+                    this.shareSubtaskForm.reset();
+                });
+        }
+    }
+
+    respondInvitation(notification: InvitationNotification, accept: boolean) {
+        this.http.post(this.respond_invitation, { invitation_id: notification.invitation_id, accept: accept }, { withCredentials: true })
+            .subscribe(() => {
+                this.notifications.invitation = this.notifications.invitation.filter(n => n !== notification);
+                this.canvasService.getSubTasks(this.assignments);
+            });
+    }
+
+    dismissNotification(notification: SimpleNotification) {
+        this.http.post(this.notification_dismiss, { notification_id: notification.id }, { withCredentials: true })
+            .subscribe(() => {
+                this.notifications.simple = this.notifications.simple.filter(n => n !== notification);
+            });
+    }
 
 
     /********************************************
@@ -126,8 +242,10 @@ export class DashboardComponent implements OnInit {
     toggleSection(section: number) {
         if (section == 0) {
             this.sectionCollapseUpcoming = !this.sectionCollapseUpcoming;
-        } else {
+        } else if (section == 1) {
             this.sectionCollapseComplete = !this.sectionCollapseComplete;
+        } else if (section == 2) {
+            this.sectionCollapseNotifications = !this.sectionCollapseNotifications;
         }
     }
 
@@ -136,13 +254,13 @@ export class DashboardComponent implements OnInit {
         const button = event.target as HTMLElement;
         const card = button.parentElement?.parentElement as HTMLElement;
         const dropdown = button.parentElement?.nextElementSibling as HTMLElement;
-    
+
         // Hide the previously opened dropdown, if any
         if (this.previousDropdown && this.previousDropdown !== dropdown) {
             this.renderer.removeClass(this.previousDropdown, 'show');
             this.renderer.removeClass(this.previousDropdown.parentElement, 'show-dropdown');
         }
-    
+
         // Toggle the clicked dropdown
         if (this.previousDropdown == dropdown) {
             this.renderer.removeClass(dropdown, 'show');
@@ -159,7 +277,7 @@ export class DashboardComponent implements OnInit {
     async toggleSubtaskStatus(subtask: Subtask) {
         // If you send multiple toggle status rapidly to Todoist, 
         // they won't be processed in exact order, causing some to be ignored
-        if (this.cantToggle) { 
+        if (this.cantToggle) {
             return;
         }
         this.cantToggle = true;
@@ -172,8 +290,17 @@ export class DashboardComponent implements OnInit {
             subtask.status = subtask.status ? 0 : 1;
         }
 
-        setTimeout(() => this.cantToggle = false, 1000); // Unlock status toggle
+        setTimeout(() => this.cantToggle = false, 3000); // Unlock status toggle
     }
+
+    /********************************************
+    *
+    *           OPEN CLOSE FORM
+    *   
+    *********************************************/
+
+
+    /*      ADD SUBTASK FORM         */
 
     // Open the creation subtask form
     openForm(assignment: Assignment) {
@@ -187,6 +314,22 @@ export class DashboardComponent implements OnInit {
         this.subtaskAssignment = null;
     }
 
+    /*      SHARE SUBTASK FORM      */
+
+    openShareForm(subtask: Subtask) {
+        this.subtaskShareDisplay = true;
+        this.subtaskShareAssignment = subtask;
+    }
+
+    // Closes the creation subtask form
+    closeShareForm() {
+        this.subtaskShareDisplay = false;
+        this.subtaskShareAssignment = null;
+    }
+
+
+    /*      ASSIGNMENT FORM         */
+
     openAssignmentForm() {
         this.assignmentFormDisplay = true;
     }
@@ -194,6 +337,77 @@ export class DashboardComponent implements OnInit {
     closeAssignmentForm() {
         this.assignmentFormDisplay = false;
     }
+
+    /*      NOTE FORM         */
+
+    openNoteForm(assignment: Assignment, event: MouseEvent | KeyboardEvent) {
+        if (event.target === null) {
+            return;
+        }
+
+        let element = event.target as HTMLElement;
+
+        // Exclude custom date input box
+        if (element.tagName === "INPUT") {
+            const input = element as HTMLInputElement;
+            if (input.name === "due-date") {
+                return;
+            }
+        }
+
+        // Find the closest div parent to this element
+        // This allows us to determine if we are clicking a submenu that should not trigger the menu
+        while (element.tagName !== "DIV") {
+            if (element.parentElement === null) {
+                return;
+            }
+            element = element.parentElement;
+        }
+        // If the div isn't the card itself (i.e., it is some submenu), do nothing
+        if (!element.classList.contains("assignment-card") &&
+            !element.classList.contains("title-holder")) {
+            return;
+        }
+
+        this.noteAssignment = assignment;
+        this.noteFormDisplay = true;
+    }
+
+    closeNoteForm() {
+        this.noteFormDisplay = false;
+    }
+
+    /*      SEND MESSAGE FORM         */
+
+    openSendMessageForm(assignment: Assignment) {
+        if (assignment.id !== undefined) {
+            this.sendMessageAssignment = assignment;
+            this.sendMessageFormDisplay = true;
+        }
+    }
+
+    closeSendMessageForm() {
+        this.sendMessageFormDisplay = false;
+    }
+
+
+    /*      FILTER FORM         */
+
+    openFilterForm() {
+        this.filterFormDisplay = true;
+    }
+
+    closeFilterForm() {
+        this.filterFormDisplay = false;
+    }
+
+
+    /********************************************
+    *
+    *             FORMATTERS
+    *   
+    *********************************************/
+
 
     // Get end of current day date
     getFormattedDueDate(): string {
@@ -233,5 +447,25 @@ export class DashboardComponent implements OnInit {
         const daysDifference = timeDifference / (1000 * 3600 * 24);
 
         return Math.floor(daysDifference);
+    }
+
+    setCustomDueDate(assignment: Assignment, event: MouseEvent | KeyboardEvent) {
+        if (event.target === null || !(event.target instanceof HTMLElement)) {
+            return;
+        }
+
+        let element: HTMLElement | null = event.target as HTMLElement;
+        while (element !== null && !element.classList.contains('assignment-card')) {
+            element = element.parentElement;
+        }
+        if (element === null) {
+            return;
+        }
+        const due_date = (element.children[1].children[1] as HTMLInputElement).value;
+        this.canvasService.setCustomDueDate(assignment, due_date);
+    }
+
+    isAuthor(subtask: Subtask): boolean {
+        return subtask.author === true;
     }
 }

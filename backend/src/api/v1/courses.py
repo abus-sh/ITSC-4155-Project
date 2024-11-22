@@ -1,7 +1,12 @@
+import canvasapi.exceptions
 from datetime import datetime
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file, after_this_request
+from flask_login import current_user
+import os
 
 import utils.canvas as canvas_api
+import utils.files as files
+import utils.queries as queries
 from utils.session import decrypt_canvas_key
 from utils.settings import get_canvas_url
 
@@ -102,6 +107,91 @@ def get_course(courseid):
     return jsonify(course_info), 200
 
 
+@courses.get('/<courseid>/submissions')
+def get_course_submissions(courseid):
+    canvas_key = decrypt_canvas_key()
+
+    try:
+        # Construct a file prefix name
+        course = canvas_api.get_course(canvas_key, courseid)
+        if course is None:
+            raise canvasapi.exceptions.Forbidden('Course not found')
+
+        course_name = course.name
+        today = datetime.now().strftime('%Y-%m-%d')
+        file_name = f'{course_name}_submissions_{today}'
+
+        # Get all submissions in a course
+        submissions = canvas_api.get_course_submissions(canvas_key, courseid)
+
+        # Download them to disk
+        download_dir = canvas_api.download_submissions(submissions)
+
+        # Zip the files
+        zip_file = files.zip_folder(download_dir, dirname=file_name, delete_dir=True)
+
+        # Handle cleaning up the archive after the request
+        @after_this_request
+        def delete_archive(response):
+            # Delete the archive
+            try:
+                os.remove(zip_file)
+            except Exception:
+                pass
+
+            return response
+
+        # Send the file
+        return send_file(zip_file, download_name=f'{file_name}.zip')
+
+    except canvasapi.exceptions.Forbidden:
+        # Convert 403 to 404 since we don't know if the ID is bad or non-existent. From the user's
+        # perspective, it's like it doesn't exist.
+        return jsonify({'success': False, 'message': 'Course not found.'}), 404
+
+    except TypeError:
+        # Thrown if courseid can't be interpreted as an int
+        return jsonify({'success': False, 'message': 'Course ID must be an integer.'}), 400
+
+    except Exception:
+        return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
+
+
+@courses.get('/<courseid>/undated_assignments')
+def get_undated_assignments(courseid):
+    try:
+        canvas_key = decrypt_canvas_key()
+
+        assignments = canvas_api.get_undated_assignments(canvas_key, courseid)
+
+        # Filter for relevant fields
+        assignments = [canvas_api.assignment_to_dict(assignment) for assignment in assignments]
+
+        # Check if any of them have user-defined due dates
+        due_date_lookup = queries.get_custom_due_dates_by_ids(
+            current_user,
+            [assignment['id'] for assignment in assignments if assignment['id'] is not None]
+        )
+        for assignment in assignments:
+            due_date = due_date_lookup.get(assignment['id'], None)
+            assignment['due_at'] = due_date
+
+        for assignment in assignments:
+            # Translate 'name' to 'title' for the API
+            assignment['title'] = assignment['name']
+            del assignment['name']
+
+            # Set it to be an assignment
+            assignment['type'] = 'assignment'
+
+            # Override the description to be None to save on bandwidth
+            assignment['description'] = None
+
+        return jsonify(assignments), 200
+    except Exception:
+        return jsonify({'success': False, 'message': 'An unknown error has occurred'}), 500
+
+
 @courses.route('/graded_assignments', methods=['GET', 'POST'])
 def get_graded_assignments():
     try:
@@ -130,8 +220,8 @@ def get_graded_assignments():
                     one_graded[extra_field] = assignment_details.get(extra_field, None)
 
             graded_assignments.append(one_graded)
-    except Exception as e:
-        print(e)
+    except Exception:
+
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
         return 'Unable to get field for graded assignments', 404
@@ -164,12 +254,12 @@ def get_course_assignments(courseid, canvas_key: str | None = None):
 
     except AttributeError:
         if raw_data:
-            print(f'Attribute error while getting assignments for {courseid}..')
+
             return []
         return 'Unable to get field for courses', 404
     except Exception:
         if raw_data:
-            print(f'Exception while getting assignments for {courseid}..')
+
             return []
         return 'Unable to make request to Canvas API', 400
     if raw_data:
@@ -192,9 +282,72 @@ def get_course_assignment(courseid, assignmentid):
         return 'Unable to get field for courses', 404
     return jsonify(assignment_dict), 200
 
-# TO DO:
-# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions (List assignment
-# submissions)
-# GET /api/v1/courses/:course_id/students/submissions (List submissions for multiple assignments)
-# GET /api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id (Get a single
-# submission)
+
+@courses.post('/<courseid>/assignments/<assignmentid>/custom_due_date')
+def set_custom_due_date(courseid, assignmentid):
+    due_date = request.json.get('due_date', None)
+    if due_date is None or type(due_date) is not str:
+        return jsonify({'success': False, 'message': 'Missing or invalid due_date.'}), 400
+    if len(due_date) > 20:
+        return jsonify({'success': False, 'message': 'due_date is 20 characters at most.'}), 400
+
+    try:
+        canvas_key = decrypt_canvas_key()
+
+        assignment = canvas_api.get_course_assignment(canvas_key, courseid, assignmentid)
+        queries.set_custom_due_date_by_id(current_user, assignment.id, due_date)
+    except ValueError:
+        return jsonify({'success': False, 'message': 'ID does not exist.'}), 404
+    except Exception:
+        return jsonify({'success': False, 'message': 'An unknown error has occurred.'}), 500
+
+    return jsonify({'success': True, 'message': 'Update custom due date.'})
+
+
+@courses.route('/get_emails/<courseid>', methods=['GET'])
+def get_professor_ta_ids(courseid):
+    canvas_key = decrypt_canvas_key()
+
+    try:
+        professor_ta_ids = canvas_api.get_professor_info(canvas_key, courseid)
+
+    except Exception:
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError:
+        return 'Unable to get field for users in course', 404
+    return jsonify(professor_ta_ids), 200
+
+
+@courses.route('/get_grade_simulation/<courseid>', methods=['GET'])
+def get_grade_simulation(courseid):
+    canvas_key = decrypt_canvas_key()
+
+    try:
+        grade_weight_group = canvas_api.get_weighted_graded_assignments_for_course(canvas_key,
+                                                                                   courseid)
+        if grade_weight_group is None:
+            return "Invalid course id", 400
+
+        grade_log = []
+        for section in grade_weight_group:
+            grade_section = {
+                'name': getattr(section, 'name', None),
+                'weight': getattr(section, 'group_weight', None),
+                'assignments': [
+                    {
+                        'name': assignment.get('name', None),
+                        'max_score': assignment.get('points_possible', None),
+                        'score': assignment.get('submission', {}).get('score', None)
+                        if assignment.get('submission') else None,
+                        'omit_from_final_grade': assignment.get('omit_from_final_grade', None)
+                    }
+                    for assignment in getattr(section, 'assignments', [])
+                ]
+            }
+            grade_log.append(grade_section)
+
+    except Exception:
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError:
+        return 'Unable to get field for assignment', 404
+    return jsonify(grade_log), 200

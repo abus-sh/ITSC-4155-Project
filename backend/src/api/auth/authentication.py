@@ -8,8 +8,9 @@ from http import HTTPStatus
 from lru import LRU
 from utils.settings import time_it
 
-from utils.queries import get_user_by_username, get_user_by_login_id, add_user, update_password
-from utils.crypto import reencrypt_str
+from utils.queries import get_user_by_username, get_user_by_login_id, add_user, update_password, \
+    does_username_exists
+from utils.crypto import reencrypt_str, get_todo_secret
 from utils.models import User, password_hasher
 
 
@@ -132,7 +133,7 @@ def login():
             # Decrypt tokens with password and re-encrypt with session_id
             session_canvas_token = reencrypt_str(db_user.canvas_token_password, password,
                                                  session_id)
-            session_todoist_token = reencrypt_str(db_user.todoist_token_password, password,
+            session_todoist_token = reencrypt_str(db_user.todoist_token_password, get_todo_secret(),
                                                   session_id)
 
             # Cache API re-encrypted tokens for future requests
@@ -149,7 +150,6 @@ def sign_up():
 
     # Ensure the parameters were succesfully extracted from the body of the request
     if parameters is None:
-        print('Invalid parameters')
         abort(HTTPStatus.BAD_REQUEST)
         return
 
@@ -158,14 +158,19 @@ def sign_up():
     # If the username is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
     if not _is_valid_username(username):
-        print('Invalid username')
+
         abort(HTTPStatus.BAD_REQUEST)
         return
+
+    # Check if the username already exists
+    if does_username_exists(username):
+
+        return jsonify({'success': False, 'message': "Username already exists"}), 400
 
     # If the password is invalid, determine it to be unprocessable
     # This is so that it is distinct from a bad request
     if not _is_valid_password(password):
-        print('Invalid password')
+
         abort(HTTPStatus.BAD_REQUEST)
         return
 
@@ -173,7 +178,7 @@ def sign_up():
         # Exchange the code and state for the Todoist Token
         exchange_response = exchange_token(todoistInfo.code, todoistInfo.state, session)
         if not exchange_response:
-            print('Invalid token exchange')
+
             abort(HTTPStatus.BAD_REQUEST)
             return
         # Bearer is not needed right now, but in case we may need it in the future
@@ -183,7 +188,7 @@ def sign_up():
 
     # Create the user, tokens are encrypted and password is hashed
     if not add_user(username, password, canvasToken, todoistToken):
-        print('Invalid add user')
+
         abort(HTTPStatus.INTERNAL_SERVER_ERROR)
         return
 

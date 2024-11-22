@@ -2,6 +2,9 @@ import { Component } from '@angular/core';
 import { CanvasService } from '../canvas.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AddfilterComponent } from '../addfilter/addfilter.component';
+import { FilterPipe } from '../pipes/filter.pipe';
+import { FilterService } from '../filter.service';
 
 
 
@@ -28,7 +31,7 @@ interface CalendarDay {
 @Component({
     selector: 'app-calendar',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, AddfilterComponent, FilterPipe],
     templateUrl: './calendar.component.html',
     styleUrls: ['./calendar.component.scss']
 })
@@ -37,16 +40,22 @@ export class CalendarComponent {
     year = 0;
     days: CalendarDay[] = [];
 
-    private todayString: string;
-    private monthView: Date;
+    todayString: string;
+    monthView: Date;
 
     showEvents = true;       
     showAssignments = true;  
 
-    constructor(private canvasService: CanvasService) {
+    filterFormDisplay = false;
+    filters: string[] = [];
+
+    constructor(private canvasService: CanvasService, private filterService: FilterService) {
         this.monthView = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
         this.todayString = this.monthView.toDateString();
         this.updateCalendar();
+
+        this.filterService.filters$.subscribe(filters => this.filters = filters);
+        this.filterService.getFilters();
     }
 
     /***********************************      
@@ -56,7 +65,6 @@ export class CalendarComponent {
     ***********************************/
 
     loadEvents(start_date: string, end_date: string) {
-        console.log('Getting Calendar events...')
         this.canvasService.getCalendarEvents(start_date, end_date).then((events: CalendarEvent[]) => {
             const dayMap = new Map<string, CalendarDay>();
 
@@ -75,7 +83,6 @@ export class CalendarComponent {
                 }
             });
         });
-        console.log('Loaded Calendar events!')
     }
 
 
@@ -144,5 +151,19 @@ export class CalendarComponent {
 
     getClass(item: CalendarEvent) {
         return item.type + (item.user_submitted ? ' submitted' : '')
+    }
+
+    /***********************************      
+    * 
+    *       Filter Management
+    * 
+    ***********************************/
+    
+    openFilterForm() {
+        this.filterFormDisplay = true;
+    }
+
+    closeFilterForm() {
+        this.filterFormDisplay = false;
     }
 }

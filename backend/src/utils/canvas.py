@@ -5,6 +5,8 @@ from canvasapi.calendar_event import CalendarEvent
 from canvasapi.course import Course
 from canvasapi.current_user import CurrentUser
 from canvasapi.submission import Submission
+import os.path
+import tempfile
 
 from utils.settings import get_canvas_url, get_canvas_cache_time
 import gevent
@@ -110,29 +112,30 @@ def get_graded_assignments_no_cache(canvas_key: str, course_id: str) -> list[Sub
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
-def get_course_assignments(canvas_key: str, course_id: str) -> list[Assignment]:
+def get_course_assignments(canvas_key: str, course: str | Course) -> list[Assignment]:
     """
     Returns all assignments for a course. These results are cached for an amount of time determined
     by utils.settings.get_canvas_cache_time. If live information is needed,
     get_course_assignments_no_cache should be used instead.
 
     :param canvas_key: The API key that should be used.
-    :param course_id: The ID of the course to retrieve assignments for.
+    :param course: The ID of the course to retrieve assignments for or a Course.
     :return list[Assignment]: A list of canvasapi Assignments for the course.
     """
-    return get_course_assignments_no_cache(canvas_key, course_id)
+    return get_course_assignments_no_cache(canvas_key, course)
 
 
-def get_course_assignments_no_cache(canvas_key: str, course_id: str) -> list[Assignment]:
+def get_course_assignments_no_cache(canvas_key: str, course: str | Course) -> list[Assignment]:
     """
     Returns all assignments for a course. These results are not cached. If possible, use
     get_course_assignments to improve server response times.
 
     :param canvas_key: The API key that should be used.
-    :param course_id: The ID of the course to retrieve assignments for.
+    :param course: The ID of the course to retrieve assignments for or a Course.
     :return list[Assignment]: A list of canvasapi Assignments for the course.
     """
-    course = Canvas(BASE_URL, canvas_key).get_course(course_id)
+    if type(course) is str or type(course) is int:
+        course = Canvas(BASE_URL, str(canvas_key)).get_course(course)
     course_assignments = course.get_assignments()
 
     return [assignment for assignment in course_assignments]
@@ -269,6 +272,42 @@ def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
+def get_undated_assignments(canvas_key: str, course_id: str) -> list[Assignment]:
+    """
+    Returns all undated assignments associated with the given Canvas course. These results are
+    cached for an amount of time determined by utils.settings.get_canvas_cache_time. If live
+    information is needed, get_undated_assignments_no_cache should be used instead.
+
+    :param canvas_key: The API key that should be used.
+    :param course_id: The ID of the course to retrieve undated assignments for.
+    :return list[Assignments]: A list of canvasapi Assignments that have no due date.
+    """
+    return get_undated_assignments_no_cache(canvas_key, course_id)
+
+
+def get_undated_assignments_no_cache(canvas_key: str, course_id: str) -> list[Assignment]:
+    """
+    Returns all undated assignments associated with the given Canvas course. These results are not
+    cached. If possible, use get_undated_assignments to improve server response times.
+
+    :param canvas_key: The API key that should be used.
+    :param course_id: The ID of the course to retrieve undated assignments for.
+    :return list[Assignments]: A list of canvasapi Assignments that have no due date.
+    """
+
+    # Get all assignments and flatten to a 1D list
+    assignments = get_course_assignments(canvas_key, course_id)
+
+    # Filter out assignments with due dates
+    def filter_assignments(assignment: Assignment):
+        due_date = getattr(assignment, 'due_at', None) or getattr(assignment, 'lock_at', None)
+        return due_date is None
+    assignments = list(filter(filter_assignments, assignments))
+
+    return assignments
+
+
+@cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
 def get_missing_submissions(canvas_key: str, course_ids: frozenset[int]):
     """
     Get missings submissions for a set of courses using the given API key. These results are cached
@@ -298,6 +337,157 @@ def get_missing_submissions_no_cache(canvas_key: str, course_ids: frozenset[int]
     missing_submissions = user.get_missing_submissions(course_ids=course_ids)
 
     return missing_submissions
+
+
+@cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
+def get_course_submissions(canvas_key: str, course_id: int):
+    """
+    Get all submissions for a course using the given API key. These results are cached
+    for an amount of time determined by utils.settings.get_canvas_cache_time. If live information is
+    needed, get_course_submissions_no_cache should be used instead.
+
+    :param canvas_key: The API key that should be used.
+    :param course_id: The course ID to retrieve submissions for.
+    :return list[Submission]: A list of canvasapi Submissions for the given course.
+    """
+    return get_course_submissions_no_cache(canvas_key, course_id)
+
+
+def get_course_submissions_no_cache(canvas_key: str, course_id: int):
+    """
+    Get all submissions for a course using the given API key. These results are not cached. If
+    possible, use get_course_submissiosn to improve server response times.
+
+    :param canvas_key: The API key that should be used.
+    :param course_id: The course ID to retrieve submissions for.
+    :return list[Submission]: A list of canvasapi Submissions for the given course.
+    """
+    course = get_course(canvas_key, course_id)
+    submissions = course.get_multiple_submissions()
+
+    # Actually a PaginatedList, not a list, but it's a useful lie
+    return submissions
+
+
+def download_submissions(submissions: list[Submission]):
+    """
+    Download all submissions for a course to disk using the given API key. These results are not
+    cached, but this function exists for consistency's sake. Since files are written to disk and
+    could be deleted, caching this information could lead to bad paths being returned. This directly
+    wraps download_submissions_no_cache.
+
+    :param canvas_key: The API key that should be used.
+    :param submissions: The submissions to download.
+    :return str: A path to directory on disk that contains the downloaded submissions. This folder
+    should be deleted as soon as it is no longer needed to save storage.
+    """
+    return download_submissions_no_cache(submissions)
+
+
+def download_submissions_no_cache(submissions: list[Submission]):
+    """
+    Download all submissions for a course to disk using the given API key.
+
+    :param submissions: The submissions to download.
+    :return str: A path to directory on disk that contains the downloaded submissions. This folder
+    should be deleted as soon as it is no longer needed to save storage.
+    """
+    # Get a temporary directory to store everyting
+    download_dir = tempfile.mkdtemp()
+
+    # Download all attachments for an assignment
+    # If a submission consistend of multiple files, then this will grab all of them
+    for sub in submissions:
+        for att in sub.attachments:
+            path = os.path.join(download_dir, f'a{sub.assignment_id}_{att}')
+            att.download(path)
+
+    return download_dir
+
+
+def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
+    """
+    This function is used to get the id and name of all teachers and TAs for a course.
+
+    :param canvas_key: The API key that should be used.
+    :param course_id: The ID of the course to retrieve the users from.
+    :return list[dict]: A list of dictionaries with the id and name of each teacher and TAs
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    user_list = canvas.get_course(course_id).get_users(enrollment_type=['teacher', 'ta'])
+    fields = ['id', 'name']
+    return [{field: getattr(user, field, None) for field in fields} for user in user_list]
+
+
+def send_message(canvas_key: str, recipients: list, subject: str, body: str,
+                 conv_exists: bool = False) -> int:
+    """
+    This function is used to send a message to a user in Canvas.
+
+    :param canvas_key: The API key that should be used.
+    :param recipients: A list of user IDs to send the message to.
+    :param subject: The subject of the message.
+    :param body: The body of the message.
+    :param conv_exists: A boolean to determine if a new conversation should be created.
+    :return int: The ID of the conversation that the message was sent part of.
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    result = canvas.create_conversation(recipients=recipients, subject=subject, body=body,
+                                        force_new=not conv_exists, group_conversation=True)
+
+    return result[0].id
+
+
+def send_reply(canvas_key: str, conv_id: str, body: str) -> int:
+    """
+    This function is used to send a reply to a conversation in Canvas.
+
+    :param canvas_key: The API key that should be used.
+    :param conv_id: The ID of the conversation to reply to.
+    :param body: The body of the reply.
+    :return int: The ID of the conversation that the reply was sent part of.
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    result = canvas.get_conversation(conv_id).add_message(body=body)
+    return getattr(result, 'id', None)
+
+
+def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
+    """
+    This function is used to get all the conversations for a course.
+
+    :param canvas_key: The API key that should be used.
+    :param convs_id: The ID of the conversations to retrieve.
+    :return list[dict]: A list of conversations.
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    all_conversations = []
+    for id in convs_id:
+        conv = canvas.get_conversation(id)
+        messages = getattr(conv, 'messages', None)
+        participants = getattr(conv, 'participants', None)
+        if not messages or not participants:
+            continue
+        all_conversations.append({'id': id, 'subject': getattr(conv, 'subject', None),
+                                  'messages': messages, 'participants': participants})
+    return all_conversations
+
+
+def get_weighted_graded_assignments_for_course(canvas_key: str, course_id: str)\
+        -> list[object] | None:
+    """
+    This function is used to get all the graded assignments for a course with their grade weight.
+
+    :param canvas_key: The API key that should be used.
+    :param course_id: The ID of the course to retrieve the graded assignments from.
+    :return list[dict]: A list of graded assignments.
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    course = canvas.get_course(course_id)
+    if getattr(course, 'name', None) is None:
+        return None
+    grade_weight_group = course.get_assignment_groups(include=['assignments', 'submission'])
+    return grade_weight_group
 
 
 def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:

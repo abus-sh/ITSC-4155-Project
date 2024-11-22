@@ -23,14 +23,14 @@ def update_tasks():
     try:
 
         todoist.add_update_tasks(current_user.id, canvas_token, todoist_token)
-    except Exception as e:
-        print('Error synching assignments to Todoist from Canvas: ', e)
+    except Exception:
+
         return jsonify({'success': False}), 400
 
     try:
         todoist.sync_task_status(current_user, todoist_token)
-    except Exception as e:
-        print('Error updating task completion:', e)
+    except Exception:
+
         return jsonify({'success': False}), 400
 
     return jsonify({'success': True}), 200
@@ -68,7 +68,7 @@ def add_task_user():
     if not task_id:
         return jsonify({'success': False, 'message': 'Error calling Todoist API'}), 500
 
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'id': task_id})
 
 
 @tasks.post('/add_subtask')
@@ -86,14 +86,16 @@ def add_subtask_user():
         if not canvas_id or not subtask_name or not subtask_status:
             return jsonify({'success': False, 'message': 'Invalid subtask parameters'}), 400
 
-        result = todoist.add_subtask(current_user, todoist_token, canvas_id, subtask_name,
-                                     subtask_desc, subtask_status, subtask_date)
+        result, todoist_id = todoist.add_subtask(current_user, todoist_token, canvas_id,
+                                                 subtask_name, subtask_desc, subtask_status,
+                                                 subtask_date)
         if result:
-            return jsonify({'success': True, 'id': result}), 200
+            return jsonify({'success': True, 'id': result, "todoist_id": todoist_id,
+                            "author": True}), 200
         else:
             return jsonify({'success': False, 'message': 'Failed to create subtask'}), 400
-    except Exception as e:
-        print('Error adding a subtask: ', e)
+    except Exception:
+
         return jsonify({'success': False, 'message': 'Unable to create subtask'}), 400
 
 
@@ -110,12 +112,13 @@ def get_subtasks():
         elif len(task_ids) == 0:
             return jsonify({'success': False, 'message': 'No IDs were provided'}), 400
 
-    except Exception as e:
-        print(e)
+    except Exception:
+
         return jsonify({'success': False, 'message': 'Error while getting subtasks'}), 400
     return jsonify({'success': False, 'message': 'Unable to get subtasks'}), 404
 
 
+# UNUSED
 @tasks.post('/<task_id>/close')
 def close_task(task_id: str):
     todoist_token = session.decrypt_todoist_key()
@@ -125,6 +128,7 @@ def close_task(task_id: str):
     return jsonify({'success': False, 'message': f'Unable to close {task_id}'}), 400
 
 
+# UNUSED
 @tasks.post('/<task_id>/open')
 def open_task(task_id: str):
     todoist_token = session.decrypt_todoist_key()
@@ -141,3 +145,37 @@ def toggle_task(task_id: str):
     if result:
         return jsonify({'success': True, 'message': f'{task_id} toggled'})
     return jsonify({'success': False, 'message': f'Unable to open {task_id}'}), 400
+
+
+@tasks.patch('/<task_id>/description')
+def update_description(task_id: str):
+    # Ensure that a description was provided
+    data = request.json
+    new_desc = data.get('description')
+    if new_desc is None:
+        return jsonify({'success': False, 'message': 'No description provided.'}), 400
+    if type(new_desc) is not str:
+        return jsonify({'success': False, 'message': 'Invalid description.'}), 400
+    if len(new_desc) > 500:
+        return jsonify({'success': False, 'message': 'Description is too long.'}), 400
+
+    # Check if the provided ID is a Canvas ID or an internal database ID
+    # Default to a Canvas API for consistency
+    # Options are 'canvas' and 'native'
+    task_type = data.get('task_type', 'canvas')
+
+    if task_type == 'canvas':
+        task = queries.get_task_by_canvas_id(current_user, task_id)
+    elif task_type == 'native':
+        task = queries.get_task_by_id(current_user, task_id)
+    else:
+        return jsonify({'success': False, 'message': 'Invalide task_type.'}), 400
+
+    if task is None:
+        return jsonify({'success': False, 'message': 'No task with the given ID exists.'}), 404
+
+    todoist_token = session.decrypt_todoist_key()
+    if todoist.update_task_description(todoist_token, task, new_desc):
+        return jsonify({'success': True, 'message': 'OK.'})
+
+    return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
