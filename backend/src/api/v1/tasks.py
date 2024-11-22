@@ -117,6 +117,7 @@ def get_subtasks():
         return jsonify({'success': False, 'message': 'Error while getting subtasks'}), 400
     return jsonify({'success': False, 'message': 'Unable to get subtasks'}), 404
 
+
 # UNUSED
 @tasks.post('/<task_id>/close')
 def close_task(task_id: str):
@@ -125,6 +126,7 @@ def close_task(task_id: str):
     if result:
         return jsonify({'success': True, 'message': f'{task_id} closed'})
     return jsonify({'success': False, 'message': f'Unable to close {task_id}'}), 400
+
 
 # UNUSED
 @tasks.post('/<task_id>/open')
