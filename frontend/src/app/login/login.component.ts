@@ -34,7 +34,6 @@ export class LoginComponent {
         this.authService.login(username, password).subscribe(
             res => {
                 if (res.success) {
-                    console.log("Redirecting to dashboard...");
                     this.goToDashboard()
                 } else {
                     this.errorMessage = res.message;

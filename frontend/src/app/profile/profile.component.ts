@@ -84,7 +84,6 @@ export class ProfileComponent implements OnInit {
 
         this.http.post<{ message: string }>(this.passwordChangeUrl, payload, { withCredentials: true }).subscribe(
             response => {
-                console.log(response)
                 this.messageBox(false, response.message);
                 this.clearForm();
                 this.reloadPage()

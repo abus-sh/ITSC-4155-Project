@@ -39,7 +39,6 @@ export class AuthService {
     constructor(private http: HttpClient, private router: Router,
         private canvasService: CanvasService) {
         
-        console.log('Auth Service - Launched')
         this.isLoggedIn().subscribe(isAuthenticated => {
             if (isAuthenticated) {
                 this.getUserInfo();
@@ -50,7 +49,6 @@ export class AuthService {
 
     // Request CSRF token from backend
     getCsrfToken() {
-        console.log('Getting CSRF Token')
         return this.http.get<CSRFResponse>(`${this.backend}/api/auth/csrf-token`,
             { withCredentials: true });
     }
@@ -58,7 +56,6 @@ export class AuthService {
     // Login into the backend with username and password, return the user session
     // Does an extra login authentication with the session
     login(username: string, password: string): Observable<AuthResponse> {
-        console.log('Logging in..')
         return this.http.post<AuthResponse>(`${this.backend}/api/auth/login`,
             { username, password }, { withCredentials: true }).pipe(
                 tap(() => this.isLoggedIn())
@@ -67,7 +64,6 @@ export class AuthService {
 
     // Logout of the session, reset the sessio cookie and set authenticated to false
     logout(): Observable<AuthResponse> {
-        console.log('Logging out..')
         return this.http.post<AuthResponse>(`${this.backend}/api/auth/logout`, {},
             { withCredentials: true }).pipe(
             tap(() => {
@@ -79,7 +75,6 @@ export class AuthService {
 
     // Check the if the user session is logged in
     isLoggedIn(): Observable<boolean> {
-        console.log('Checking Authentication Status')
         return this.http.get<AuthStatus>(`${this.backend}/api/auth/status`, { withCredentials: true }).pipe(
             map(response => {
                 this.authStatusSubject.next({
@@ -94,10 +89,8 @@ export class AuthService {
 
     // Sync assignments/tasks with Todoist
     syncTodoist() {
-        console.log('Syncing Tasks with Todoist...');
         this.http.post(`${this.backend}/api/v1/tasks/update`, null).subscribe({
             next: () => {
-                console.log(' * Synched with Todoist: Done!');
                 this.canvasService.getDueAssignments().then(() => this.canvasService.getSubTasks());
             },
             error: (err) => {
@@ -108,7 +101,6 @@ export class AuthService {
 
     // Get user profile image to display in sidebar
     getUserInfo(): void {
-        console.log('Get user profile image')
         this.http.get<{ canvas: { canvas_pic: string } }>(`${this.backend}/api/v1/user/profile`, { withCredentials: true }).pipe(
             tap((userProfile) => {
                 const canvasPic = userProfile.canvas.canvas_pic;

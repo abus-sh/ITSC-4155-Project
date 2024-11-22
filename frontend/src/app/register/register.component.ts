@@ -77,7 +77,6 @@ export class RegisterComponent implements OnInit {
             this.http.post(getBackendURL() + '/api/auth/signup', body, { withCredentials: true })
                 .subscribe(
                     response => {
-                        console.log('Registration successful', response);
                         // Redirect to login or another page after successful registration
                         this.router.navigate(['/login']);
                     },
@@ -108,7 +107,6 @@ export class RegisterComponent implements OnInit {
     handleOAuthResponse(data: { result: string, code: string, state: string }) {
         // Authorization retrieval process has ended, allow for registration
         if (data.result == 'success') {
-            console.log('Token info retrieval result: ', data.result);
             this.authCode = data.code;
             this.authState = data.state;
             this.tokenRetrieved = true;

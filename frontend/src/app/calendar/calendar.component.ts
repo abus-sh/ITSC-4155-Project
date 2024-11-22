@@ -65,7 +65,6 @@ export class CalendarComponent {
     ***********************************/
 
     loadEvents(start_date: string, end_date: string) {
-        console.log('Getting Calendar events...')
         this.canvasService.getCalendarEvents(start_date, end_date).then((events: CalendarEvent[]) => {
             const dayMap = new Map<string, CalendarDay>();
 
@@ -84,7 +83,6 @@ export class CalendarComponent {
                 }
             });
         });
-        console.log('Loaded Calendar events!')
     }
 
 
@@ -162,12 +160,10 @@ export class CalendarComponent {
     ***********************************/
     
     openFilterForm() {
-        console.log('open');
         this.filterFormDisplay = true;
     }
 
     closeFilterForm() {
-        console.log('close');
         this.filterFormDisplay = false;
     }
 }

@@ -70,9 +70,7 @@ export class GradesimComponent implements OnInit {
         assignment.score = newScore;
         if (this.log_course && this.log_course.gradelog) {
             const finalGrade = this.calculateFinalGrade(this.log_course.gradelog);
-            console.log(`Final Grade: ${finalGrade.toFixed(2)}%`);
             document.getElementById('potentialScore')!.innerText = `Final Grade: ${finalGrade.toFixed(2)}%`;
         }
-        console.log('Score changed');
     }
 }
