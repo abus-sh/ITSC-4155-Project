@@ -24,8 +24,8 @@
                 </select>
             </div>
             <div>
-                <label>Selected Recipients</label>
-                <div class="selected-recipient-container">
+                <label for="selected-recipients">Selected Recipients</label>
+                <div id="selected-recipients" class="selected-recipient-container">
                     <button *ngFor="let recipient of selectedRecipients" type="button" class="selected-recipient"
                         (click)="removeRecipient(recipient.id)">{{ recipient.name }}</button>
                 </div>

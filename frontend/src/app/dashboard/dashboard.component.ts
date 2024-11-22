@@ -10,6 +10,29 @@ import { SendmessageComponent } from '../sendmessage/sendmessage.component';
 import { AddfilterComponent } from '../addfilter/addfilter.component';
 import { FilterService } from '../filter.service';
 import { FilterPipe } from '../pipes/filter.pipe';
+import { HttpClient } from '@angular/common/http';
+import { getBackendURL } from '../../config';
+
+
+
+interface NotificationBase {
+    title: string;
+    message?: string;
+    type: string;
+}
+
+export interface InvitationNotification extends NotificationBase {
+    type: 'invitation';
+    invitation_id: number;
+    author_name: string;
+    subtask_name: string;
+}
+
+export interface SimpleNotification extends NotificationBase {
+    type: 'simple';
+    date: string;
+    id?: number;
+}
 
 export interface Subtask {
     id: number;
@@ -19,6 +42,7 @@ export interface Subtask {
     due_date: string;
     status: number;
     todoist_id?: string;
+    author?: boolean;
 }
 
 export interface Assignment {
@@ -47,7 +71,8 @@ export interface AddSubtaskBody {
     description: string,
     due_date: string,
     status: number,
-    canvas_id: number
+    canvas_id: number,
+    author?: boolean
 }
 
 @Component({
@@ -64,6 +89,12 @@ export class DashboardComponent implements OnInit {
     subtaskFormDisplay = false;
     subtaskAssignment: Assignment | null = null;
     addSubtaskForm: FormGroup;
+
+    subtaskShareDisplay = false;
+    subtaskShareAssignment: Subtask | null = null;
+
+    shareSubtaskForm: FormGroup;
+
     private cantToggle = false;
 
     assignmentFormDisplay = false;
@@ -77,21 +108,35 @@ export class DashboardComponent implements OnInit {
     filterFormDisplay = false;
     filters: string[] = [];
 
+    sendInvitation = getBackendURL() + '/api/v1/user/send_invitation';
+    notification_url = getBackendURL() + '/api/v1/user/get_notifications';
+    respond_invitation = getBackendURL() + '/api/v1/user/invitation_response';
+    notification_dismiss = getBackendURL() + '/api/v1/user/dismiss_notification';
+
+
     sectionCollapseUpcoming = false;
     sectionCollapseComplete = false;
+    sectionCollapseNotifications = false;
     assignments: Assignment[] = [];
+    notifications: { invitation: InvitationNotification[], simple: SimpleNotification[] } = { invitation: [], simple: [] };
 
     sectionCollapseUndated = false;
     undatedAssignments: Assignment[] = [];
 
     constructor(private fb: FormBuilder, private canvasService: CanvasService,
-        private renderer: Renderer2, private filterService: FilterService) {
-        
+        private renderer: Renderer2, private filterService: FilterService,
+
+        private http: HttpClient) {
+
         this.addSubtaskForm = this.fb.group({
             name: ['', Validators.required],
             description: [''],
             due_date: [this.getFormattedDueDate()],
             status: ['0']
+        });
+
+        this.shareSubtaskForm = this.fb.group({
+            username: ['', Validators.required]
         });
 
         this.filterService.filters$.subscribe(filters => this.filters = filters);
@@ -114,6 +159,14 @@ export class DashboardComponent implements OnInit {
         this.canvasService.getCourses().then(() => {
             this.canvasService.getUndatedAssignments();
         });
+        this.fetchNotifications();
+    }
+
+    fetchNotifications() {
+        this.http.get<{ invitation: InvitationNotification[], simple: SimpleNotification[] }>(this.notification_url, { withCredentials: true })
+            .subscribe((data: { invitation: InvitationNotification[], simple: SimpleNotification[] }) => {
+                this.notifications = data;
+            });
     }
 
 
@@ -149,6 +202,35 @@ export class DashboardComponent implements OnInit {
         }
     }
 
+    shareSubtask() {
+        if (this.shareSubtaskForm.valid && this.subtaskShareAssignment) {
+            const formData = {
+                subtask_id: this.subtaskShareAssignment.id,
+                username: this.shareSubtaskForm.value.username
+            };
+
+            this.http.post(this.sendInvitation, formData, { withCredentials: true })
+                .subscribe(() => {
+                    this.closeShareForm();
+                    this.shareSubtaskForm.reset();
+                });
+        }
+    }
+
+    respondInvitation(notification: InvitationNotification, accept: boolean) {
+        this.http.post(this.respond_invitation, { invitation_id: notification.invitation_id, accept: accept }, { withCredentials: true })
+            .subscribe(() => {
+                this.notifications.invitation = this.notifications.invitation.filter(n => n !== notification);
+                this.canvasService.getSubTasks(this.assignments);
+            });
+    }
+
+    dismissNotification(notification: SimpleNotification) {
+        this.http.post(this.notification_dismiss, { notification_id: notification.id }, { withCredentials: true })
+            .subscribe(() => {
+                this.notifications.simple = this.notifications.simple.filter(n => n !== notification);
+            });
+    }
 
 
     /********************************************
@@ -164,7 +246,7 @@ export class DashboardComponent implements OnInit {
         } else if (section == 1) {
             this.sectionCollapseComplete = !this.sectionCollapseComplete;
         } else if (section == 2) {
-            this.sectionCollapseUndated = !this.sectionCollapseUndated;
+            this.sectionCollapseNotifications = !this.sectionCollapseNotifications;
         }
     }
 
@@ -209,8 +291,17 @@ export class DashboardComponent implements OnInit {
             subtask.status = subtask.status ? 0 : 1;
         }
 
-        setTimeout(() => this.cantToggle = false, 1000); // Unlock status toggle
+        setTimeout(() => this.cantToggle = false, 3000); // Unlock status toggle
     }
+
+    /********************************************
+    *
+    *           OPEN CLOSE FORM
+    *   
+    *********************************************/
+
+
+    /*      ADD SUBTASK FORM         */
 
     // Open the creation subtask form
     openForm(assignment: Assignment) {
@@ -223,6 +314,20 @@ export class DashboardComponent implements OnInit {
         this.subtaskFormDisplay = false;
         this.subtaskAssignment = null;
     }
+
+    /*      SHARE SUBTASK FORM      */
+
+    openShareForm(subtask: Subtask) {
+        this.subtaskShareDisplay = true;
+        this.subtaskShareAssignment = subtask;
+    }
+
+    // Closes the creation subtask form
+    closeShareForm() {
+        this.subtaskShareDisplay = false;
+        this.subtaskShareAssignment = null;
+    }
+
 
     /*      ASSIGNMENT FORM         */
 
@@ -295,6 +400,14 @@ export class DashboardComponent implements OnInit {
         this.filterFormDisplay = false;
     }
 
+
+    /********************************************
+    *
+    *             FORMATTERS
+    *   
+    *********************************************/
+
+
     // Get end of current day date
     getFormattedDueDate(): string {
         const now = new Date();
@@ -348,6 +461,10 @@ export class DashboardComponent implements OnInit {
             return;
         }
         const due_date = (element.children[1].children[1] as HTMLInputElement).value;
-        this.canvasService.setCustomDueDate(assignment, due_date);
+        this.canvasService.setCustomDueDate(assignment, due_date);\
+    }
+    
+    isAuthor(subtask: Subtask): boolean {
+        return subtask.author === true;
     }
 }

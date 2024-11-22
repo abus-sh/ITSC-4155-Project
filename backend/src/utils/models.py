@@ -74,7 +74,7 @@ class User(UserMixin, ModelMixin, db.Model):
     password = Column(String(100), unique=False, nullable=False)
 
     # Canvas info for user
-    canvas_id = Column(String(150), unique=True, nullable=False)
+    canvas_id = Column(String(150), unique=False, nullable=False)
     canvas_name = Column(String(150), unique=False, nullable=False)
 
     # Tokens encrypted with password
@@ -211,8 +211,10 @@ class SubTaskShared(ModelMixin, db.Model):
     :type owner: int
     :param subtask_id: The ID of the SubTask that is shared.
     :type subtask_id: int
+    :param todoist_original: The ID of the original task in Todoist, if one exists.
+    :type todoist_original: str
     :param todoist_id: The ID of the task in Todoist, if one exists.
-    :type todoist_id: str | None
+    :type todoist_id: str
     """
     __tablename__ = 'shared_subtasks'
     __table_args__ = (
@@ -221,7 +223,8 @@ class SubTaskShared(ModelMixin, db.Model):
     id = Column(Integer, primary_key=True)
     owner = Column(Integer, ForeignKey('users.id'), nullable=False)
     subtask_id = Column(Integer, ForeignKey('subtasks.id', ondelete='CASCADE'), nullable=False)
-    todoist_id = Column(String(15), unique=False, nullable=True)
+    todoist_original = Column(String(15), unique=False, nullable=False)
+    todoist_id = Column(String(15), unique=False, nullable=False)
     
     subtask = relationship('SubTask')
     
@@ -260,23 +263,19 @@ class SubTaskInvitation(ModelMixin, db.Model):
         :type owner: int
         :param recipient_id: The ID of the User that the invitation is for.
         :type recipient_id: int
-        :param task_id: The ID of the Task that the invitation is for.
-        :type task_id: int
         :param subtask_id: The ID of the SubTask that the invitation is for.
         :type subtask_id: int | None
     """
     __tablename__ = 'subtask_invitations'
     __table_args__ = (
-        Index('idx_task_id_recipient', 'task_id', 'recipient_id'),
+        Index('idx_task_id_recipient', 'subtask_id', 'recipient_id'),
     )
 
     id = Column(Integer, primary_key=True)
     owner = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     recipient_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    task_id = Column(Integer, ForeignKey('tasks.id', ondelete='CASCADE'), nullable=True)
     subtask_id = Column(Integer, ForeignKey('subtasks.id', ondelete='SET NULL'), nullable=True)
     
-    task = relationship('Task')
     recipient = relationship('User', foreign_keys=[recipient_id], back_populates='invitations_received')
     
 

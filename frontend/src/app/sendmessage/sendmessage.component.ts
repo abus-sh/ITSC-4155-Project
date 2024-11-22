@@ -44,10 +44,10 @@ export class SendmessageComponent implements OnInit {
     tabs: string[] = ['Send a Message'];
     activeTab = 0;
     conversations: Conversation[] = [];
-    replyTexts: { [conversationId: number]: string } = {};
+    replyTexts: Record<number, string> = {};
 
     isSendingMessage = false;
-    isSendingReply: { [conversationId: number]: boolean } = {};
+    isSendingReply: Record<number, boolean> = {};
 
     constructor(private fb: FormBuilder, private http: HttpClient) {
         this.messageForm = this.fb.group({
@@ -142,7 +142,7 @@ export class SendmessageComponent implements OnInit {
         if (authorId === -1) {
             return 'You';
         }
-        const participant = conversation.participants.find((p: any) => p.id === authorId);
+        const participant = conversation.participants.find((p: Recipient) => p.id === authorId);
         return participant ? participant.name : 'Unknown';
     }
 
@@ -151,9 +151,9 @@ export class SendmessageComponent implements OnInit {
     }
 
     // Method to toggle recipient selection
-    toggleRecipientSelection(event: any) {
-        const selectedOptions = event.target.selectedOptions;
-        const selectedValues = Array.from(selectedOptions).map((option: any) => parseInt(option.value, 10));
+    toggleRecipientSelection(event: Event) {
+        const selectedOptions = (event.target as HTMLSelectElement).selectedOptions;
+        const selectedValues = Array.from(selectedOptions).map((option: HTMLOptionElement) => parseInt(option.value, 10));
 
         selectedValues.forEach((recipientId) => {
             // Check if the recipient ID is already in the recipientsIds array
@@ -167,13 +167,13 @@ export class SendmessageComponent implements OnInit {
                 }
             }
         });
-        event.target.selectedIndex = -1;
+        (event.target as HTMLSelectElement).selectedIndex = -1;
     }
 
     // Remove recipient from selected list
     removeRecipient(id: number) {
-        this.selectedRecipients = this.selectedRecipients.filter(recipient => recipient.id !== id);
-        this.recipientsIds = this.recipientsIds.filter(recipientId => recipientId !== id);
+        this.selectedRecipients = this.selectedRecipients.filter((recipient: Recipient) => recipient.id !== id);
+        this.recipientsIds = this.recipientsIds.filter((recipientId: number) => recipientId !== id);
     }
 }
 

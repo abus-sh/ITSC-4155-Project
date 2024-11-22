@@ -90,7 +90,7 @@ def add_subtask_user():
                                                  subtask_name, subtask_desc, subtask_status,
                                                  subtask_date)
         if result:
-            return jsonify({'success': True, 'id': result, "todoist_id": todoist_id}), 200
+            return jsonify({'success': True, 'id': result, "todoist_id": todoist_id, "author": True}), 200
         else:
             return jsonify({'success': False, 'message': 'Failed to create subtask'}), 400
     except Exception as e:
@@ -116,7 +116,7 @@ def get_subtasks():
         return jsonify({'success': False, 'message': 'Error while getting subtasks'}), 400
     return jsonify({'success': False, 'message': 'Unable to get subtasks'}), 404
 
-
+# UNUSED
 @tasks.post('/<task_id>/close')
 def close_task(task_id: str):
     todoist_token = session.decrypt_todoist_key()
@@ -125,7 +125,7 @@ def close_task(task_id: str):
         return jsonify({'success': True, 'message': f'{task_id} closed'})
     return jsonify({'success': False, 'message': f'Unable to close {task_id}'}), 400
 
-
+# UNUSED
 @tasks.post('/<task_id>/open')
 def open_task(task_id: str):
     todoist_token = session.decrypt_todoist_key()
@@ -176,22 +176,3 @@ def update_description(task_id: str):
         return jsonify({'success': True, 'message': 'OK.'})
 
     return jsonify({'success': False, 'message': 'An unknown error occurred.'}), 500
-
-
-@tasks.post('send_invitation/subtask')
-def share_subtask():
-    data = request.json
-    try:
-        subtask_id = data.get('subtask_id', None)
-        if not isinstance(subtask_id, int) or subtask_id is None:
-            return jsonify({'success': False, 'message': 'Invalid subtask_id parameter'}), 404
-        
-        subtask = queries.get_subtask_by_id(current_user, subtask_id)
-        if subtask is None:
-            return jsonify({'success': False, 'message': 'No subtask with the given ID exists.'}), 404
-        
-        
-    except Exception as e:
-        print(e)
-        return jsonify({'success': False, 'message': "Couldn't send subtask invitation"}), 500
-    return jsonify({'success': True, 'message': 'OK.'}), 200

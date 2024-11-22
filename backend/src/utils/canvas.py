@@ -472,6 +472,22 @@ def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
     return all_conversations
 
 
+def get_weighted_graded_assignments_for_course(canvas_key: str, course_id: str) -> list[object] | None:
+    """
+    This function is used to get all the graded assignments for a course with their grade weight.
+    
+    :param canvas_key: The API key that should be used.
+    :param course_id: The ID of the course to retrieve the graded assignments from.
+    :return list[dict]: A list of graded assignments.
+    """
+    canvas = Canvas(BASE_URL, canvas_key)
+    course = canvas.get_course(course_id)
+    if getattr(course, 'name', None) is None:
+        return None
+    grade_weight_group = course.get_assignment_groups(include=['assignments', 'submission'])
+    return grade_weight_group
+        
+
 def course_to_dict(course: Course, fields: list[str] | None = None) -> dict[str, str | None]:
     """
     Converts a course into a dict, taking only the fields specified in fields. If fields is None,

@@ -1,14 +1,13 @@
 from flask import Blueprint, jsonify, request
 from flask_login import current_user
 from datetime import datetime
-
-
 import utils.canvas as canvas_api
-from utils.session import decrypt_canvas_key
+from utils.session import decrypt_canvas_key, decrypt_todoist_key
 from utils.settings import get_canvas_url, get_date_range, localize_date, date_passed
-
+from utils.todoist import add_shared_subtask
 import utils.queries as queries
 import utils.models as models
+
 
 user = Blueprint('user', __name__)
 BASE_URL = get_canvas_url()
@@ -281,3 +280,67 @@ def get_conversations(canvas_id):
     except Exception:
         return 'Unable to get conversations from the Canvas api', 400
     return jsonify(conversations), 200
+
+
+@user.route('/get_notifications', methods=['GET'])
+def get_notifications():
+    try:
+        invitations = queries.get_subtask_invitations(current_user)
+        invitations_list = {'invitation': [], 'simple': []}
+        
+        if invitations:
+            invitations_list['invitation'] = queries.compose_invitations(invitations)
+            
+    except Exception as e:
+        print(e)
+        return 'Unable to retrieve notifications', 400
+    return jsonify(invitations_list), 200
+
+
+@user.route('/send_invitation', methods=['POST'])
+def send_invitation():
+    try:
+        data = request.json
+        username = data.get('username')
+        subtask_id = data.get('subtask_id')
+        if not username or not subtask_id:
+            return 'Invalid payload', 400
+        
+        invited_user = queries.get_user_by_username(username)
+        # Return success if the user doesn't exists otherwise 
+        # that would give away the username of other people, and if they are in the system
+        if not invited_user:
+            return jsonify('Invitation sent!'), 200
+        
+        if invited_user.id == current_user.id:
+            return 'You cannot invite yourself', 400
+        
+        sent = queries.send_subtask_invitation(current_user, invited_user, subtask_id)
+        if not sent:
+            return 'Unable to send invitation', 400
+        
+    except Exception as e:
+        print(e)
+        return 'Error while sending invitation', 400
+    return jsonify('Invitation sent!'), 200 
+
+
+@user.route('/invitation_response', methods=['POST'])
+def respond_invitation():
+    try:
+        todoist_key = decrypt_todoist_key()
+        data = request.json
+        invitation_id = data.get('invitation_id')
+        accept = data.get('accept')
+        
+        if not isinstance(accept, bool) or not invitation_id:
+            return 'Invalid payload', 400
+        
+        result = add_shared_subtask(current_user, todoist_key, invitation_id, accept)
+        if not result:
+            return 'Unable to respond to invitation', 400
+        
+    except Exception as e:
+        print(e)
+        return 'Error while sending invitation', 400
+    return jsonify('Responded to invitation successfully!'), 200 
