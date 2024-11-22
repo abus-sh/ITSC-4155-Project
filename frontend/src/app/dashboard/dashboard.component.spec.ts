@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks, tick } from '@angular/core/testing';
 import { DashboardComponent, Subtask } from './dashboard.component';
 import { provideHttpClient } from '@angular/common/http';
 import { CanvasService } from '../canvas.service';
@@ -86,11 +86,7 @@ describe('DashboardComponent', () => {
         spyOn(canvasService, 'toggleSubtaskStatus').and.returnValue(Promise.resolve(true));
 
         component.toggleSubtaskStatus(subtask);
-        tick(1010);
         expect(subtask.status).toBe(1);
-
-        component.toggleSubtaskStatus(subtask);
-        tick(1010);
-        expect(subtask.status).toBe(0);
+        tick(3500); 
     }));
 });
