@@ -1,4 +1,4 @@
-import { APIAssignment, APICourse, Course } from './courses/courses.component';
+import { APICourse, Course } from './courses/courses.component';
 import { Assignment } from './dashboard/dashboard.component';
 import { CalendarEvent } from './calendar/calendar.component';
 

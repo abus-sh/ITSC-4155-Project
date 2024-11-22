@@ -65,7 +65,7 @@ describe('GradesimComponent', () => {
             return;
         }
         const assignment = component.log_course.gradelog[0].assignments[0];
-        const event = { target: { value: '80' } };
+        const event = { target: { value: '80' } } as unknown as Event;
         component.onScoreChange(assignment, event);
         expect(assignment.score).toBe(80);
         const finalGrade = component.calculateFinalGrade(component.log_course.gradelog);

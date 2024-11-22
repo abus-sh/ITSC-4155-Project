@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Course, CourseLog, GradeAssignment } from '../courses/courses.component';
 import { ChangeDetectorRef } from '@angular/core';
 
+
+
 @Component({
     selector: 'app-gradesim',
     standalone: true,
@@ -58,14 +60,15 @@ export class GradesimComponent implements OnInit {
         return bottomCalc > 0 ? topCalc / bottomCalc : 0;
     }
 
-    onScoreChange(assignment: GradeAssignment, event: any) {
+    onScoreChange(assignment: GradeAssignment, event: Event) {
         /*
         * This function is called whenever the user changes the score of an assignment.
         */
-        let newScore = +event.target.value;
+        const inputElement = event.target as HTMLInputElement;
+        let newScore = +inputElement.value;
         if (newScore < 0) {
             newScore = 0;
-            event.target.value = 0;
+            inputElement.value = '0';
         }
         assignment.score = newScore;
         if (this.log_course && this.log_course.gradelog) {
