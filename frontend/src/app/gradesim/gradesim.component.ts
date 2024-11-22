@@ -58,7 +58,7 @@ export class GradesimComponent implements OnInit {
         return bottomCalc > 0 ? topCalc / bottomCalc : 0;
     }
 
-    onScoreChange(assignment: GradeAssignment, event: InputEvent) {
+    onScoreChange(assignment: GradeAssignment, event: Event) {
         /*
         * This function is called whenever the user changes the score of an assignment.
         */
