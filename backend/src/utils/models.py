@@ -283,7 +283,6 @@ class SubTaskInvitation(ModelMixin, db.Model):
                              back_populates='invitations_received')
 
 
-
 class Filter(ModelMixin, db.Model):
     """
     A new Filter instance.
