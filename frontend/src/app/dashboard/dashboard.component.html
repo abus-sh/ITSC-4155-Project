@@ -1,5 +1,4 @@
 <div>
-
     <!-- NOTIFICATION CONTAINER -->
     <div class="notification-container">
         <h2 class="collapsible-title" (click)="toggleSection(2)" (keypress)="toggleSection(2)" tabindex="0">
@@ -91,73 +90,95 @@
 
             </div>
         </div>
-        <br>
-        <h2 class="collapsible-title" (click)="toggleSection(1)" (keypress)="toggleSection(1)" tabindex="0">
-            {{ sectionCollapseComplete ? '&#9662;' : '&#9652;' }} Completed Assignments
-        </h2>
-        <hr>
-
-        <!-- Add a Subtask to an Assignment/Task FORM -->
-        <div class="modal" *ngIf="subtaskFormDisplay">
-            <div class="modal-content">
-                <button class="close-button" (click)="closeForm()">&#10005;</button>
-                <h2>Add a Subtask</h2>
-                <hr>
-                <h3>{{ subtaskAssignment?.title ?? 'None' }}</h3>
-                <form [formGroup]="addSubtaskForm" (ngSubmit)="addSubtask(subtaskAssignment)">
-                    <div>
-                        <label for="name">Name</label>
-                        <input type="text" id="name" formControlName="name" required>
-                    </div>
-                    <div>
-                        <label for="description">Description</label>
-                        <textarea id="description" formControlName="description"></textarea>
-                    </div>
-                    <div>
-                        <label for="due_date">Due Date</label>
-                        <input type="datetime-local" id="due_date" formControlName="due_date">
-                    </div>
-                    <div>
-                        <label for="status">Status</label>
-                        <select id="status" formControlName="status">
-                            <option value="0">Incomplete</option>
-                            <option value="1">Complete</option>
-                        </select>
-                    </div>
-                    <button type="submit">Submit</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Share a subtask with another user FORM -->
-        <div class="modal" *ngIf="subtaskShareDisplay">
-            <div class="modal-content share-subtask">
-                <button class="close-button" (click)="closeShareForm()">&#10005;</button>
-                <h2>Share the Subtask</h2>
-                <hr>
-                <form [formGroup]="shareSubtaskForm" (ngSubmit)="shareSubtask()">
-                    <div>
-                        <label for="username">Username</label>
-                        <input type="text" id="username" formControlName="username" required>
-                    </div>
-                    <button type="submit">Share</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Add an assignment not in Canvas -->
-        <app-addtask class="modal" *ngIf="assignmentFormDisplay"
-            (closeFormAction)="closeAssignmentForm()"></app-addtask>
-
-        <!-- Add a note to an assignment -->
-        <app-tasknote class="modal" *ngIf="noteFormDisplay" (closeFormAction)="closeNoteForm()"
-            [assignment]="noteAssignment"></app-tasknote>
-
-        <!-- Send a message to TA and/or Professor -->
-        <app-sendmessage class="modal" *ngIf="sendMessageFormDisplay" (closeFormAction)="closeSendMessageForm()"
-            [messageAssignment]="sendMessageAssignment"></app-sendmessage>
-
-        <!-- Add a filter -->
-        <app-addfilter class="modal" *ngIf="filterFormDisplay" (closeFormAction)="closeFilterForm()"></app-addfilter>
     </div>
+    <br>
+    <h2 class="collapsible-title" (click)="toggleSection(2)" (keypress)="toggleSection(2)" tabindex="0">
+        {{ sectionCollapseComplete ? '&#9662;' : '&#9652;' }} Undated Assignments
+    </h2>
+    <hr>
+    <div class="assignments-container" *ngIf="!sectionCollapseUndated">
+        <div *ngFor="let assignment of undatedAssignments | orderBy: 'title' | filter: this.filters" class="assignment-card"
+        (click)="openNoteForm(assignment, $event)" (keypress)="openNoteForm(assignment, $event)"
+        tabindex="0">
+            <div class="title-holder">
+                <h3 class="assignment-title">{{ assignment.title }}</h3>
+                <p *ngIf="assignment.user_description && assignment.user_description !== ''"
+                    title="A note exists for this assignment.">📝</p>
+            </div>
+            <p class="assignment-duedate" *ngIf="assignment.due_at">
+                <label for="due-date"><strong>Custom Due Date</strong>:</label>
+                <input type="datetime-local" maxlength="20" [value]="assignment.due_at" name="due-date">
+            </p>
+            <p class="assignment-course">{{ assignment.context_name }}</p>
+            <div class="assignment-buttons">
+                <button class="dropdown-toggle" (click)="openSendMessageForm(assignment)" *ngIf="assignment.id">Email</button>
+                <a class="assignment-link" [href]="assignment.html_url" target="_blank" *ngIf="assignment.html_url">View
+                    Assignment</a>
+                <button class="dropdown-toggle" *ngIf="assignment.id" (click)="setCustomDueDate(assignment, $event)">Set Due Date</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add a Subtask to an Assignment/Task FORM -->
+    <div class="modal" *ngIf="subtaskFormDisplay">
+        <div class="modal-content">
+            <button class="close-button" (click)="closeForm()">&#10005;</button>
+            <h2>Add a Subtask</h2>
+            <hr>
+            <h3>{{ subtaskAssignment?.title ?? 'None' }}</h3>
+            <form [formGroup]="addSubtaskForm" (ngSubmit)="addSubtask(subtaskAssignment)">
+                <div>
+                    <label for="name">Name</label>
+                    <input type="text" id="name" formControlName="name" required>
+                </div>
+                <div>
+                    <label for="description">Description</label>
+                    <textarea id="description" formControlName="description"></textarea>
+                </div>
+                <div>
+                    <label for="due_date">Due Date</label>
+                    <input type="datetime-local" id="due_date" formControlName="due_date">
+                </div>
+                <div>
+                    <label for="status">Status</label>
+                    <select id="status" formControlName="status">
+                        <option value="0">Incomplete</option>
+                        <option value="1">Complete</option>
+                    </select>
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Share a subtask with another user FORM -->
+    <div class="modal" *ngIf="subtaskShareDisplay">
+        <div class="modal-content share-subtask">
+            <button class="close-button" (click)="closeShareForm()">&#10005;</button>
+            <h2>Share the Subtask</h2>
+            <hr>
+            <form [formGroup]="shareSubtaskForm" (ngSubmit)="shareSubtask()">
+                <div>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" formControlName="username" required>
+                </div>
+                <button type="submit">Share</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add an assignment not in Canvas -->
+    <app-addtask class="modal" *ngIf="assignmentFormDisplay"
+        (closeFormAction)="closeAssignmentForm()"></app-addtask>
+
+    <!-- Add a note to an assignment -->
+    <app-tasknote class="modal" *ngIf="noteFormDisplay" (closeFormAction)="closeNoteForm()"
+        [assignment]="noteAssignment"></app-tasknote>
+
+    <!-- Send a message to TA and/or Professor -->
+    <app-sendmessage class="modal" *ngIf="sendMessageFormDisplay" (closeFormAction)="closeSendMessageForm()"
+        [messageAssignment]="sendMessageAssignment"></app-sendmessage>
+
+    <!-- Add a filter -->
+    <app-addfilter class="modal" *ngIf="filterFormDisplay" (closeFormAction)="closeFilterForm()"></app-addfilter>
 </div>

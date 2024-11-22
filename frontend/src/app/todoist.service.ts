@@ -8,6 +8,11 @@ export enum IdType {
     Native = 'native'
 }
 
+interface addAssignResp {
+    success: boolean,
+    task_id?: number
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -18,11 +23,13 @@ export class TodoistService {
     constructor(private http: HttpClient) {}
 
     async addAssignment(name: string, due_at: string, description?: string) {
-        await firstValueFrom(this.http.post(this.addAssignmentUrl, {
+        const response = await firstValueFrom(this.http.post<addAssignResp>(this.addAssignmentUrl, {
             name,
             due_at,
             description
         }, { withCredentials: true }));
+
+        return response.task_id;
     }
 
     async updateAssignmentDescription(id: number, id_type: IdType, description: string) {
