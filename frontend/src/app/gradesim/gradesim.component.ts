@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Course, CourseLog, GradeAssignment } from '../courses/courses.component';
 import { ChangeDetectorRef } from '@angular/core';
 
+
+
 @Component({
     selector: 'app-gradesim',
     standalone: true,
