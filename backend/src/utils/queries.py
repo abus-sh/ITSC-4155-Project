@@ -368,8 +368,8 @@ def get_task_or_subtask_by_todoist_id(owner: models.User, todoist_id: str, dict=
 def get_descriptions_by_canvas_ids(owner: models.User, canvas_ids: list[int])\
         -> dict[int, str | None]:
     """
-    Retrieves descriptions for all tasks with the Canvas IDs specified in `canvas_ids` and returns
-    a dict that maps between the ids and the descriptions.
+    Retrieves descriptions for all tasks with the Canvas IDs specified in `canvas_ids` and returns a
+    dict that maps between the ids and the descriptions.
 
     :param owner: The owner of the tasks.
     :param canvas_ids: The Canvas IDs of the tasks that should have descriptions retrieved.
@@ -386,6 +386,50 @@ def get_descriptions_by_canvas_ids(owner: models.User, canvas_ids: list[int])\
         description_lookup[task.canvas_id] = task.description
 
     return description_lookup
+
+
+def get_custom_due_dates_by_ids(owner: models.User, canvas_ids: list[int]) -> dict[int, str | None]:
+    """
+    Retrieves any custom due dates set by the user for the given tasks' Canvas IDs and returns a
+    dict that maps between the ids and the due dates.
+
+    :param owner: The owner of the tasks.
+    :param canvas_ids: The Canvas IDs of the tasks that should have custom due dates retrieved.
+    :return dict[int, str|None]: Returns a dict that maps between the ids and the due dates. If a
+    task has no custom due date, its entry is None.
+    """
+    due_dates: list[models.Task] = models.Task.query.filter(
+        models.Task.canvas_id.in_(canvas_ids),
+        models.Task.owner == owner.id
+    ).all()
+
+    due_date_lookup = dict()
+    for task in due_dates:
+        due_date_lookup[task.canvas_id] = task.custom_due_date
+
+    return due_date_lookup
+
+
+def set_custom_due_date_by_id(owner: models.User, canvas_id: int, due_date: str):
+    """
+    Sets a custom due date for the task with the given Canvas ID.
+
+    :param owner: The owner of the task.
+    :param canvas_id: The Canvas ID of the task to update.
+    :param due_date: The custom due date to set.
+    :raises ValueError: If the given Canvas ID doesn't correspond to a task.
+    """
+    task = get_task_by_canvas_id(owner, canvas_id)
+    if task is None:
+        raise ValueError
+
+    try:
+        task.custom_due_date = due_date
+        models.db.session.commit()
+    except Exception as e:
+        models.db.session.rollback()
+        print(f"Error updating task: {e}")
+        raise e
 
 
 def sync_task_status(owner: models.User, open_task_ids: list[int]) -> list[tuple[str, models.TaskStatus]] | None:

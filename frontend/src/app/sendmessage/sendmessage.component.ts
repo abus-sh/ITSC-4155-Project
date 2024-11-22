@@ -59,7 +59,8 @@ export class SendmessageComponent implements OnInit {
 
     ngOnInit(): void {
         if (this.messageAssignment?.id) {
-            const course_id = this.messageAssignment?.context_code?.split('_')[1] ?? '';
+            const course_id = this.messageAssignment?.context_code?.split('_')[1] ??
+                this.messageAssignment?.course_id;
             const assignment_id = this.messageAssignment?.id;
 
             this.http.get<Recipient[]>(getBackendURL() + `/api/v1/courses/get_emails/${course_id}`, { withCredentials: true })

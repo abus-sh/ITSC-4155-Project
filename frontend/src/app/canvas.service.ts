@@ -32,6 +32,9 @@ export class CanvasService {
     private addSubTaskUrl = getBackendURL() + '/api/v1/tasks/add_subtask';
     private subTaskUrl = getBackendURL() + '/api/v1/tasks';
     private downloadSubmissionUrl = getBackendURL() + '/api/v1/courses/ID/submissions';
+    private undatedAssignmentsUrl = getBackendURL() + '/api/v1/courses/ID/undated_assignments';
+    private customDueDateUrl = getBackendURL() +
+        '/api/v1/courses/CID/assignments/AID/custom_due_date';
 
     courses$ = new Subject<Course[]>();
     private courses: Course[] = [];
@@ -40,6 +43,10 @@ export class CanvasService {
     dueAssignments$ = new Subject<Assignment[]>();
     private dueAssignments: Assignment[] = [];
     private dueAssignmentsLastUpdated = 0;
+
+    undatedAssignments$ = new Subject<Assignment[]>();
+    private undatedAssignments: Assignment[] = [];
+    private undatedAssignmentsLastUpdated = 0;
 
     constructor(private http: HttpClient) {}
 
@@ -76,6 +83,48 @@ export class CanvasService {
         });
 
         return transformedCourses;
+    }
+
+    async getUndatedAssignments() {
+        // Only fetch new data if enough time has passwed
+        const now = new Date().getTime();
+        if ((now - this.undatedAssignmentsLastUpdated) > getCanvasCacheTime()) {
+            this.undatedAssignments$.next(this.undatedAssignments);
+            this.undatedAssignments = await this.fetchUndatedAssignments();
+            this.undatedAssignmentsLastUpdated = now;
+        }
+
+        this.undatedAssignments$.next(this.undatedAssignments);
+    }
+
+    async fetchUndatedAssignments() {
+        const assignments = await this.courses.map(async course => {
+            return await firstValueFrom(this.http.get<Assignment[]>(
+                this.undatedAssignmentsUrl.replace('ID', course.id.toString()),
+                { withCredentials: true }
+            ));
+        }).reduce(async (assignsP, aP) => {
+            const assigns = await assignsP;
+            const a = await aP;
+
+            return assigns.concat(a);
+        });
+
+        return assignments;
+    }
+
+    async setCustomDueDate(assignment: Assignment, due_date: string) {
+        if (assignment.course_id === undefined || assignment.id === undefined) {
+            return;
+        }
+
+        const url = this.customDueDateUrl
+            .replace('CID', assignment.course_id.toString())
+            .replace('AID', assignment.id.toString());
+        const body = {
+            due_date
+        };
+        await firstValueFrom(this.http.post(url, body, { withCredentials: true }));
     }
 
     async getGradedAssignmentsForCourse(courseId: number) {
@@ -128,6 +177,47 @@ export class CanvasService {
 
         // Send most recently received assignments
         this.dueAssignments$.next(this.dueAssignments);
+    }
+
+    async addFakeAssignment(assignment: Assignment) {
+        if (assignment.due_at) {
+            this.dueAssignments.push(assignment);
+            this.dueAssignments.sort(this.compareAssignments);
+
+            this.dueAssignments$.next(this.dueAssignments);
+        } else {
+            this.undatedAssignments.push(assignment);
+            this.undatedAssignments.sort(this.compareAssignments);
+
+            this.undatedAssignments$.next(this.undatedAssignments);
+        }
+    }
+
+    private compareAssignments(a1: Assignment, a2: Assignment) {
+        // See if sorting by due date works. An assignment w/ a due date is always above one that
+        // doesn't have one
+        if (a1.due_at && a2.due_at) {
+            if (a1.due_at > a2.due_at) {
+                return 1;
+            } else if (a1.due_at < a2.due_at) {
+                return -1;
+            }
+        }
+        if (a1.due_at && !a2.due_at) {
+            return 1;
+        }
+        if (!a1.due_at && a2.due_at) {
+            return -1;
+        }
+
+        // Sort by title otherwise
+        if (a1.title > a2.title) {
+            return 1;
+        } else if (a1.title < a2.title) {
+            return -1;
+        }
+
+        return 0;
     }
 
     private async fetchDueAssignments(): Promise<Assignment[]> {

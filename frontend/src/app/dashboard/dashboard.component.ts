@@ -47,8 +47,8 @@ export interface Subtask {
 
 export interface Assignment {
     title: string;
-    description: string;
-    user_description?: string | null;
+    description: string | null;
+    user_description: string | null;
     type: string;
     submission_types: string[] | string;
     html_url?: string;
@@ -58,9 +58,10 @@ export interface Assignment {
     db_id?: number;
     points_possible?: number;
     graded_submissions_exist: boolean;
-    due_at: string;
+    due_at?: string;
     subtasks: Subtask[];
     user_submitted?: boolean;
+    course_id?: number;
 }
 
 export type SubtasksDict = Record<number, Subtask[]>;
@@ -119,6 +120,9 @@ export class DashboardComponent implements OnInit {
     assignments: Assignment[] = [];
     notifications: { invitation: InvitationNotification[], simple: SimpleNotification[] } = { invitation: [], simple: [] };
 
+    sectionCollapseUndated = false;
+    undatedAssignments: Assignment[] = [];
+
     constructor(private fb: FormBuilder, private canvasService: CanvasService,
         private renderer: Renderer2, private filterService: FilterService,
 
@@ -144,8 +148,16 @@ export class DashboardComponent implements OnInit {
             this.assignments = assignments;
         });
 
+        this.canvasService.undatedAssignments$.subscribe(assignments => {
+            this.undatedAssignments = assignments;
+        })
+
         this.canvasService.getDueAssignments().then(() => {
             this.canvasService.getSubTasks(this.assignments);
+        });
+
+        this.canvasService.getCourses().then(() => {
+            this.canvasService.getUndatedAssignments();
         });
         this.fetchNotifications();
     }
@@ -334,9 +346,18 @@ export class DashboardComponent implements OnInit {
             return;
         }
 
+        let element = event.target as HTMLElement;
+
+        // Exclude custom date input box
+        if (element.tagName === "INPUT") {
+            const input = element as HTMLInputElement;
+            if (input.name === "due-date") {
+                return;
+            }
+        }
+
         // Find the closest div parent to this element
         // This allows us to determine if we are clicking a submenu that should not trigger the menu
-        let element = event.target as HTMLElement;
         while (element.tagName !== "DIV") {
             if (element.parentElement === null) {
                 return;
@@ -425,6 +446,22 @@ export class DashboardComponent implements OnInit {
         const daysDifference = timeDifference / (1000 * 3600 * 24);
 
         return Math.floor(daysDifference);
+    }
+
+    setCustomDueDate(assignment: Assignment, event: MouseEvent | KeyboardEvent) {
+        if (event.target === null || !(event.target instanceof HTMLElement)) {
+            return;
+        }
+
+        let element: HTMLElement | null = event.target as HTMLElement;
+        while (element !== null && !element.classList.contains('assignment-card')) {
+            element = element.parentElement;
+        }
+        if (element === null) {
+            return;
+        }
+        const due_date = (element.children[1].children[1] as HTMLInputElement).value;
+        this.canvasService.setCustomDueDate(assignment, due_date);
     }
 
     isAuthor(subtask: Subtask): boolean {

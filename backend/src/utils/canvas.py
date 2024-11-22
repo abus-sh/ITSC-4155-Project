@@ -5,6 +5,7 @@ from canvasapi.calendar_event import CalendarEvent
 from canvasapi.course import Course
 from canvasapi.current_user import CurrentUser
 from canvasapi.submission import Submission
+from functools import reduce
 import os.path
 import tempfile
 
@@ -112,29 +113,30 @@ def get_graded_assignments_no_cache(canvas_key: str, course_id: str) -> list[Sub
 
 
 @cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
-def get_course_assignments(canvas_key: str, course_id: str) -> list[Assignment]:
+def get_course_assignments(canvas_key: str, course: str | Course) -> list[Assignment]:
     """
     Returns all assignments for a course. These results are cached for an amount of time determined
     by utils.settings.get_canvas_cache_time. If live information is needed,
     get_course_assignments_no_cache should be used instead.
 
     :param canvas_key: The API key that should be used.
-    :param course_id: The ID of the course to retrieve assignments for.
+    :param course: The ID of the course to retrieve assignments for or a Course.
     :return list[Assignment]: A list of canvasapi Assignments for the course.
     """
-    return get_course_assignments_no_cache(canvas_key, course_id)
+    return get_course_assignments_no_cache(canvas_key, course)
 
 
-def get_course_assignments_no_cache(canvas_key: str, course_id: str) -> list[Assignment]:
+def get_course_assignments_no_cache(canvas_key: str, course: str | Course) -> list[Assignment]:
     """
     Returns all assignments for a course. These results are not cached. If possible, use
     get_course_assignments to improve server response times.
 
     :param canvas_key: The API key that should be used.
-    :param course_id: The ID of the course to retrieve assignments for.
+    :param course: The ID of the course to retrieve assignments for or a Course.
     :return list[Assignment]: A list of canvasapi Assignments for the course.
     """
-    course = Canvas(BASE_URL, canvas_key).get_course(course_id)
+    if type(course) is str or type(course) is int:
+        course = Canvas(BASE_URL, str(canvas_key)).get_course(course)
     course_assignments = course.get_assignments()
 
     return [assignment for assignment in course_assignments]
@@ -266,6 +268,42 @@ def get_calendar_events_no_cache(canvas_key: str, start_date: str, end_date: str
         per_page=limit,
         type=type
     )
+
+    return assignments
+
+
+@cached(cache=TTLCache(maxsize=128, ttl=CACHE_TIME))
+def get_undated_assignments(canvas_key: str, course_id: str) -> list[Assignment]:
+    """
+    Returns all undated assignments associated with the given Canvas course. These results are
+    cached for an amount of time determined by utils.settings.get_canvas_cache_time. If live
+    information is needed, get_undated_assignments_no_cache should be used instead.
+
+    :param canvas_key: The API key that should be used.
+    :param course_id: The ID of the course to retrieve undated assignments for.
+    :return list[Assignments]: A list of canvasapi Assignments that have no due date.
+    """
+    return get_undated_assignments_no_cache(canvas_key, course_id)
+
+
+def get_undated_assignments_no_cache(canvas_key: str, course_id: str) -> list[Assignment]:
+    """
+    Returns all undated assignments associated with the given Canvas course. These results are not
+    cached. If possible, use get_undated_assignments to improve server response times.
+
+    :param canvas_key: The API key that should be used.
+    :param course_id: The ID of the course to retrieve undated assignments for.
+    :return list[Assignments]: A list of canvasapi Assignments that have no due date.
+    """
+
+    # Get all assignments and flatten to a 1D list
+    assignments = get_course_assignments(canvas_key, course_id)
+
+    # Filter out assignments with due dates
+    def filter_assignments(assignment: Assignment):
+        due_date = getattr(assignment, 'due_at', None) or getattr(assignment, 'lock_at', None)
+        return due_date is None
+    assignments = list(filter(filter_assignments, assignments))
 
     return assignments
 

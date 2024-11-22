@@ -68,7 +68,7 @@ def add_task_user():
     if not task_id:
         return jsonify({'success': False, 'message': 'Error calling Todoist API'}), 500
 
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'id': task_id})
 
 
 @tasks.post('/add_subtask')
