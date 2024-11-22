@@ -245,6 +245,7 @@ def get_course_assignment(courseid, assignmentid):
         return 'Unable to get field for courses', 404
     return jsonify(assignment_dict), 200
 
+
 @courses.route('/get_emails/<courseid>', methods=['GET'])
 def get_professor_ta_ids(courseid):
     canvas_key = decrypt_canvas_key()
@@ -257,3 +258,38 @@ def get_professor_ta_ids(courseid):
     except AttributeError:
         return 'Unable to get field for users in course', 404
     return jsonify(professor_ta_ids), 200
+
+
+@courses.route('/get_grade_simulation/<courseid>', methods=['GET'])
+def get_grade_simulation(courseid):
+    canvas_key = decrypt_canvas_key()
+    
+    try:
+        grade_weight_group = canvas_api.get_weighted_graded_assignments_for_course(canvas_key, courseid)
+        if grade_weight_group is None:
+            return "Invalid course id", 400
+        
+        grade_log = []
+        for section in grade_weight_group:
+            grade_section = {
+                'name': getattr(section, 'name', None),
+                'weight': getattr(section, 'group_weight', None),
+                'assignments': [
+                    {
+                        'name': assignment.get('name', None),
+                        'max_score': assignment.get('points_possible', None),
+                        'score': assignment.get('submission', {}).get('score', None) if assignment.get('submission') else None,
+                        'omit_from_final_grade': assignment.get('omit_from_final_grade', None)
+                    }
+                    for assignment in getattr(section, 'assignments', [])
+                ]
+            }
+            grade_log.append(grade_section)
+            
+    except Exception:
+        return 'Unable to make request to Canvas API', 400
+    except AttributeError:
+        return 'Unable to get field for assignment', 404
+    return jsonify(grade_log), 200
+    
+    
