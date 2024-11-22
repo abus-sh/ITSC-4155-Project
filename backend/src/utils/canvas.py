@@ -420,7 +420,7 @@ def get_professor_info(canvas_key: str, course_id: str) -> list[dict]:
 
 
 def send_message(canvas_key: str, recipients: list, subject: str, body: str,
-                 conv_exists: bool=False) -> int:
+                 conv_exists: bool = False) -> int:
     """
     This function is used to send a message to a user in Canvas.
 
@@ -436,6 +436,7 @@ def send_message(canvas_key: str, recipients: list, subject: str, body: str,
                                         force_new=not conv_exists, group_conversation=True)
 
     return result[0].id
+
 
 def send_reply(canvas_key: str, conv_id: str, body: str) -> int:
     """
@@ -467,7 +468,7 @@ def get_conversations_from_ids(canvas_key: str, convs_id: str) -> list[dict]:
         participants = getattr(conv, 'participants', None)
         if not messages or not participants:
             continue
-        all_conversations.append({ 'id': id, 'subject': getattr(conv, 'subject', None),
+        all_conversations.append({'id': id, 'subject': getattr(conv, 'subject', None),
                                   'messages': messages, 'participants': participants})
     return all_conversations
 
