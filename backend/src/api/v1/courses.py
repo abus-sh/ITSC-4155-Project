@@ -298,7 +298,7 @@ def set_custom_due_date(courseid, assignmentid):
         queries.set_custom_due_date_by_id(current_user, assignment.id, due_date)
     except ValueError:
         return jsonify({'success': False, 'message': 'ID does not exist.'}), 404
-    except:
+    except Exception:
         return jsonify({'success': False, 'message': 'An unknown error has occurred.'}), 500
 
     return jsonify({'success': True, 'message': 'Update custom due date.'})
