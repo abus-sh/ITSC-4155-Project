@@ -2,7 +2,7 @@ import { fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { CanvasService } from './canvas.service';
 import { getBackendURL } from '../config';
-import { mockCoursesProcessed, mockCoursesGradedAssignments, mockDueSoon, mockCalendarEvents } from './mock-data';
+import { mockDueSoon, mockCalendarEvents } from './mock-data';
 
 
 describe('CanvasService', () => {
@@ -46,27 +46,6 @@ describe('CanvasService', () => {
         
     //     expect(service['courses']).toEqual(mockProcessed);
     // }));
-
-    it('Getting the graded assignments from the backend', fakeAsync(() => {
-        const mockProcessed = mockCoursesProcessed;
-        const mockGraded = mockCoursesGradedAssignments;
-        expect(service['courses']).toEqual([]);
-        service['courses'] = mockProcessed;
-        expect(service['courses']).toEqual(mockProcessed);
-
-        service.getGradedAssignments(); 
-
-        service['courses'].forEach(() => {
-            const req = httpMock.expectOne(`${getBackendURL()}/api/v1/courses/graded_assignments`);
-            expect(req.request.method).toBe('POST');
-            req.flush(mockGraded);
-            tick();
-        });
-
-        service['courses'].forEach(course => {
-            expect(course.assignments).toEqual(mockGraded);
-        });
-    }));
 
     it('Get assignments due soon', fakeAsync(() => {
         const dueSoon = mockDueSoon;

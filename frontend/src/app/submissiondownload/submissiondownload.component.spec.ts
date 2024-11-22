@@ -26,7 +26,7 @@ describe('SubmissiondownloadComponent', () => {
                     name: 'course1',
                     image_download_url: null,
                     computed_current_score: null,
-                    assignments: []
+                    gradelog: [],
                 }
             },
             {
@@ -36,7 +36,7 @@ describe('SubmissiondownloadComponent', () => {
                     name: 'course2',
                     image_download_url: null,
                     computed_current_score: null,
-                    assignments: []
+                    gradelog: [],
                 }
             }
         ]

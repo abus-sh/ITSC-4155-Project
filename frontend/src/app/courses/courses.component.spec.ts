@@ -24,48 +24,10 @@ describe('CoursesComponent', () => {
 
         fixture = TestBed.createComponent(CoursesComponent);
         component = fixture.componentInstance;
-
-        canvasService.getCourses.and.returnValue(Promise.resolve());
-        canvasService.getGradedAssignments.and.returnValue(Promise.resolve());
-
-        canvasService.courses$.next([
-            {
-                id: 1,
-                name: 'Course 1',
-                image_download_url: 'url1',
-                computed_current_score: 90,
-                assignments: [
-                    {
-                        assignment_id: '1',
-                        html_url: 'http://example.com/assignment1',
-                        name: 'Assignment 1',
-                        score: 95,
-                        points_possible: 100
-                    }
-                ],
-                showAssignments: false
-            }
-        ]);
         fixture.detectChanges();
     });
 
     it('Creating the courses component', () => {
         expect(component).toBeTruthy();
-    });
-
-    it('Check component for mock course with mock graded assignment', () => {
-        expect(component.courses.length).toBe(1);
-        expect(component.courses[0].name).toBe('Course 1');
-        expect(component.courses[0].assignments.length).toBe(1);
-        expect(component.courses[0].assignments[0].name).toBe('Assignment 1');
-    });
-
-    it('Toggle course assignments visibility', () => {
-        const course = component.courses[0];
-        expect(course.showAssignments).toBeFalse();
-        component.toggleAssignments(course);
-        expect(course.showAssignments).toBeTrue();
-        component.toggleAssignments(course);
-        expect(course.showAssignments).toBeFalse();
     });
 });
