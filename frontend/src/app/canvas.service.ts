@@ -32,6 +32,8 @@ export class CanvasService {
     private subTaskUrl = getBackendURL() + '/api/v1/tasks';
     private downloadSubmissionUrl = getBackendURL() + '/api/v1/courses/ID/submissions';
     private undatedAssignmentsUrl = getBackendURL() + '/api/v1/courses/ID/undated_assignments';
+    private customDueDateUrl = getBackendURL() +
+        '/api/v1/courses/CID/assignments/AID/custom_due_date';
 
     courses$ = new Subject<Course[]>();
     private courses: Course[] = [];
@@ -108,6 +110,20 @@ export class CanvasService {
         });
 
         return assignments;
+    }
+
+    async setCustomDueDate(assignment: Assignment, due_date: string) {
+        if (assignment.course_id === undefined || assignment.id === undefined) {
+            return;
+        }
+
+        const url = this.customDueDateUrl
+            .replace('CID', assignment.course_id.toString())
+            .replace('AID', assignment.id.toString());
+        const body = {
+            due_date
+        };
+        await firstValueFrom(this.http.post(url, body, { withCredentials: true }));
     }
 
     async getGradedAssignmentsForCourse(courseId: number) {

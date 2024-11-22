@@ -241,9 +241,18 @@ export class DashboardComponent implements OnInit {
             return;
         }
 
+        let element = event.target as HTMLElement;
+
+        // Exclude custom date input box
+        if (element.tagName === "INPUT") {
+            const input = element as HTMLInputElement;
+            if (input.name === "due-date") {
+                return;
+            }
+        }
+
         // Find the closest div parent to this element
         // This allows us to determine if we are clicking a submenu that should not trigger the menu
-        let element = event.target as HTMLElement;
         while (element.tagName !== "DIV") {
             if (element.parentElement === null) {
                 return;
@@ -324,5 +333,21 @@ export class DashboardComponent implements OnInit {
         const daysDifference = timeDifference / (1000 * 3600 * 24);
 
         return Math.floor(daysDifference);
+    }
+
+    setCustomDueDate(assignment: Assignment, event: MouseEvent | KeyboardEvent) {
+        if (event.target === null || !(event.target instanceof HTMLElement)) {
+            return;
+        }
+
+        let element: HTMLElement | null = event.target as HTMLElement;
+        while (element !== null && !element.classList.contains('assignment-card')) {
+            element = element.parentElement;
+        }
+        if (element === null) {
+            return;
+        }
+        const due_date = (element.children[1].children[1] as HTMLInputElement).value;
+        this.canvasService.setCustomDueDate(assignment, due_date);
     }
 }

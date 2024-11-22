@@ -75,11 +75,16 @@
                 <p *ngIf="assignment.user_description && assignment.user_description !== ''"
                     title="A note exists for this assignment.">📝</p>
             </div>
+            <p class="assignment-duedate" *ngIf="assignment.due_at">
+                <label for="due-date"><strong>Custom Due Date</strong>:</label>
+                <input type="datetime-local" maxlength="20" [value]="assignment.due_at" name="due-date">
+            </p>
             <p class="assignment-course">{{ assignment.context_name }}</p>
             <div class="assignment-buttons">
                 <button class="dropdown-toggle" (click)="openSendMessageForm(assignment)" *ngIf="assignment.id">Email</button>
                 <a class="assignment-link" [href]="assignment.html_url" target="_blank" *ngIf="assignment.html_url">View
                     Assignment</a>
+                <button class="dropdown-toggle" *ngIf="assignment.id" (click)="setCustomDueDate(assignment, $event)">Set Due Date</button>
             </div>
         </div>
     </div>
