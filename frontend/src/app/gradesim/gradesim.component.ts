@@ -27,6 +27,9 @@ export class GradesimComponent implements OnInit {
     }
 
     calculateFinalGrade(gradeScale: CourseLog[]): number {
+        /*
+        * This function calculates the final grade of a course based on the grade scale.
+        */
         let topCalc = 0.0;
         let bottomCalc = 0.0;
 
@@ -56,11 +59,19 @@ export class GradesimComponent implements OnInit {
     }
 
     onScoreChange(assignment: GradeAssignment, event: any) {
-        assignment.score = +event.target.value;
+        /*
+        * This function is called whenever the user changes the score of an assignment.
+        */
+        let newScore = +event.target.value;
+        if (newScore < 0) {
+            newScore = 0;
+            event.target.value = 0;
+        }
+        assignment.score = newScore;
         if (this.log_course && this.log_course.gradelog) {
             const finalGrade = this.calculateFinalGrade(this.log_course.gradelog);
             console.log(`Final Grade: ${finalGrade.toFixed(2)}%`);
-            document.getElementById('potentialScore')!.innerText = `>Final Grade: ${finalGrade.toFixed(2)}%`;
+            document.getElementById('potentialScore')!.innerText = `Final Grade: ${finalGrade.toFixed(2)}%`;
         }
         console.log('Score changed');
     }

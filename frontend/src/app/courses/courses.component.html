@@ -10,7 +10,12 @@
                 <ng-template #no_grade>No grade available</ng-template>
             </div>
 
-            <button class="toggle-btn" (click)="openSimulationForm(course)">Grading Simulation</button>
+            <button class="toggle-btn" 
+                    [disabled]="!course.isGradeLogLoaded" 
+                    [ngClass]="{'disabled-btn': !course.isGradeLogLoaded}" 
+                    (click)="openSimulationForm(course)">
+                Grading Simulation
+            </button>
 
         </div>
     </div>

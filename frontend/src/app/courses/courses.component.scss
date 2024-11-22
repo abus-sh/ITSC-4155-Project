@@ -109,6 +109,11 @@
     background-color: #0056b3;
 }
 
+.disabled-btn {
+    background-color: gray;
+    cursor: not-allowed;
+}
+
 .assignments {
     margin-top: 15px;
     text-align: left;

@@ -26,6 +26,7 @@ export interface Course {
     image_download_url: string | null;
     computed_current_score: string | number | null;
     gradelog?: CourseLog[];
+    isGradeLogLoaded?: boolean;
 }
 
 interface Enrollment {
@@ -77,9 +78,11 @@ export class CoursesComponent {
         }).subscribe({
             next: (gradeLog) => {
                 course.gradelog = gradeLog;
+                course.isGradeLogLoaded = true;
             },
             error: (error) => {
                 console.error(`Failed to fetch grade simulation for course ${course.id}`, error);
+                course.isGradeLogLoaded = false;
             }
         });
     }

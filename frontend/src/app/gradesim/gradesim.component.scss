@@ -105,6 +105,14 @@ tr:hover {
     width: 60px;
     padding: 5px;
     text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.score-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
 .wide-column {

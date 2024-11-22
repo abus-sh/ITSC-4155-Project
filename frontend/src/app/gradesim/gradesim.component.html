@@ -1,7 +1,7 @@
 <div class="modal-content grade-sim">
     <div class="sticky-header">
         <button class="close-button" (click)="closeGradeSimForm()">&#10005;</button>
-        <div id="potentialScore" class="fixed-score">Final Grade: {{ log_course?.computed_current_score }}</div>
+        <div id="potentialScore" class="fixed-score">Final Grade: {{ log_course?.computed_current_score }}%</div>
     </div>
     <hr>
     <table id="gradeBookTable">
@@ -20,7 +20,7 @@
                     <td>{{ assignment.name }}</td>
                     <td>{{ assignment.score !== null ? assignment.score : '-' }} / {{ assignment.max_score }}</td>
                     <td>
-                        <input type="number" [placeholder]="assignment.score !== null ? assignment.score : 'null'" (change)="onScoreChange(assignment, $event)" />
+                        <input type="number" class="score-input" [placeholder]="assignment.score !== null ? assignment.score : 'null'" (change)="onScoreChange(assignment, $event)">
                     </td>
                 </tr>
             </ng-container>
