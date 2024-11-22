@@ -5,7 +5,6 @@ from canvasapi.calendar_event import CalendarEvent
 from canvasapi.course import Course
 from canvasapi.current_user import CurrentUser
 from canvasapi.submission import Submission
-from functools import reduce
 import os.path
 import tempfile
 

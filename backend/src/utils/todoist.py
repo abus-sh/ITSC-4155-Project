@@ -295,7 +295,7 @@ def add_shared_subtask(current_user: User, todoist_key: str, invitation_id: int,
 
 
                 # Create subtask in database
-                result = queries.create_shared_subtask(current_user, subtask, todoist_id)
+                queries.create_shared_subtask(current_user, subtask, todoist_id)
                 queries.delete_invitation(current_user, invitation_id)
                 return True
         except Exception as e:

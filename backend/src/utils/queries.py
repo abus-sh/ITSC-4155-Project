@@ -5,7 +5,6 @@ from todoist_api_python.api import TodoistAPI
 from requests.exceptions import HTTPError
 from sqlalchemy import select, or_
 import sqlalchemy.exc
-import requests
 from datetime import datetime
 
 #########################################################################
