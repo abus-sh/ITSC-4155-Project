@@ -10,10 +10,10 @@
                 <ng-template #no_grade>No grade available</ng-template>
             </div>
 
-            <button class="toggle-btn" (click)="openSimulationForm(course.gradelog)">Grading Simulation</button>
+            <button class="toggle-btn" (click)="openSimulationForm(course)">Grading Simulation</button>
 
         </div>
     </div>
     <app-gradesim class="modal" *ngIf="simulationFormDisplay" (closeGradeSimAction)="closeSimulationForm()"
-    [courseLog]="simulationGradelog"></app-gradesim>
+    [full_course]="simulationCourse"></app-gradesim>
 </div>

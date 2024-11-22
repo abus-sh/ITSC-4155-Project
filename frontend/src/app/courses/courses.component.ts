@@ -7,7 +7,7 @@ import { HttpClient } from '@angular/common/http';
 
 
 
-interface GradeAssignment {
+export interface GradeAssignment {
     name: string;
     max_score: number;
     score: number;
@@ -25,7 +25,7 @@ export interface Course {
     name: string;
     image_download_url: string | null;
     computed_current_score: string | number | null;
-    gradelog?: CourseLog;
+    gradelog?: CourseLog[];
 }
 
 interface Enrollment {
@@ -54,7 +54,7 @@ export interface APIAssignment {
 export class CoursesComponent {
     public courses: Course[] = [];
     simulationFormDisplay = false;
-    simulationGradelog?: CourseLog;
+    simulationCourse?: Course;
 
     constructor(private canvasService: CanvasService, private http: HttpClient) {
         this.canvasService.courses$.subscribe((courses) => {
@@ -72,7 +72,7 @@ export class CoursesComponent {
     }
 
     private fetchGradeSimulation(course: Course) {
-        this.http.get<CourseLog>(`${getBackendURL()}/api/v1/courses/get_grade_simulation/${course.id}`, {
+        this.http.get<CourseLog[]>(`${getBackendURL()}/api/v1/courses/get_grade_simulation/${course.id}`, {
             withCredentials: true
         }).subscribe({
             next: (gradeLog) => {
@@ -88,10 +88,10 @@ export class CoursesComponent {
     /*      GRADE SIMULATION FORM         */
 
     // Open the grade simulation form
-    openSimulationForm(gradeLog: CourseLog | undefined) {
-        if (gradeLog !== undefined) {
+    openSimulationForm(course: Course) {
+        if (course.gradelog !== undefined) {
             this.simulationFormDisplay = true;
-            this.simulationGradelog = gradeLog;
+            this.simulationCourse = course;
         }
     }
 

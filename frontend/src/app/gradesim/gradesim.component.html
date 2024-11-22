@@ -1,18 +1,29 @@
-<div class="modal-content">
-    <button class="close-button" (click)="closeGradeSimForm()">&#10005;</button>
-    <h2>Canvas Grade Book</h2>
+<div class="modal-content grade-sim">
+    <div class="sticky-header">
+        <button class="close-button" (click)="closeGradeSimForm()">&#10005;</button>
+        <div id="potentialScore" class="fixed-score">Final Grade: {{ log_course?.computed_current_score }}</div>
+    </div>
+    <hr>
     <table id="gradeBookTable">
         <thead>
             <tr>
+                <th>Type</th>
                 <th>Assignment</th>
-                <th>Score</th>
-                <th>Max Score</th>
-                <th>Edit</th>
+                <th class="wide-column">Score / Max Score</th>
+                <th>Edit Score</th>
             </tr>
         </thead>
         <tbody>
+            <ng-container *ngFor="let courseLog of log_course?.gradelog">
+                <tr *ngFor="let assignment of courseLog.assignments">
+                    <td>{{ courseLog.name }}</td>
+                    <td>{{ assignment.name }}</td>
+                    <td>{{ assignment.score !== null ? assignment.score : '-' }} / {{ assignment.max_score }}</td>
+                    <td>
+                        <input type="number" [placeholder]="assignment.score !== null ? assignment.score : 'null'" (change)="onScoreChange(assignment, $event)" />
+                    </td>
+                </tr>
+            </ng-container>
         </tbody>
     </table>
-    <button id="calculatePotential" class="send-message-button">Calculate Potential Score</button>
-    <div id="potentialScore"></div>
 </div>

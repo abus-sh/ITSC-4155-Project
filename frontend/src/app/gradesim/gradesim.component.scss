@@ -1,5 +1,10 @@
-.modal-content {
-    max-width: 80%;
+.modal-content.grade-sim {
+    max-width: 50%;
+    min-width: 680px;
+    max-height: 80vh;
+    overflow-y: auto; 
+    padding: 0 20px 20px 20px;
+    position: relative;
 }
 
 .selected-recipient-container {
@@ -87,9 +92,9 @@ table {
 }
 
 th, td {
-    padding: 10px;
-    text-align: left;
+    padding: 15px;
     border-bottom: 1px solid #ddd;
+    text-align: center;
 }
 
 tr:hover {
@@ -100,6 +105,32 @@ tr:hover {
     width: 60px;
     padding: 5px;
     text-align: center;
+}
+
+.wide-column {
+    width: 150px; /* Adjust the width as needed */
+}
+
+.fixed-score {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    padding: 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    padding: 10px;
+    z-index: 10;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 @import "../dashboard/dashboard.component.scss"
