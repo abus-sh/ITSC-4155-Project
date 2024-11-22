@@ -136,8 +136,8 @@ def get_course_submissions(courseid):
             # Delete the archive
             try:
                 os.remove(zip_file)
-            except Exception as e:
-
+            except Exception:
+                pass
 
             return response
 
@@ -220,7 +220,7 @@ def get_graded_assignments():
                     one_graded[extra_field] = assignment_details.get(extra_field, None)
 
             graded_assignments.append(one_graded)
-    except Exception as e:
+    except Exception:
 
         return 'Unable to make request to Canvas API', 400
     except AttributeError:

@@ -111,10 +111,10 @@ def get_assignments_due_soon():  # noqa: C901
         for id in descriptions:
             canvas_assignments[id]['user_description'] = descriptions[id]
 
-    except Exception as e:
+    except Exception:
 
         return 'Unable to make request to Canvas API', 400
-    except AttributeError as e:
+    except AttributeError:
 
         return 'Unable to get field for courses', 404
     return jsonify(assignments_due_soon), 200
@@ -150,10 +150,10 @@ def get_missing_submissions():
         for assignment in missing_submissions:
             miss_assignment = {field: getattr(assignment, field, None) for field in fields}
             miss_assignments_list.append(miss_assignment)
-    except Exception as e:
+    except Exception:
 
         return 'Unable to make request to Canvas API', 400
-    except AttributeError as e:
+    except AttributeError:
 
         return 'Unable to get field for courses', 404
     return jsonify(miss_assignments_list), 200
@@ -196,7 +196,7 @@ def get_calendar_events():
 
             calendar_events.append(single_event)
 
-    except Exception as e:
+    except Exception:
 
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
@@ -233,7 +233,7 @@ def send_message_to_professor_ta():
         if result is False:
             return 'Unable to create conversation successfully', 400
 
-    except Exception as e:
+    except Exception:
 
         return 'Unable to make request to Canvas API', 400
     except AttributeError:
@@ -293,8 +293,7 @@ def get_notifications():
         if invitations:
             invitations_list['invitation'] = queries.compose_invitations(invitations)
 
-    except Exception as e:
-
+    except Exception:
         return 'Unable to retrieve notifications', 400
     return jsonify(invitations_list), 200
 
@@ -321,8 +320,7 @@ def send_invitation():
         if not sent:
             return 'Unable to send invitation', 400
 
-    except Exception as e:
-
+    except Exception:
         return 'Error while sending invitation', 400
     return jsonify('Invitation sent!'), 200
 
@@ -342,7 +340,6 @@ def respond_invitation():
         if not result:
             return 'Unable to respond to invitation', 400
 
-    except Exception as e:
-
+    except Exception:
         return 'Error while sending invitation', 400
     return jsonify('Responded to invitation successfully!'), 200

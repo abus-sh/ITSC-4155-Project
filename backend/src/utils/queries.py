@@ -62,7 +62,7 @@ def add_user(username: str, password: str, canvas_token: str, todoist_token: str
         models.db.session.add(new_user)
         models.db.session.commit()
         return True
-    except Exception as e:
+    except Exception:
         models.db.session.rollback()
 
         return False
@@ -92,9 +92,8 @@ def update_password(user: models.User, new_password: str, old_password: str):
         user.login_id = models.gen_unique_login_id()
 
         models.db.session.commit()
-    except Exception as e:
+    except Exception:
         models.db.session.rollback()
-
 
 
 def get_all_users() -> list[models.User]:
@@ -205,7 +204,6 @@ def add_or_return_task(owner: models.User | int, canvas_id: str | None,
         return new_task
     except Exception as e:
         models.db.session.rollback()
-
         raise e
 
 
@@ -223,7 +221,6 @@ def update_task_id(primary_key: str, todoist_id: str) -> None:
             models.db.session.commit()
     except Exception as e:
         models.db.session.rollback()
-
         raise e
 
 
@@ -239,7 +236,6 @@ def update_task_description(task: models.Task, description: str) -> None:
         models.db.session.commit()
     except Exception as e:
         models.db.session.rollback()
-
         raise e
 
 
@@ -453,7 +449,7 @@ def sync_task_status(owner: models.User, open_task_ids: list[int])\
 
                 task.status = models.TaskStatus.Completed
         models.db.session.commit()
-    except Exception as e:
+    except Exception:
 
         models.db.session.rollback()
 
@@ -478,7 +474,7 @@ def sync_task_status(owner: models.User, open_task_ids: list[int])\
 
         return shared_subtasks
 
-    except Exception as e:
+    except Exception:
 
         models.db.session.rollback()
         return None
@@ -603,7 +599,7 @@ def create_subtask(owner: models.User, task_id: int, subtask_name: str, todoist_
         models.db.session.add(new_subtask)
         models.db.session.commit()
         return new_subtask.id
-    except Exception as e:
+    except Exception:
         models.db.session.rollback()
 
     return False
@@ -695,7 +691,7 @@ def update_task_or_subtask_status(task: models.Task | models.SubTask,
         task.status = status
         models.db.session.commit()
         return True
-    except Exception as e:
+    except Exception:
         models.db.session.rollback()
 
     return False
@@ -716,7 +712,7 @@ def invert_subtask_status(subtask: models.SubTask) -> bool:
             if subtask.status == models.TaskStatus.Completed else models.TaskStatus.Completed
         models.db.session.commit()
         return True
-    except Exception as e:
+    except Exception:
         models.db.session.rollback()
 
     return False
@@ -748,7 +744,7 @@ def send_subtask_invitation(owner: models.User, recipient: models.User, subtask_
         models.db.session.add(task_invitation)
         models.db.session.commit()
         return True
-    except Exception as e:
+    except Exception:
 
         models.db.session.rollback()
         return False
@@ -831,13 +827,12 @@ def create_shared_subtask(owner: models.User, subtask: models.SubTask, todoist_i
         new_list.append(owner.id)
         original_subtask.shared_with = new_list
 
-
         models.db.session.add(original_subtask)
         models.db.session.add(shared_subtask)
         models.db.session.commit()
 
         return True
-    except Exception as e:
+    except Exception:
         models.db.session.rollback()
 
         return False
@@ -855,7 +850,7 @@ def delete_invitation(owner: models.User, invitation_id: int) -> None:
         if invitation and invitation.recipient_id == owner.id:
             models.db.session.delete(invitation)
             models.db.session.commit()
-    except Exception as e:
+    except Exception:
         models.db.session.rollback()
 
 
@@ -884,7 +879,7 @@ def create_new_conversation(owner: models.User, canvas_id: int, conv_id: int) ->
         models.db.session.add(new_conv)
         models.db.session.commit()
         return True
-    except Exception as e:
+    except Exception:
         models.db.session.rollback()
 
         return False
@@ -981,9 +976,8 @@ def create_filter(owner: models.User, filter: str) -> bool:
         # This means that a duplicate filter tried to be added.
         # Since it already exists, simply do nothing
         return True
-    except Exception as e:
+    except Exception:
         models.db.session.rollback()
-
 
     return False
 
@@ -1020,9 +1014,8 @@ def delete_filter(owner: models.User, filter: str) -> int | None:
         return db_id
     except ValueError:
         raise ValueError
-    except Exception as e:
+    except Exception:
         models.db.session.rollback()
-
 
     return None
 

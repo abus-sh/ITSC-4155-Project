@@ -98,10 +98,6 @@ def add_tasks_to_database(assignment: dict, due_date: str, owner: User | int, to
     if type(owner) is User:
         owner = owner.id
 
-    # Debug info, remove later
-    if type(owner) is not int:
-
-
     temp_id = str(uuid.uuid4())     # Todoist wants a unique uuid for every command
 
     # Get task from database or add it if it doesnt exists
@@ -248,7 +244,8 @@ def add_subtask(current_user: User, todoist_key: str, canvas_id: str, subtask_na
                                                         todoist_id, subtask_desc, subtask_status,
                                                         due_date)
                 return new_subtask_id, todoist_id
-        except Exception as e:
+        except Exception:
+            pass
 
     return False
 
@@ -296,7 +293,8 @@ def add_shared_subtask(current_user: User, todoist_key: str, invitation_id: int,
                 queries.create_shared_subtask(current_user, subtask, todoist_id)
                 queries.delete_invitation(current_user, invitation_id)
                 return True
-        except Exception as e:
+        except Exception:
+            pass
 
     return False
 
@@ -410,7 +408,6 @@ def toggle_shared_subtask(current_user: User, todoist_key: str, task: SubTask) -
             (current_user.id in task.shared_with or current_user.id == task.owner):
         # Get all users part of the shared subtask
         user_todoist_ids = queries.get_shared_users_subtask(task)
-
 
         results = []
         for user_id, todoist_id in user_todoist_ids:
@@ -548,9 +545,6 @@ def _send_post_todoist(todoist_url, body, headers):
         response = requests.post(todoist_url, data=body, headers=headers)
     response_data = response.json()
     if not response.ok:
-        error = response_data.get('error')
-
-
         raise Exception
     # Return response json data
     return response_data
