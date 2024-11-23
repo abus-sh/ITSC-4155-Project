@@ -10,7 +10,7 @@ from api.v1.base import api_v1  # noqa: E402
 from utils.models import db  # noqa: E402
 
 app = Flask(__name__)
-USING_SQLITE = 'DB_CONN_FILE' not in os.environ
+USING_SQLITE = True
 
 
 app.register_blueprint(auth, url_prefix='/api/auth')    # Authentication Endpoint
