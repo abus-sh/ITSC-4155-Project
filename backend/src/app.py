@@ -19,12 +19,23 @@ app.register_blueprint(api_v1, url_prefix='/api/v1')    # API V1 Endpoint
 
 # Read the connection string from a file or environment variable
 # Example of string: 'mysql+pymysql://username:password@localhost:3306/db_name'
-with open(os.environ.get('DB_CONN_FILE', '../../secrets/connection_string.txt'), 'r') as file:
+#
+#
+# ATTENTION: To make it easier to run the application locally for the grading,
+# the connection string is stored in an accessible file. This is not recommended and will not be used for production.
+#
+#
+with open(os.environ.get('DB_CONN_FILE', '../../secrets.example/connection_string.txt'), 'r') as file:
     connection_string = file.readline().strip()
 
 # Read the application secret for signing sessions
 # This should be a securely generated random value
-with open(os.environ.get('SESSION_SECRET_FILE', '../../secrets/session_secret.txt'), 'r') as file:
+#
+#
+# ATTENTION: To make it easier to run the application locally for the grading,
+# the session secret is stored in an accessible file. This is not recommended and will not be used for production.
+#
+with open(os.environ.get('SESSION_SECRET_FILE', '../../secrets.example/session_secret.txt'), 'r') as file:
     session_secret = file.readline().strip()
 
 
