@@ -11,7 +11,7 @@ http://127.0.0.1:4200. To run the frontend testing you should use `npm test` ins
 
 To run the backend locally, you must have Python 3.10 installed and install the modules described by
 `backend/requirements.txt`. If you wish to run unit tests, you must also install the modules
-described by `backend/requirements-dev.txt`. From there, you can run `python3 -m flask run` in
+described by `backend/requirements-dev.txt` (You can run the tests by using `pytest` in the root folder). From there, you can run `python3 -m flask run` in
 `backend/src` to start the backend on http://127.0.0.1:5000/.
 
 You will also need to create certain secret files to test locally. To run everything without Docker,
