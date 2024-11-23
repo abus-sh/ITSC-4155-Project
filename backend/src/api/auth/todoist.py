@@ -7,7 +7,7 @@ import requests
 
 # Todoist OAuth 2.0 Secret
 TODOIST_CLIENT = os.environ.get('TODOIST_CLIENT', '033c2a73ad3347609e9cf6ed1b0cd3fa')
-with open(os.environ.get('TODOIST_SECRET', '../../secrets/todoist_secret.txt'), 'r') as file:
+with open(os.environ.get('TODOIST_SECRET', '../../secrets.example/todoist_secret.txt'), 'r') as file:
     TODOIST_SECRET = file.readline().strip()
 
 
