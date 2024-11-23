@@ -184,6 +184,6 @@ def get_todo_secret():
     """
     Retrieves the Todoist Secret from the file.
     """
-    file = os.getenv('TODO_SECRET_FILE', '../../secrets/todoist_secret_encrypt.txt')
+    file = os.getenv('TODO_SECRET_FILE', '../../secrets.example/todoist_secret_encrypt.txt')
     with open(file, 'r') as f:
         return f.read().strip()
