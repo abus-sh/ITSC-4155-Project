@@ -7,6 +7,10 @@ import requests
 
 # Todoist OAuth 2.0 Secret
 TODOIST_CLIENT = os.environ.get('TODOIST_CLIENT', '033c2a73ad3347609e9cf6ed1b0cd3fa')
+#
+# ATTENTION: To make it easier to run the application locally for the grading,
+# the secret is stored in an accessible file. This is not recommended and will not be used for production.
+#
 with open(os.environ.get('TODOIST_SECRET', '../../secrets.example/todoist_secret.txt'), 'r') as file:
     TODOIST_SECRET = file.readline().strip()
 
