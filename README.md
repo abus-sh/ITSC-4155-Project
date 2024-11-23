@@ -2,10 +2,12 @@
 This is a final project for ITSC 4155. It integrates with Canvas and Todoist to automatically add
 action items from courses in Canvas to Todoist as tasks.
 
+Info: Make sure to start the server one time at least before running the test, so that the database can be created.
+
 ## Local Development
 To run the frontend locally, you must have Node 20 installed and install the packages described by
 `frontend/package.json`. From there, you can run `ng serve` in `frontend` to start the frontend on
-http://127.0.0.1:4200.
+http://127.0.0.1:4200. To run the frontend testing you should use `npm test` inside of the frontend folder.
 
 To run the backend locally, you must have Python 3.10 installed and install the modules described by
 `backend/requirements.txt`. If you wish to run unit tests, you must also install the modules
